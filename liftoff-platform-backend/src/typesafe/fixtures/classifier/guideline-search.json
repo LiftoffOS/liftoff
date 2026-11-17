@@ -1,0 +1,34 @@
+{
+  "set": {
+    "id": "classifier",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "tool": {
+      "name": "search_contacts",
+      "description": "Search contacts by name or email. Returns matching records."
+    }
+  },
+  "expect": {
+    "customerCommunication": {
+      "choice": "no"
+    },
+    "financialActions": {
+      "choice": "no"
+    },
+    "dataChanges": {
+      "choice": "no"
+    },
+    "externalPublishing": {
+      "choice": "no"
+    },
+    "hiringDecisions": {
+      "choice": "no"
+    },
+    "effect": {
+      "choice": "read"
+    }
+  },
+  "note": "Guideline sentence from the classification prompt, in the direction it states. Read-only tools carry no category. 1b: search_* is read."
+}

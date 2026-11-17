@@ -1,0 +1,11 @@
+# Triggers I1: per-record deadline language ("renewal ... due within") in
+# responsibilities AND a durable catalog-declared anchoring field
+# (synthetic_crm.account.renewal_date). Against an empty catalog it must NOT
+# trigger — proving the catalog-side gate.
+role: Renewals Analyst
+responsibilities: >
+  Monitor customer account renewal dates and flag every account whose renewal
+  is due within the next 30 days so the success team can reach out early.
+requiredConnectors:
+  - connectorType: synthetic_crm
+    capability: crm

@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/connector-list-tools.request.schema.json",
+  "title": "ConnectorListToolsRequest",
+  "description": "Request body for POST /api/connectors/list-tools — returns the tool schema for every function a connector type exposes. connectorTypes optional filter (empty = every type). cachedVersion lets callers skip the payload when the registry is unchanged.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "tenantContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tenantId": { "type": "string", "minLength": 1 },
+        "workflowId": { "type": "string" },
+        "agentId": { "type": "string" },
+        "actorId": { "type": "string" }
+      }
+    },
+    "connectorTypes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "cachedVersion": { "type": "string" },
+    "idempotencyKey": { "type": "string", "minLength": 1 }
+  }
+}

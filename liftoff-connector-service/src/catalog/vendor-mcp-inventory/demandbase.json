@@ -1,0 +1,44 @@
+{
+  "connectorType": "demandbase",
+  "harvestedAt": "2026-09-15",
+  "source": "vendor_docs",
+  "sourceUrl": "https://developer.demandbase.com/docs/demandbase-mcp-tool-details",
+  "tools": [
+    {
+      "name": "Retrieve Demandbase Reference Data",
+      "description": "Use Retrieve Demandbase Reference Data to find values configured in your Demandbase tenant that you want to use as filters in another tool."
+    },
+    {
+      "name": "Search Internal Account Database",
+      "description": "Use Search Internal Account Database to research companies from your internal Demandbase database. Does not support Advertising campaign data."
+    },
+    {
+      "name": "Search Internal People Database",
+      "description": "Use Search Internal Person Database to research known people from your internal Demandbase database. Does not support person lists."
+    },
+    {
+      "name": "Search External Global Company Database",
+      "description": "Use Search External Global Company Database to research companies using Demandbase global B2B intelligence. Family Tree and Competitors can be returned but not used as filters."
+    },
+    {
+      "name": "Search External Global People Database",
+      "description": "Use Search External Global People Database to research people using Demandbase global B2B intelligence. To find people at companies returned by External Global Company Database, pass the returned company IDs to companyIdsToInclude."
+    },
+    {
+      "name": "Find Net-New Contacts",
+      "description": "Use Find Net-New Contacts to find contacts that are not already in your internal Demandbase database."
+    },
+    {
+      "name": "Account-Level Intent",
+      "description": "Use Account-Level Intent to search for accounts using keyword sets, individual keywords, competitive keyword sets, and trending Intent configured in your Demandbase tenant. Intent data is only available for account records."
+    },
+    {
+      "name": "Buying Group Insights",
+      "description": "Use Buying Group Insights to assess Buying Group coverage, identify missing Personas or Buyer Roles, and find known people by Buying Group membership."
+    },
+    {
+      "name": "Create Account Brief",
+      "description": "Use Create Account Brief to create an account summary using your internal and global Demandbase data. Returns one consolidated brief and uses one account identifier per request."
+    }
+  ]
+}

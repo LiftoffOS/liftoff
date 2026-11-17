@@ -1,0 +1,15 @@
+node_modules/
+# Without the slashless form too, a worktree that SYMLINKS node_modules at the
+# main checkout (the pattern this estate uses so ~24 checkouts share one
+# dependency tree) is not ignored: git sees the symlink as a file, and
+# `node_modules/` only matches a directory. `git add -A` then stages a symlink
+# pointing at a path that exists on one machine, which breaks `npm ci` for
+# everyone else. platform-backend and the tenant runtime already carry both.
+node_modules
+dist/
+.env
+*.local
+
+# macOS Finder metadata. Not ours, not useful in a repository, and it was
+# swept into a commit once by a `git add -A`.
+.DS_Store

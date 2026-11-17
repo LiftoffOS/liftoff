@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/governance-list-approvals.request.schema.json",
+  "title": "GovernanceListApprovalsRequest",
+  "description": "Request body for POST /api/governance/approvals — HITL dashboard list query.",
+  "type": "object",
+  "required": ["tenantId"],
+  "additionalProperties": false,
+  "properties": {
+    "tenantId": { "type": "string", "minLength": 1 },
+    "statusFilter": {
+      "type": "string",
+      "enum": ["pending", "approved", "rejected", "expired"]
+    },
+    "pageSize": { "type": "integer", "minimum": 1, "maximum": 200 },
+    "pageToken": { "type": "string" }
+  }
+}

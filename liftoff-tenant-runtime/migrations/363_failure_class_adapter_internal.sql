@@ -1,0 +1,48 @@
+-- 363: failure_class learns to say "this one is ours".
+--
+-- `invocations.failure_class` is a nullable TEXT column with no CHECK
+-- constraint (see 332) — its vocabulary lives in the COMMENT below and in the
+-- FailureClass union in src/invocations/types.ts. This migration adds one
+-- member and is otherwise comment-only. No data changes, no backfill: every
+-- historical row that would now read `adapter_internal` was written `unknown`
+-- and there is nothing recorded that could tell those apart after the fact.
+--
+-- WHY IT EXISTS. A run that replays a conversation rebuilt from the canonical
+-- record onto the OpenAI engine can die with
+--
+--     TypeError: item.content.map is not a function
+--
+-- thrown inside @openai/agents, because the adapter handed it an assistant
+-- input item whose `content` was a string where the SDK requires an array. No
+-- provider is involved. Nothing carries an HTTP status or a provider error
+-- type. So the structured taxonomy added in 360 has nothing to read, the prose
+-- classifier matches none of its provider patterns, and the run is recorded
+-- `unknown` — the class whose whole purpose is to mean "nobody has classified
+-- this yet", i.e. a to-do list. A defect with our name on it goes into the pile
+-- of things nobody has looked at.
+--
+-- The distinction is not cosmetic, because the remediation is opposite:
+--
+--   provider_capacity / provider_server_error / provider_network
+--       somebody else's outage. Wait, retry, and it resolves itself.
+--   provider_auth / provider_quota
+--       somebody has to re-authenticate or top up.
+--   adapter_internal
+--       a bug in our code. Retrying reproduces it exactly, on the same input,
+--       forever. It needs a patch, and until it gets one every run down that
+--       path fails identically.
+--
+-- Hence it is NOT in idx_invocations_failure_class (the retryable index, 355):
+-- it joins provider_auth, provider_quota, task_failed and recovery_declined as
+-- terminal and never auto-retried.
+--
+-- BOUNDARY WORTH RECORDING. The class is decided from the error's constructor
+-- (TypeError, RangeError, ReferenceError, …) and NOT from its message — but the
+-- constructor alone is not sufficient, because Node's fetch throws
+-- `TypeError: fetch failed` for a genuine network drop. A transport-shaped
+-- message therefore wins over the constructor, so an outage stays
+-- provider_network and stays retryable. An existing test asserts that, which
+-- is what rules out keying on the constructor alone.
+
+COMMENT ON COLUMN invocations.failure_class IS
+  'Granular failure taxonomy for outcome=error runs (nullable; NULL for success/escalated/gated and pre-308 rows). Documented set: provider_capacity | provider_server_error | provider_network | provider_auth | provider_quota | context_overflow | adapter_internal | agent_declined | timeout | stalled | tool_error | validation | unknown | task_failed | recovery_declined | limit_reached | transient_infra (legacy). Derived at the completeInvocation site — resolveFailureClass (agent-execution/terminal-state.ts) defaults any unclassified failure to ''unknown'' so no failed run is ever written NULL — with classifyFailure supplying the class on thrown paths and the stalled-run reconciler setting ''stalled''. provider_* split out of transient_infra/unknown because the remediation differs: capacity/server_error/network retry, auth needs re-authentication, quota needs a top-up. context_overflow retries only on a FRESH session. adapter_internal (migration 363) is a fault in OUR adapter code rather than the provider''s — a runtime TypeError/RangeError/ReferenceError thrown while translating, dispatching or consuming — decided from the error constructor, except where the message names a transport failure (undici throws ''TypeError: fetch failed'' for a real network drop, which stays provider_network and stays retryable). transient_infra is legacy: still legal for historical rows, no longer written. task_failed = a healthy agent reported via report_task_outcome that the task cannot be completed (fix the environment). recovery_declined = the agent could not handle its own anomaly and the recovery advisor terminated the run (fix the agent). Those two, plus provider_auth, provider_quota and adapter_internal, are terminal and never auto-retried, hence excluded from idx_invocations_failure_class. The code also defines admission_denied | agent_busy | lifecycle_not_active, which are RESULT-LEVEL ONLY: their guards return before an invocations row exists, so those three never appear in this column. Backend-only (diagnostics + auto-retry); NOT on the audit payload. Distinct from reconciliation_status (migration 105).';

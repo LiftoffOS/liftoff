@@ -1,0 +1,308 @@
+.oversight-page {
+  padding: var(--space-6);
+  background: var(--color-white);
+  min-height: 100vh;
+}
+
+.oversight-page__header {
+  margin-bottom: var(--space-6);
+}
+
+.oversight-page__title {
+  font-size: var(--text-2xl);
+  font-weight: 400;
+  color: var(--color-black);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.oversight-page__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Section */
+.oversight-section {
+  position: relative;
+  padding: var(--space-5);
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+}
+
+.oversight-section--highlight {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-200);
+}
+
+.oversight-section__header {
+  margin-bottom: var(--space-3);
+}
+
+/* Horizontal layout for summary view */
+.oversight-section__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.oversight-section__left {
+  flex: 1;
+}
+
+.oversight-section__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+@media (min-width: 640px) {
+  .oversight-section__row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+  }
+
+  .oversight-section__left {
+    flex: 0 0 240px;
+    align-self: flex-start;
+  }
+
+  .oversight-section__right {
+    flex: 1;
+    justify-content: flex-end;
+  }
+}
+
+.oversight-section__title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0 0 2px 0;
+}
+
+.oversight-section__helper {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  margin: 0;
+}
+
+.oversight-section__more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.oversight-section__more:hover {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+.oversight-section__more svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Summary View */
+
+.oversight-section__value {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-black);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.oversight-section__description {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}
+
+.oversight-section__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.oversight-section__list li {
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  position: relative;
+  padding-left: 14px;
+}
+
+.oversight-section__list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 5px;
+  height: 5px;
+  background: var(--color-accent);
+  border-radius: 50%;
+}
+
+.oversight-section__empty {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  font-style: italic;
+}
+
+/* Actions */
+.oversight-section__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+/* Segmented Control */
+.oversight-segmented {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.oversight-segmented__option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  font: inherit;
+}
+
+.oversight-segmented__option:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-300);
+}
+
+.oversight-segmented__option--active {
+  border-color: var(--color-accent);
+  background: rgba(255, 107, 0, 0.04);
+}
+
+.oversight-segmented__label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-black);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.oversight-segmented__description {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}
+
+.oversight-segmented__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-accent);
+  background: rgba(255, 107, 0, 0.1);
+  border-radius: 9999px;
+}
+
+/* Checkboxes */
+.oversight-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.oversight-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  cursor: pointer;
+}
+
+.oversight-checkbox input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.oversight-checkbox__checkmark {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-300);
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.oversight-checkbox:hover .oversight-checkbox__checkmark {
+  border-color: var(--color-gray-400);
+}
+
+.oversight-checkbox input:checked + .oversight-checkbox__checkmark {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.oversight-checkbox input:checked + .oversight-checkbox__checkmark::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.oversight-checkbox__label {
+  font-size: var(--text-sm);
+  color: var(--color-black);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .oversight-page {
+    padding: var(--space-4);
+  }
+
+  .oversight-page__content {
+    gap: var(--space-3);
+  }
+
+  .oversight-section {
+    padding: var(--space-4);
+  }
+}

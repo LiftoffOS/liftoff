@@ -1,0 +1,30 @@
+# Installed by `npm ci` at the ROOT: one hoisted tree for all 41
+# workspace members. Never committed.
+node_modules/
+
+# Build output. `scripts/build-all.py` regenerates all of it, in
+# dependency order; a committed copy only goes stale.
+dist/
+build/
+*.tsbuildinfo
+
+# Local configuration and secrets. .env.example is the committed one.
+.env
+.env.*
+!.env.example
+
+# Terraform provider caches, lockfiles and state. A terraform
+# init writes hundreds of megabytes of providers into
+# .terraform/; none of it belongs in a repository.
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfplan
+
+# Test and tooling output.
+coverage/
+.nyc_output/
+
+# macOS.
+.DS_Store

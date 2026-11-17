@@ -1,0 +1,27 @@
+.account-deleted-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.account-deleted-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12, 4rem) var(--space-6, 1.5rem);
+  text-align: center;
+  gap: var(--space-4, 1rem);
+}
+
+.account-deleted-content h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.account-deleted-content p {
+  color: var(--color-gray-600, #555);
+  margin: 0;
+}

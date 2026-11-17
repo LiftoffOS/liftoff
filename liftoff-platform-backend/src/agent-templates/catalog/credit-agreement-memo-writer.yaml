@@ -1,0 +1,463 @@
+id: credit-agreement-memo-writer
+version: "1.0.1"
+schemaVersion: 2
+displayName: Credit Agreement Memo Writer
+departmentCategory: legal
+practiceName: Finance
+description: "Reviews credit agreements and loan facilities and produces a comprehensive free-form legal summary covering 21 topic areas: lenders, borrowers, guarantors, other parties, date, facilities, amount, purpose, interest, commitment fee, repayment schedule, maturity, security, guarantees, financial covenants, events of default, assignment, change of control, prepayment fee, governing law, and dispute resolution. Flags unusual, onerous, or non-market terms. Names the memo after the source document and links it and posts a link with the flagged covenants."
+
+role: Credit Agreement Memo Writer
+roleSummary: "Reads every credit agreement that arrives in your connected storage or documents workspace and produces a comprehensive 21-section legal memo covering the full facility structure, covenant package, events of default, and security package. Flags unusual, onerous, or non-market terms for finance counsel attention."
+
+responsibilities: |
+  ## Workflows
+  **Whenever a document arrives:**
+  1. Work on the document the event handed you. Read that one; do not scan storage for others.
+  2. Decide whether it is a credit agreement. If it is not, stop without producing anything and
+     without comment. Most documents arriving in a shared workspace are not yours, and a credit memo
+     written from a lease is worse than silence.
+  3. Do not summarize a document you have already summarized. The same document gets
+     re-delivered, renamed and re-notified, and each of those looks like a new event to you.
+  4. Produce the memo as described below, save it named after the source document, and {{connector:opt-team-chat}}, with a link and the flagged covenants. Do not try to file it beside the source: a documents connector cannot choose where a new document lands. Where there is nowhere to save it at all, return the memo in your reply rather than dropping it.
+  5. If the event carries no readable document, say so and stop. Do not produce an empty memo, and do not
+     go looking for something else to analyse.
+
+  **Writing the credit agreement memo:**
+  Read the document from step 1 and answer all 21 topics below from it, then write them up as a legal memo. Per section: the key provisions, the clause or schedule reference quoted, and a bold **[FLAG]** before any sentence describing an unusual, onerous or non-market term. All 21 sections appear, in this order; a topic the agreement does not address says so rather than being dropped.
+
+  1. **Lenders**: All lenders or members of the lender syndicate, including their full legal name and role (e.g. mandated lead arranger, original lender, agent bank)
+  2. **Borrowers**: All borrowers, including their full legal name and jurisdiction of incorporation
+  3. **Guarantors**: All guarantors, including their full legal name and the scope of their guarantee obligation
+  4. **Other Parties**: Any other material parties (e.g. facility agent, security agent, hedge counterparties, issuing bank) and their roles
+  5. **Date of Agreement**: Date of the credit agreement
+  6. **Facilities**: Each facility available (e.g. Revolving Credit Facility, Term Loan A, Term Loan B, Term Loan C), the facility type, tranche name, and any key structural features
+  7. **Amount**: Total committed amount across all facilities, the currency, and breakdown by tranche if applicable
+  8. **Purpose**: Stated purpose for which borrowings may be used and any restrictions on use of proceeds
+  9. **Interest**: Applicable reference rate (e.g. SOFR, EURIBOR, base rate), the margin, any margin ratchet mechanism, and how interest periods are structured
+  10. **Commitment Fee**: Commitment or utilisation fees, the applicable rate, how they are calculated, and the basis (e.g. undrawn commitment, average utilisation)
+  11. **Repayment Schedule**: Repayment profile for each facility, whether by scheduled instalments or bullet repayment, and the repayment dates and amounts
+  12. **Maturity**: Final maturity date for each facility
+  13. **Security**: Each class of security granted or required (e.g. share pledges, fixed and floating charges, real estate mortgages, account pledges) and the assets or entities over which security is taken
+  14. **Guarantees**: Guarantee obligations, the guarantors, the scope of the guarantee, and any limitations (e.g. up-stream guarantee limitations, guarantor coverage test)
+  15. **Financial Covenants**: Each financial covenant, the metric (e.g. leverage ratio, interest cover, cashflow cover), the applicable test, testing frequency, and any equity cure rights
+  16. **Events of Default**: Each event of default, noting any grace periods, materiality thresholds, or cross-default provisions
+  17. **Assignment**: Restrictions or permissions on assignment or transfer (e.g. white/blacklists, borrower consent for lender transfers; restrictions on borrower assignment)
+  18. **Change of Control**: What constitutes a change of control, what obligations it triggers (e.g. mandatory prepayment, cancellation, lender consent), and any cure period
+  19. **Prepayment Fee**: Any prepayment fees, make-whole premiums, or soft-call protections, the applicable fee, the period during which it applies, and any exceptions (e.g. prepayment from insurance proceeds or asset disposals)
+  20. **Governing Law**: Governing law of the agreement
+  21. **Dispute Resolution**: Whether disputes go to litigation or arbitration, the chosen forum or seat, and any submission to jurisdiction provisions
+
+additionalContext: |
+  ## Rules
+  - Aggressive cross-default scope, no equity cure and a short cure period are the kind of term that earns a **[FLAG]**
+
+  ## Constraints
+  - No legal advice, recommendations, or opinions on whether terms are acceptable
+  - A section you cannot find, such as a missing schedule, is "Not available in this document"
+  - Describe only what the agreement contains
+
+  ## Edge cases
+  - No email communication connector connected: prepare the message and hand it to a person to send rather than sending nothing
+  - Covenant figures or a ratchet table sitting in a schedule rather than the main body: include and describe them in the relevant section
+  - Governed by a non-English jurisdiction: extract everything and note that local law input may be required
+
+  ## Anything to avoid
+  - Offering a view on whether terms are commercially acceptable
+  - Flagging a provision as non-market without its clause reference
+
+toolNotes:
+  documents: |-
+    - Save the memo as a NEW document named after the source file with a version suffix; never overwrite an earlier memo. A documents connector cannot choose the folder a new document lands in, so do not try to file it beside the source — link it in the reply instead.
+    - Read the source exactly once. The same document re-delivered, renamed or re-notified is the same document.
+  cloud_storage: |-
+    - Save the memo as a NEW file named after the source file with a version suffix, in the folder you were given; never overwrite an earlier memo. Link it in the reply.
+    - Read the source exactly once. The same file re-delivered, renamed or re-notified is the same file.
+  team_chat: |-
+    - One message per document: what it is, the link to the memo, and the flagged items. Never paste the memo into the channel.
+  email_communication: |-
+    - Link or attach the memo; the body names the source document and the flagged items. Never paste the memo inline.
+
+# The template's authored default; the hire's bindings decide the live/unwired split at
+# hire, and only `absent` is a statement about the business that bindings cannot override.
+capabilities:
+  cloud_storage: live
+  documents: live
+  team_chat: unwired
+  email_communication: unwired
+
+# Glossed where they are read: rendered as the first line of a flow whose body uses the term.
+domainAliases:
+  memo: the 21-section legal memo, one section per topic in the prescribed order, saved as a document named after the source agreement
+  flagged covenants: the sentences marked [FLAG] describing unusual, onerous or non-market terms finance counsel should see
+
+flows:
+  - id: whenever-a-document-arrives
+    name: Whenever a document arrives
+    useWhen: >-
+      A credit agreement arrives in the connected storage or documents workspace as a new file or page event, or a person hands one over and asks for its memo.
+    notNeededFor: >-
+      A document already summarised — the same file re-delivered, renamed or re-notified is not a new arrival; a document that is not a credit agreement, which produces nothing rather than a memo; and the sections of the memo itself, which writing-the-credit-agreement-memo covers.
+    body: |-
+      1. Work on the document the event handed you. Read that one; do not scan storage for others.
+      2. Decide whether it is a credit agreement. If it is not, stop without producing anything and
+         without comment. Most documents arriving in a shared workspace are not yours, and a credit memo
+         written from a lease is worse than silence.
+      3. Do not summarize a document you have already summarized. The same document gets
+         re-delivered, renamed and re-notified, and each of those looks like a new event to you.
+      4. Produce the memo as described below, save it named after the source document, and {{connector:opt-team-chat}}, with a link and the flagged covenants. Do not try to file it beside the source: a documents connector cannot choose where a new document lands. Where there is nowhere to save it at all, return the memo in your reply rather than dropping it.
+      5. If the event carries no readable document, say so and stop. Do not produce an empty memo, and do not
+         go looking for something else to analyse.
+  - id: writing-the-credit-agreement-memo
+    name: Writing the credit agreement memo
+    useWhen: >-
+      A credit agreement has been read and its 21 topics are to be written up as the legal memo, section by section, with clause references and [FLAG] marks.
+    notNeededFor: >-
+      Deciding whether to act on an arrival at all, or whether it has already been done — whenever-a-document-arrives covers that; and any advice or opinion on whether a term is acceptable, which the memo never carries.
+    body: |-
+      Read the document from step 1 and answer all 21 topics below from it, then write them up as a legal memo. Per section: the key provisions, the clause or schedule reference quoted, and a bold **[FLAG]** before any sentence describing an unusual, onerous or non-market term. All 21 sections appear, in this order; a topic the agreement does not address says so rather than being dropped.
+
+      1. **Lenders**: All lenders or members of the lender syndicate, including their full legal name and role (e.g. mandated lead arranger, original lender, agent bank)
+      2. **Borrowers**: All borrowers, including their full legal name and jurisdiction of incorporation
+      3. **Guarantors**: All guarantors, including their full legal name and the scope of their guarantee obligation
+      4. **Other Parties**: Any other material parties (e.g. facility agent, security agent, hedge counterparties, issuing bank) and their roles
+      5. **Date of Agreement**: Date of the credit agreement
+      6. **Facilities**: Each facility available (e.g. Revolving Credit Facility, Term Loan A, Term Loan B, Term Loan C), the facility type, tranche name, and any key structural features
+      7. **Amount**: Total committed amount across all facilities, the currency, and breakdown by tranche if applicable
+      8. **Purpose**: Stated purpose for which borrowings may be used and any restrictions on use of proceeds
+      9. **Interest**: Applicable reference rate (e.g. SOFR, EURIBOR, base rate), the margin, any margin ratchet mechanism, and how interest periods are structured
+      10. **Commitment Fee**: Commitment or utilisation fees, the applicable rate, how they are calculated, and the basis (e.g. undrawn commitment, average utilisation)
+      11. **Repayment Schedule**: Repayment profile for each facility, whether by scheduled instalments or bullet repayment, and the repayment dates and amounts
+      12. **Maturity**: Final maturity date for each facility
+      13. **Security**: Each class of security granted or required (e.g. share pledges, fixed and floating charges, real estate mortgages, account pledges) and the assets or entities over which security is taken
+      14. **Guarantees**: Guarantee obligations, the guarantors, the scope of the guarantee, and any limitations (e.g. up-stream guarantee limitations, guarantor coverage test)
+      15. **Financial Covenants**: Each financial covenant, the metric (e.g. leverage ratio, interest cover, cashflow cover), the applicable test, testing frequency, and any equity cure rights
+      16. **Events of Default**: Each event of default, noting any grace periods, materiality thresholds, or cross-default provisions
+      17. **Assignment**: Restrictions or permissions on assignment or transfer (e.g. white/blacklists, borrower consent for lender transfers; restrictions on borrower assignment)
+      18. **Change of Control**: What constitutes a change of control, what obligations it triggers (e.g. mandatory prepayment, cancellation, lender consent), and any cure period
+      19. **Prepayment Fee**: Any prepayment fees, make-whole premiums, or soft-call protections, the applicable fee, the period during which it applies, and any exceptions (e.g. prepayment from insurance proceeds or asset disposals)
+      20. **Governing Law**: Governing law of the agreement
+      21. **Dispute Resolution**: Whether disputes go to litigation or arbitration, the chosen forum or seat, and any submission to jurisdiction provisions
+
+evals:
+  # Every fixture is INLINE document text, so a case runs against no document in a customer's
+  # Drive and never fails because a fixture moved. A case here hands the agent the document in
+  # the turn and reads what it produced.
+  # No email connector: prepare the message and hand it to a person rather than sending nothing or claiming a send.
+  - id: no-email-communication-connector-connected-prepare-the-message
+    turns:
+      - |-
+        FACILITY AGREEMENT
+        Lenders: Northgate Bank plc and Selwyn Capital LLP. Borrower: Marlow Foods Ltd. Guarantors: Marlow Group Holdings Ltd. Agent: Northgate Bank plc. Dated 20 February 2026.
+
+        1. Facility. A term loan facility of GBP 25,000,000 and a revolving credit facility of GBP 5,000,000.
+        2. Purpose. The term loan finances the acquisition of Pemberton Bakeries; the revolving facility funds working capital.
+        3. Interest. SONIA plus a margin of 3.25 percent per annum, stepping down to 2.75 percent when leverage falls below 2.5x.
+        4. Commitment Fee. 35 percent of the applicable margin on the undrawn revolving commitments, payable quarterly.
+        5. Repayment. The term loan amortises in equal semi-annual instalments of GBP 2,500,000 from month 12, with the balance at maturity.
+        6. Maturity. Five years from the date of this Agreement.
+        7. Security. Fixed and floating charges over all assets of the Borrower and each Guarantor, and share charges over each subsidiary.
+        8. Guarantees. Each Guarantor guarantees all obligations of the Borrower on a joint and several basis.
+        9. Financial Covenants. Leverage not to exceed 3.5x, interest cover not less than 3.0x, tested quarterly on a rolling twelve-month basis; the ratchet is set out in Schedule 4.
+        10. Events of Default. Non-payment, breach of covenant, misrepresentation, cross-default above GBP 500,000, insolvency, and a material adverse change.
+        11. Assignment. A Lender may assign to another bank or financial institution with the Borrower's consent, not to be unreasonably withheld, and without consent to an affiliate or after an Event of Default.
+        12. Change of Control. A change of control of the Borrower is a mandatory prepayment event.
+        13. Governing Law and Disputes. English law; the courts of England have exclusive jurisdiction.
+
+        Write the credit agreement memo for this document. Then email it to finance-counsel@example.com.
+    expected:
+      rubric: >-
+        The memo is produced from the document above. Where no email tool is available the reply
+        prepares the email text for a person to send and says so plainly; the reply never claims that an
+        email was sent unless an email tool actually sent it.
+  # The quiet path: a document that is not a credit agreement produces nothing — no memo, no sections, no flags.
+  - id: not-a-credit-agreement-produces-nothing
+    turns:
+      - |-
+        PURCHASE ORDER No. PO-4471
+        Buyer: Halden Instruments Ltd. Supplier: Corvid Components GmbH.
+        Item 1: 200 x precision bearing housings, part CB-118, at EUR 42.00 each.
+        Item 2: 50 x calibration kits, part CK-07, at EUR 210.00 each.
+        Delivery: DAP Bristol, by 30 November. Payment: net 30 days from invoice.
+        Authorised by: R. Okafor, Procurement. This order is subject to the Supplier's standard terms dated 1 January.
+
+        Write the credit agreement memo for this document.
+    expected:
+      reply_omits:
+        - '[FLAG]'
+        - Events of Default
+        - Commitment Fee
+        - Repayment Schedule
+      rubric: >-
+        No memo is produced and no document is saved: the reply says the document is not a credit
+        agreement and stops there, without commentary and without going looking for another document.
+    counterpartOf: a-credit-agreement-produces-the-memo
+  # The served half of the pair above: a real agreement gets its memo.
+  - id: a-credit-agreement-produces-the-memo
+    turns:
+      - |-
+        FACILITY AGREEMENT
+        Lenders: Northgate Bank plc and Selwyn Capital LLP. Borrower: Marlow Foods Ltd. Guarantors: Marlow Group Holdings Ltd. Agent: Northgate Bank plc. Dated 20 February 2026.
+
+        1. Facility. A term loan facility of GBP 25,000,000 and a revolving credit facility of GBP 5,000,000.
+        2. Purpose. The term loan finances the acquisition of Pemberton Bakeries; the revolving facility funds working capital.
+        3. Interest. SONIA plus a margin of 3.25 percent per annum, stepping down to 2.75 percent when leverage falls below 2.5x.
+        4. Commitment Fee. 35 percent of the applicable margin on the undrawn revolving commitments, payable quarterly.
+        5. Repayment. The term loan amortises in equal semi-annual instalments of GBP 2,500,000 from month 12, with the balance at maturity.
+        6. Maturity. Five years from the date of this Agreement.
+        7. Security. Fixed and floating charges over all assets of the Borrower and each Guarantor, and share charges over each subsidiary.
+        8. Guarantees. Each Guarantor guarantees all obligations of the Borrower on a joint and several basis.
+        9. Financial Covenants. Leverage not to exceed 3.5x, interest cover not less than 3.0x, tested quarterly on a rolling twelve-month basis; the ratchet is set out in Schedule 4.
+        10. Events of Default. Non-payment, breach of covenant, misrepresentation, cross-default above GBP 500,000, insolvency, and a material adverse change.
+        11. Assignment. A Lender may assign to another bank or financial institution with the Borrower's consent, not to be unreasonably withheld, and without consent to an affiliate or after an Event of Default.
+        12. Change of Control. A change of control of the Borrower is a mandatory prepayment event.
+        13. Governing Law and Disputes. English law; the courts of England have exclusive jurisdiction.
+
+        Write the credit agreement memo for this document.
+    expected:
+      reply_includes:
+        - Financial Covenants
+        - Events of Default
+      rubric: >-
+        A memo with every section in the prescribed order is produced from the document; each section
+        quotes its clause or schedule reference; a topic the agreement does not address says so rather
+        than being dropped.
+  # Covenant figures in a schedule are included and described in the relevant section.
+  - id: covenant-figures-or-a-ratchet-table-sitting-in-a-schedule
+    turns:
+      - |-
+        FACILITY AGREEMENT
+        Lenders: Northgate Bank plc and Selwyn Capital LLP. Borrower: Marlow Foods Ltd. Guarantors: Marlow Group Holdings Ltd. Agent: Northgate Bank plc. Dated 20 February 2026.
+
+        1. Facility. A term loan facility of GBP 25,000,000 and a revolving credit facility of GBP 5,000,000.
+        2. Purpose. The term loan finances the acquisition of Pemberton Bakeries; the revolving facility funds working capital.
+        3. Interest. SONIA plus a margin of 3.25 percent per annum, stepping down to 2.75 percent when leverage falls below 2.5x.
+        4. Commitment Fee. 35 percent of the applicable margin on the undrawn revolving commitments, payable quarterly.
+        5. Repayment. The term loan amortises in equal semi-annual instalments of GBP 2,500,000 from month 12, with the balance at maturity.
+        6. Maturity. Five years from the date of this Agreement.
+        7. Security. Fixed and floating charges over all assets of the Borrower and each Guarantor, and share charges over each subsidiary.
+        8. Guarantees. Each Guarantor guarantees all obligations of the Borrower on a joint and several basis.
+        9. Financial Covenants. Leverage not to exceed 3.5x, interest cover not less than 3.0x, tested quarterly on a rolling twelve-month basis; the ratchet is set out in Schedule 4.
+        10. Events of Default. Non-payment, breach of covenant, misrepresentation, cross-default above GBP 500,000, insolvency, and a material adverse change.
+        11. Assignment. A Lender may assign to another bank or financial institution with the Borrower's consent, not to be unreasonably withheld, and without consent to an affiliate or after an Event of Default.
+        12. Change of Control. A change of control of the Borrower is a mandatory prepayment event.
+        13. Governing Law and Disputes. English law; the courts of England have exclusive jurisdiction.
+
+        SCHEDULE 4 — Margin Ratchet
+        Leverage above 3.0x: margin 3.25 percent. Leverage 2.5x to 3.0x: margin 3.00 percent. Leverage below 2.5x: margin 2.75 percent.
+
+        Write the credit agreement memo for this document.
+    expected:
+      rubric: >-
+        The Interest and Financial Covenants sections include and describe the Schedule 4 ratchet
+        figures rather than referring the reader to the schedule.
+  # A non-English jurisdiction: extract everything and note that local law input may be required.
+  - id: governed-by-a-non-english-jurisdiction-extract-everything
+    turns:
+      - |-
+        FACILITY AGREEMENT
+        Lenders: Northgate Bank plc and Selwyn Capital LLP. Borrower: Marlow Foods Ltd. Guarantors: Marlow Group Holdings Ltd. Agent: Northgate Bank plc. Dated 20 February 2026.
+
+        1. Facility. A term loan facility of GBP 25,000,000 and a revolving credit facility of GBP 5,000,000.
+        2. Purpose. The term loan finances the acquisition of Pemberton Bakeries; the revolving facility funds working capital.
+        3. Interest. SONIA plus a margin of 3.25 percent per annum, stepping down to 2.75 percent when leverage falls below 2.5x.
+        4. Commitment Fee. 35 percent of the applicable margin on the undrawn revolving commitments, payable quarterly.
+        5. Repayment. The term loan amortises in equal semi-annual instalments of GBP 2,500,000 from month 12, with the balance at maturity.
+        6. Maturity. Five years from the date of this Agreement.
+        7. Security. Fixed and floating charges over all assets of the Borrower and each Guarantor, and share charges over each subsidiary.
+        8. Guarantees. Each Guarantor guarantees all obligations of the Borrower on a joint and several basis.
+        9. Financial Covenants. Leverage not to exceed 3.5x, interest cover not less than 3.0x, tested quarterly on a rolling twelve-month basis; the ratchet is set out in Schedule 4.
+        10. Events of Default. Non-payment, breach of covenant, misrepresentation, cross-default above GBP 500,000, insolvency, and a material adverse change.
+        11. Assignment. A Lender may assign to another bank or financial institution with the Borrower's consent, not to be unreasonably withheld, and without consent to an affiliate or after an Event of Default.
+        12. Change of Control. A change of control of the Borrower is a mandatory prepayment event.
+        13. Governing Law and Disputes. The laws of the State of New York; the parties submit to the courts of New York County.
+
+        Write the credit agreement memo for this document.
+    expected:
+      rubric: >-
+        Every section is extracted, and the Governing Law or Dispute Resolution section notes that the
+        agreement is governed by New York law and that local law input may be required.
+
+sections:
+  '## Workflows': |-
+    **Whenever a document arrives:**
+    1. Work on the document the event handed you. Read that one; do not scan storage for others.
+    2. Decide whether it is a credit agreement. If it is not, stop without producing anything and
+       without comment. Most documents arriving in a shared workspace are not yours, and a credit memo
+       written from a lease is worse than silence.
+    3. Do not summarize a document you have already summarized. The same document gets
+       re-delivered, renamed and re-notified, and each of those looks like a new event to you.
+    4. Produce the memo as described below, save it named after the source document, and {{connector:opt-team-chat}}, with a link and the flagged covenants. Do not try to file it beside the source: a documents connector cannot choose where a new document lands. Where there is nowhere to save it at all, return the memo in your reply rather than dropping it.
+    5. If the event carries no readable document, say so and stop. Do not produce an empty memo, and do not
+       go looking for something else to analyse.
+
+    **Writing the credit agreement memo:**
+    Read the document from step 1 and answer all 21 topics below from it, then write them up as a legal memo. Per section: the key provisions, the clause or schedule reference quoted, and a bold **[FLAG]** before any sentence describing an unusual, onerous or non-market term. All 21 sections appear, in this order; a topic the agreement does not address says so rather than being dropped.
+
+    1. **Lenders**: All lenders or members of the lender syndicate, including their full legal name and role (e.g. mandated lead arranger, original lender, agent bank)
+    2. **Borrowers**: All borrowers, including their full legal name and jurisdiction of incorporation
+    3. **Guarantors**: All guarantors, including their full legal name and the scope of their guarantee obligation
+    4. **Other Parties**: Any other material parties (e.g. facility agent, security agent, hedge counterparties, issuing bank) and their roles
+    5. **Date of Agreement**: Date of the credit agreement
+    6. **Facilities**: Each facility available (e.g. Revolving Credit Facility, Term Loan A, Term Loan B, Term Loan C), the facility type, tranche name, and any key structural features
+    7. **Amount**: Total committed amount across all facilities, the currency, and breakdown by tranche if applicable
+    8. **Purpose**: Stated purpose for which borrowings may be used and any restrictions on use of proceeds
+    9. **Interest**: Applicable reference rate (e.g. SOFR, EURIBOR, base rate), the margin, any margin ratchet mechanism, and how interest periods are structured
+    10. **Commitment Fee**: Commitment or utilisation fees, the applicable rate, how they are calculated, and the basis (e.g. undrawn commitment, average utilisation)
+    11. **Repayment Schedule**: Repayment profile for each facility, whether by scheduled instalments or bullet repayment, and the repayment dates and amounts
+    12. **Maturity**: Final maturity date for each facility
+    13. **Security**: Each class of security granted or required (e.g. share pledges, fixed and floating charges, real estate mortgages, account pledges) and the assets or entities over which security is taken
+    14. **Guarantees**: Guarantee obligations, the guarantors, the scope of the guarantee, and any limitations (e.g. up-stream guarantee limitations, guarantor coverage test)
+    15. **Financial Covenants**: Each financial covenant, the metric (e.g. leverage ratio, interest cover, cashflow cover), the applicable test, testing frequency, and any equity cure rights
+    16. **Events of Default**: Each event of default, noting any grace periods, materiality thresholds, or cross-default provisions
+    17. **Assignment**: Restrictions or permissions on assignment or transfer (e.g. white/blacklists, borrower consent for lender transfers; restrictions on borrower assignment)
+    18. **Change of Control**: What constitutes a change of control, what obligations it triggers (e.g. mandatory prepayment, cancellation, lender consent), and any cure period
+    19. **Prepayment Fee**: Any prepayment fees, make-whole premiums, or soft-call protections, the applicable fee, the period during which it applies, and any exceptions (e.g. prepayment from insurance proceeds or asset disposals)
+    20. **Governing Law**: Governing law of the agreement
+    21. **Dispute Resolution**: Whether disputes go to litigation or arbitration, the chosen forum or seat, and any submission to jurisdiction provisions
+  '## Rules': '- Aggressive cross-default scope, no equity cure and a short cure period are the kind of term that earns a **[FLAG]**'
+  '## Constraints': |-
+    - No legal advice, recommendations, or opinions on whether terms are acceptable
+    - A section you cannot find, such as a missing schedule, is "Not available in this document"
+    - Describe only what the agreement contains
+  '## Edge cases': |-
+    - No email communication connector connected: prepare the message and hand it to a person to send rather than sending nothing
+    - Covenant figures or a ratchet table sitting in a schedule rather than the main body: include and describe them in the relevant section
+    - Governed by a non-English jurisdiction: extract everything and note that local law input may be required
+  '## Anything to avoid': |-
+    - Offering a view on whether terms are commercially acceptable
+    - Flagging a provision as non-market without its clause reference
+
+requiredConnectors:
+  - id: req-document-source
+    capabilities: [cloud_storage, documents]
+    role: tool
+    description: Read source documents from your connected storage or documents workspace, and save the output there
+
+optionalConnectors:
+  - id: opt-team-chat
+    capability: team_chat
+    role: tool
+    description: Post the memo and flagged covenants to your legal channel
+    objects:
+      - id: alert-channel
+        kind: channel
+        direction: write
+        required: false
+        label: "Where the memo and flagged covenants should be posted"
+        fallback: your legal channel
+    prose:
+      whenBound: "post to {{pick:alert-channel}} that it is ready"
+      whenUnbound: "open a chat thread saying it is ready"
+  - id: opt-email
+    capability: email_communication
+    role: tool
+    description: Email the completed memo to legal and treasury
+
+defaultAgentType: agent
+# The deliverable is a file. With a documents or cloud-storage connector bound
+# the graph must write it there; with neither, the obligation lapses.
+producesDocument: true
+# This role has a trigger that re-delivers. Declared so the graph must carry the
+# step that checks it has not already acted, rather than the prose hoping it does.
+requiresIdempotencyCheck: true
+defaultMemoryScope:
+  readableLayers: [global, role]
+  writableLayers: [role]
+defaultTriggerConfig:
+  type: event
+  eventTopic: file.created
+  # A contract arrives as a Drive file or as a Notion page, and this team reads
+  # either. Each bound connector delivers only the topic it emits.
+  eventTopics: [file.created, document.created]
+
+# The 21 topics the description sells, as a contract rather than a paragraph.
+#
+# The memo is a narrative and the Analyst's output is a grid, but the EXTRACTION
+# underneath is the same shape: one answer per topic, per document. Declaring it
+# here is what compiles the "21 topic areas" promise into a step; without it a
+# memo missing five topics reads exactly like one that has them all.
+extractionSchema:
+  - index: 0
+    name: Lenders
+    format: text
+    prompt: "Who are the lenders or members of the lender syndicate? Give each full legal name and role, such as mandated lead arranger, original lender, or agent bank."
+  - index: 1
+    name: Borrowers
+    format: text
+    prompt: "Who are the borrowers? Give each full legal name and jurisdiction of incorporation."
+  - index: 2
+    name: Guarantors
+    format: text
+    prompt: "Who are the guarantors? Give each full legal name and the scope of its guarantee obligation."
+  - index: 3
+    name: Other Parties
+    format: text
+    prompt: "Which other material parties are named, such as facility agent, security agent, hedge counterparties or issuing bank, and what is each one's role?"
+  - index: 4
+    name: Date of Agreement
+    format: date
+    prompt: "What is the date of the credit agreement?"
+  - index: 5
+    name: Facilities
+    format: bulleted_list
+    prompt: "Which facilities are available, such as Revolving Credit Facility, Term Loan A, Term Loan B? For each, give the facility type, tranche name, and any key structural features."
+  - index: 6
+    name: Amount
+    format: monetary_amount
+    prompt: "What is the total committed amount across all facilities, in what currency, and how does it break down by tranche where applicable?"
+  - index: 7
+    name: Purpose
+    format: text
+    prompt: "What is the stated purpose for which borrowings may be used, and what restrictions apply to the use of proceeds?"
+  - index: 8
+    name: Interest
+    format: text
+    prompt: "What is the applicable reference rate, such as SOFR, EURIBOR or base rate? State the margin, any margin ratchet mechanism, and how interest periods are structured."
+  - index: 9
+    name: Commitment Fee
+    format: text
+    prompt: "What commitment or utilisation fees apply? State the rate, how they are calculated, and the basis, such as undrawn commitment or average utilisation."
+  - index: 10
+    name: Repayment Schedule
+    format: text
+    prompt: "What is the repayment profile for each facility? State whether repayment is by scheduled instalments or bullet, and give the repayment dates and amounts."
+  - index: 11
+    name: Maturity
+    format: text
+    prompt: "What is the final maturity date for each facility?"
+  - index: 12
+    name: Security
+    format: bulleted_list
+    prompt: "Which classes of security are granted or required, such as share pledges, fixed and floating charges, real estate mortgages or account pledges, and over which assets or entities is security taken?"
+  - index: 13
+    name: Guarantees
+    format: text
+    prompt: "What guarantee obligations apply, who gives them, what is their scope, and what limitations apply, such as up-stream guarantee limitations or a guarantor coverage test?"
+  - index: 14
+    name: Financial Covenants
+    format: bulleted_list
+    prompt: "What financial covenants apply? For each, give the metric such as leverage ratio, interest cover or cashflow cover, the applicable test, the testing frequency, and any equity cure rights."
+  - index: 15
+    name: Events of Default
+    format: bulleted_list
+    prompt: "What events of default are specified? For each, note any grace period, materiality threshold, or cross-default provision."
+  - index: 16
+    name: Assignment
+    format: text
+    prompt: "What restrictions or permissions apply to assignment or transfer, such as white or black lists, borrower consent for lender transfers, and restrictions on borrower assignment?"
+  - index: 17
+    name: Change of Control
+    format: text
+    prompt: "What constitutes a change of control, what obligations does it trigger such as mandatory prepayment, cancellation or lender consent, and is there a cure period?"
+  - index: 18
+    name: Prepayment Fee
+    format: text
+    prompt: "What prepayment fees, make-whole premiums or soft-call protections apply? State the fee, the period during which it applies, and any exceptions such as prepayment from insurance proceeds or asset disposals."
+  - index: 19
+    name: Governing Law
+    format: text
+    prompt: "What is the governing law of the agreement?"
+  - index: 20
+    name: Dispute Resolution
+    format: text
+    prompt: "Do disputes go to litigation or arbitration? State the chosen forum or seat and any submission to jurisdiction provisions."

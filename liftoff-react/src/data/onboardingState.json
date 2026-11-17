@@ -1,0 +1,39 @@
+{
+  "currentStep": 3,
+  "completedSteps": [1, 2],
+  "status": "in_progress",
+  "assignedLead": "Sarah Chen",
+  "targetWorkflow": "Full Pipeline",
+  "startedAt": "2024-01-10T09:00:00Z",
+  "estimatedCompletion": "2024-01-24T17:00:00Z",
+  "checklist": [
+    { "id": "kickoff", "label": "Kickoff call completed", "done": true },
+    { "id": "access", "label": "Admin access provisioned", "done": true },
+    { "id": "integrations", "label": "Core integrations connected", "done": false },
+    { "id": "team", "label": "Team roles assigned", "done": true },
+    { "id": "context", "label": "Business context captured", "done": false },
+    { "id": "policies", "label": "Review policies configured", "done": false },
+    { "id": "validation", "label": "Dry-run validated", "done": false },
+    { "id": "approval", "label": "Go-live approved", "done": false }
+  ],
+  "team": {
+    "executiveSponsor": { "name": "John Doe", "email": "john@acme.com", "role": "CEO" },
+    "itContact": { "name": "Jane Smith", "email": "jane@acme.com", "role": "IT Director" },
+    "workflowOwner": { "name": "Sarah Chen", "email": "sarah@acme.com", "role": "VP Operations" },
+    "reviewerLead": { "name": "Michael Park", "email": "michael@acme.com", "role": "Operations Manager" },
+    "approvers": [
+      { "name": "Jennifer Liu", "email": "jennifer@acme.com", "role": "Sales Director" },
+      { "name": "David Kim", "email": "david@acme.com", "role": "Finance Manager" }
+    ]
+  },
+  "availableTeamMembers": [
+    { "id": "u1", "name": "John Doe", "email": "john@acme.com", "role": "CEO" },
+    { "id": "u2", "name": "Jane Smith", "email": "jane@acme.com", "role": "IT Director" },
+    { "id": "u3", "name": "Sarah Chen", "email": "sarah@acme.com", "role": "VP Operations" },
+    { "id": "u4", "name": "Michael Park", "email": "michael@acme.com", "role": "Operations Manager" },
+    { "id": "u5", "name": "Jennifer Liu", "email": "jennifer@acme.com", "role": "Sales Director" },
+    { "id": "u6", "name": "David Kim", "email": "david@acme.com", "role": "Finance Manager" },
+    { "id": "u7", "name": "Emily Wong", "email": "emily@acme.com", "role": "Customer Success Lead" },
+    { "id": "u8", "name": "Robert Johnson", "email": "robert@acme.com", "role": "Technical Lead" }
+  ]
+}

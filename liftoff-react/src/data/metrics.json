@@ -1,0 +1,295 @@
+{
+  "today": {
+    "kpis": [
+      {
+        "id": "inbound-processed",
+        "label": "Inbound Processed",
+        "value": 187,
+        "change": 8.2,
+        "trend": "up",
+        "period": "vs yesterday"
+      },
+      {
+        "id": "qualification-time",
+        "label": "Avg. Qualification Time",
+        "value": "12 min",
+        "change": -15,
+        "trend": "up",
+        "period": "vs yesterday"
+      },
+      {
+        "id": "handoff-rate",
+        "label": "Handoff Completion",
+        "value": "96.1%",
+        "change": 2.3,
+        "trend": "up",
+        "period": "today"
+      },
+      {
+        "id": "sla-attainment",
+        "label": "SLA Attainment",
+        "value": "98.4%",
+        "change": 0.8,
+        "trend": "up",
+        "period": "today"
+      },
+      {
+        "id": "exception-rate",
+        "label": "Exception Rate",
+        "value": "2.1%",
+        "change": -0.4,
+        "trend": "up",
+        "period": "vs yesterday"
+      },
+      {
+        "id": "review-rate",
+        "label": "Human Review Rate",
+        "value": "16.2%",
+        "change": -1.8,
+        "trend": "up",
+        "period": "vs yesterday"
+      },
+      {
+        "id": "hours-saved",
+        "label": "Hours Saved",
+        "value": "48",
+        "change": 12,
+        "trend": "up",
+        "period": "today"
+      },
+      {
+        "id": "capacity-created",
+        "label": "Capacity Created",
+        "value": "0.6 FTEs",
+        "change": 0.1,
+        "trend": "up",
+        "period": "today"
+      }
+    ],
+    "operatingHealth": {
+      "entering": 12,
+      "autonomous": 146,
+      "awaitingReview": 8,
+      "exceptions": 4,
+      "completed": 187,
+      "stuck": 1
+    },
+    "roiNarrative": "Today the system handled 78% of intake autonomously (146 of 187), reduced median qualification time by 15%, and prevented 3 likely dropped handoffs. Estimated value: $8,400 in recovered revenue opportunity."
+  },
+  "week": {
+    "kpis": [
+      {
+        "id": "inbound-processed",
+        "label": "Inbound Processed",
+        "value": 1247,
+        "change": 12.5,
+        "trend": "up",
+        "period": "this week"
+      },
+      {
+        "id": "qualification-time",
+        "label": "Avg. Qualification Time",
+        "value": "14 min",
+        "change": -41,
+        "trend": "up",
+        "period": "vs last week"
+      },
+      {
+        "id": "handoff-rate",
+        "label": "Handoff Completion",
+        "value": "94.2%",
+        "change": 3.1,
+        "trend": "up",
+        "period": "this week"
+      },
+      {
+        "id": "sla-attainment",
+        "label": "SLA Attainment",
+        "value": "97.8%",
+        "change": 1.2,
+        "trend": "up",
+        "period": "this week"
+      },
+      {
+        "id": "exception-rate",
+        "label": "Exception Rate",
+        "value": "3.2%",
+        "change": -0.8,
+        "trend": "up",
+        "period": "vs last week"
+      },
+      {
+        "id": "review-rate",
+        "label": "Human Review Rate",
+        "value": "18.4%",
+        "change": -2.1,
+        "trend": "up",
+        "period": "vs last week"
+      },
+      {
+        "id": "hours-saved",
+        "label": "Hours Saved",
+        "value": "342",
+        "change": 28,
+        "trend": "up",
+        "period": "this week"
+      },
+      {
+        "id": "capacity-created",
+        "label": "Capacity Created",
+        "value": "4.3 FTEs",
+        "change": 0.6,
+        "trend": "up",
+        "period": "this week"
+      }
+    ],
+    "operatingHealth": {
+      "entering": 47,
+      "autonomous": 898,
+      "awaitingReview": 229,
+      "exceptions": 40,
+      "completed": 1156,
+      "stuck": 3
+    },
+    "roiNarrative": "This week the system handled 72% of intake autonomously (898 of 1,247), reduced median qualification time by 41%, and prevented 14 likely dropped handoffs. Estimated value: $47,200 in recovered revenue opportunity."
+  },
+  "month": {
+    "kpis": [
+      {
+        "id": "inbound-processed",
+        "label": "Inbound Processed",
+        "value": 5284,
+        "change": 18.7,
+        "trend": "up",
+        "period": "this month"
+      },
+      {
+        "id": "qualification-time",
+        "label": "Avg. Qualification Time",
+        "value": "13 min",
+        "change": -52,
+        "trend": "up",
+        "period": "vs last month"
+      },
+      {
+        "id": "handoff-rate",
+        "label": "Handoff Completion",
+        "value": "95.1%",
+        "change": 4.8,
+        "trend": "up",
+        "period": "this month"
+      },
+      {
+        "id": "sla-attainment",
+        "label": "SLA Attainment",
+        "value": "98.2%",
+        "change": 2.1,
+        "trend": "up",
+        "period": "this month"
+      },
+      {
+        "id": "exception-rate",
+        "label": "Exception Rate",
+        "value": "2.8%",
+        "change": -1.2,
+        "trend": "up",
+        "period": "vs last month"
+      },
+      {
+        "id": "review-rate",
+        "label": "Human Review Rate",
+        "value": "15.6%",
+        "change": -4.2,
+        "trend": "up",
+        "period": "vs last month"
+      },
+      {
+        "id": "hours-saved",
+        "label": "Hours Saved",
+        "value": "1,428",
+        "change": 34,
+        "trend": "up",
+        "period": "this month"
+      },
+      {
+        "id": "capacity-created",
+        "label": "Capacity Created",
+        "value": "17.8 FTEs",
+        "change": 2.4,
+        "trend": "up",
+        "period": "this month"
+      }
+    ],
+    "operatingHealth": {
+      "entering": 156,
+      "autonomous": 4016,
+      "awaitingReview": 824,
+      "exceptions": 148,
+      "completed": 4892,
+      "stuck": 12
+    },
+    "roiNarrative": "This month the system handled 76% of intake autonomously (4,016 of 5,284), reduced median qualification time by 52%, and prevented 67 likely dropped handoffs. Estimated value: $198,400 in recovered revenue opportunity."
+  },
+  "workflowPerformance": [
+    {
+      "id": "intake",
+      "name": "Intake",
+      "volume": 1247,
+      "medianTime": "12 min",
+      "automationRate": 84,
+      "reviewRate": 16,
+      "exceptionRate": 2.1,
+      "trend": 8
+    },
+    {
+      "id": "qualification",
+      "name": "Qualification",
+      "volume": 1198,
+      "medianTime": "14 min",
+      "automationRate": 72,
+      "reviewRate": 28,
+      "exceptionRate": 4.2,
+      "trend": 12
+    },
+    {
+      "id": "routing",
+      "name": "Routing",
+      "volume": 1087,
+      "medianTime": "8 min",
+      "automationRate": 91,
+      "reviewRate": 9,
+      "exceptionRate": 1.8,
+      "trend": 5
+    },
+    {
+      "id": "scheduling",
+      "name": "Scheduling",
+      "volume": 892,
+      "medianTime": "1.2 hrs",
+      "automationRate": 68,
+      "reviewRate": 32,
+      "exceptionRate": 5.1,
+      "trend": -3
+    },
+    {
+      "id": "handoff",
+      "name": "Handoff",
+      "volume": 847,
+      "medianTime": "24 min",
+      "automationRate": 79,
+      "reviewRate": 21,
+      "exceptionRate": 3.4,
+      "trend": 6
+    },
+    {
+      "id": "follow-through",
+      "name": "Follow-through",
+      "volume": 823,
+      "medianTime": "4.2 hrs",
+      "automationRate": 65,
+      "reviewRate": 35,
+      "exceptionRate": 4.8,
+      "trend": 2
+    }
+  ]
+}

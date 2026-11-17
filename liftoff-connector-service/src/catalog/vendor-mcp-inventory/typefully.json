@@ -1,0 +1,2687 @@
+{
+  "connectorType": "typefully",
+  "harvestedAt": "2026-09-15",
+  "source": "live_unauthenticated",
+  "sourceUrl": "https://mcp.typefully.com/mcp",
+  "tools": [
+    {
+      "name": "get_me",
+      "description": "Retrieve the currently authenticated Typefully user associated with your API Key",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_social_set_analytics_posts",
+      "description": "Retrieve posts with metrics for a platform in a social set between `start_date` and `end_date` (inclusive).\n\n**Required permission:** READ access to this social set.\n\nNotes:\n- `platform` is a path parameter (for example: `x`, `linkedin`).\n- This endpoint is social-set scoped and platform-scoped to support analytics expansion.\n- Currently, only `x` is supported.\n- Replies are excluded by default. Set `include_replies=true` to include them.\n- Pagination defaults to `limit=25` with max `limit=100`.\n- Date ranges larger than 366 days are rejected.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "start_date": {
+            "type": "string"
+          },
+          "end_date": {
+            "type": "string"
+          },
+          "include_replies": {
+            "default": false,
+            "description": "Include X replies in the results. Defaults to `false`, which returns only non-reply posts.",
+            "type": "boolean"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "maximum": 100,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 25,
+            "description": "Maximum number of items to return per page"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Number of items to skip from the beginning",
+            "minimum": 0,
+            "type": "number"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "platform",
+          "start_date",
+          "end_date"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_social_set_analytics_followers",
+      "description": "Retrieve daily follower counts for a platform in a social set between `start_date` and `end_date` (inclusive).\n\n**Required permission:** READ access to this social set.\n\nNotes:\n- `platform` is a path parameter (for example: `x`, `linkedin`).\n- This endpoint is social-set scoped and platform-scoped to support analytics expansion.\n- Currently, only `x` is supported.\n- Returns a totals-only daily follower series with the latest in-range follower count.\n- If `start_date` and `end_date` are omitted, defaults to the last 30 days.\n- Date ranges larger than 366 days are rejected.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Start date for the follower series (YYYY-MM-DD). Defaults to 29 days before `end_date`, or before today when `end_date` is omitted."
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "End date for the follower series (YYYY-MM-DD). Defaults to today in the social set's timezone."
+          }
+        },
+        "required": [
+          "social_set_id",
+          "platform"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_social_sets",
+      "description": "Retrieve all social sets (accounts) you can access. This includes accounts you own directly and accounts that belong to teams you are a member of.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "anyOf": [
+              {
+                "maximum": 50,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 10,
+            "description": "Maximum number of items to return per page"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Number of items to skip from the beginning",
+            "minimum": 0,
+            "type": "number"
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_social_set_details",
+      "description": "Retrieve detailed information about a social set, including every configured social media platform (X, LinkedIn, Mastodon, Threads, Bluesky) with account details and profile information.\n\n**Required permission:** READ access to the social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "social_set_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_drafts",
+      "description": "Retrieve all drafts for a specific social set with optional filtering and sorting. Drafts are ordered by last edited date (most recent first) by default.\n\n**Draft statuses:** 'draft' = saved but not scheduled. 'scheduled' = queued to auto-publish at its scheduled_date. 'planned' = dated but inert: it has a scheduled_date but will NOT auto-publish until confirmed (by setting publish_at). A planned draft whose scheduled_date has passed is NOT overdue and NOT a failure - it simply hasn't been confirmed; replan it or confirm it. 'publishing' = a publish is in flight (transient). 'published' = successfully posted. 'error' = publishing failed.\n\n**Required permission:** READ access to this social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "draft",
+                  "published",
+                  "scheduled",
+                  "planned",
+                  "error",
+                  "publishing"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by draft status. 'draft' = saved but not scheduled. 'scheduled' = queued to auto-publish at its scheduled_date. 'planned' = dated but inert: it has a scheduled_date but will NOT auto-publish until confirmed (by setting publish_at). A planned draft whose scheduled_date has passed is NOT overdue and NOT a failure - it simply hasn't been confirmed; replan it or confirm it. 'publishing' = a publish is in flight (transient). 'published' = successfully posted. 'error' = publishing failed."
+          },
+          "tag": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "order_by": {
+            "description": "Allowed order_by fields for draft listing - prevents SQL injection",
+            "enum": [
+              "created_at",
+              "-created_at",
+              "updated_at",
+              "-updated_at",
+              "scheduled_date",
+              "-scheduled_date",
+              "published_at",
+              "-published_at"
+            ],
+            "type": "string",
+            "default": "-updated_at"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "maximum": 50,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 10,
+            "description": "Maximum number of items to return per page"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Number of items to skip from the beginning",
+            "minimum": 0,
+            "type": "number"
+          }
+        },
+        "required": [
+          "social_set_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "create_draft",
+      "description": "Create a new draft with content for one or more social media platforms. The draft can be saved as a draft, planned (`plan_at`: dated but inert - it never auto-publishes until confirmed), scheduled for later publishing, or published immediately.\n\n**Account-level settings:** This endpoint automatically applies the following account-level settings if enabled: Auto-Retweet, Auto-Plug, and Natural Posting Time.\n\n**Required permission:** WRITE access to create drafts (planning included - it creates no publishing commitment). PUBLISH access is required to schedule or publish immediately.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "requestBody": {
+            "additionalProperties": false,
+            "description": "Request schema for creating a draft",
+            "properties": {
+              "platforms": {
+                "description": "Platform configurations for each social media platform",
+                "additionalProperties": false,
+                "properties": {
+                  "x": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "allOf": [
+                          {
+                            "if": {
+                              "properties": {
+                                "enabled": {
+                                  "const": true
+                                }
+                              },
+                              "required": [
+                                "enabled"
+                              ]
+                            },
+                            "then": {
+                              "required": [
+                                "posts"
+                              ]
+                            }
+                          }
+                        ],
+                        "description": "Configuration for X (Twitter)",
+                        "properties": {
+                          "enabled": {
+                            "description": "Required. Set true and include `posts` to publish to this platform; false (no `posts`) leaves it off.",
+                            "type": "boolean"
+                          },
+                          "posts": {
+                            "description": "Posts for this platform. Required when `enabled` is true; omit when false.",
+                            "items": {
+                              "additionalProperties": false,
+                              "description": "Schema for individual X post content.",
+                              "properties": {
+                                "text": {
+                                  "description": "The text content of the post.",
+                                  "maxLength": 50000,
+                                  "type": "string"
+                                },
+                                "media_ids": {
+                                  "description": "Media IDs to attach to the post; obtain them via the media upload endpoint.",
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "maxItems": 10,
+                                  "type": "array"
+                                },
+                                "hide_link_preview": {
+                                  "anyOf": [
+                                    {
+                                      "type": "boolean"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "Hide the link-preview card (the URL stays as plain text). When false, a preview is attached for the last URL. Omit (or send null) to keep the current value on update (false on create)."
+                                },
+                                "quote_post_url": {
+                                  "anyOf": [
+                                    {
+                                      "maxLength": 2048,
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "URL of the X post to quote in this post (equivalent to Typefully's 'convert to quote' action)."
+                                },
+                                "subscribers_only": {
+                                  "default": false,
+                                  "description": "Whether this individual post should be visible only to paying Subscribers. This only works for X accounts approved for creator Subscriptions.",
+                                  "type": "boolean"
+                                },
+                                "paid_partnership": {
+                                  "default": false,
+                                  "description": "Whether this post should be labeled as a paid partnership.",
+                                  "type": "boolean"
+                                },
+                                "made_with_ai": {
+                                  "default": false,
+                                  "description": "Whether this post should be labeled as made with AI.",
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "text"
+                              ],
+                              "type": "object"
+                            },
+                            "maxItems": 50,
+                            "type": "array"
+                          },
+                          "settings": {
+                            "anyOf": [
+                              {
+                                "additionalProperties": false,
+                                "description": "Settings specific to X (Twitter)",
+                                "properties": {
+                                  "reply_to_url": {
+                                    "anyOf": [
+                                      {
+                                        "maxLength": 2048,
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ],
+                                    "description": "URL of the X post to reply to. When provided, the first post in your thread will be posted as a reply."
+                                  },
+                                  "community_id": {
+                                    "anyOf": [
+                                      {
+                                        "maxLength": 255,
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ],
+                                    "description": "ID of the X community to post to. Find the ID in the community URL (e.g., x.com/i/communities/1493446837214187523). You must have permission to post to the community, otherwise publishing will fail."
+                                  },
+                                  "share_with_followers": {
+                                    "anyOf": [
+                                      {
+                                        "type": "boolean"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ],
+                                    "description": "When posting to a community, whether to also share the post to your timeline/followers. Defaults to true if not specified. Only has an effect when community_id is provided."
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "X-specific settings"
+                          }
+                        },
+                        "required": [
+                          "enabled"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "X (Twitter) configuration"
+                  },
+                  "linkedin": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "allOf": [
+                          {
+                            "if": {
+                              "properties": {
+                                "enabled": {
+                                  "const": true
+                                }
+                              },
+                              "required": [
+                                "enabled"
+                              ]
+                            },
+                            "then": {
+                              "required": [
+                                "posts"
+                              ]
+                            }
+                          }
+                        ],
+                        "description": "Configuration for LinkedIn",
+                        "properties": {
+                          "enabled": {
+                            "description": "Required. Set true and include `posts` to publish to this platform; false (no `posts`) leaves it off.",
+                            "type": "boolean"
+                          },
+                          "posts": {
+                            "description": "Posts for this platform. Required when `enabled` is true; omit when false.",
+                            "items": {
+                              "additionalProperties": false,
+                              "description": "Schema for individual LinkedIn post content.",
+                              "properties": {
+                                "text": {
+                                  "description": "The text content of the post. You can tag companies with mention syntax: @[Company Name](urn:li:organization:123456).",
+                                  "maxLength": 50000,
+                                  "type": "string"
+                                },
+                                "media_ids": {
+                                  "description": "Media IDs to attach to the post; obtain them via the media upload endpoint.",
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "maxItems": 10,
+                                  "type": "array"
+                                },
+                                "hide_link_preview": {
+                                  "anyOf": [
+                                    {
+                                      "type": "boolean"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "Hide the link-preview card (the URL stays as plain text). When false, a preview is attached for the last URL. Omit (or send null) to keep the current value on update (false on create)."
+                                },
+                                "linkedin_reshare_target": {
+                                  "anyOf": [
+                                    {
+                                      "maxLength": 2048,
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "Canonical URN or full LinkedIn post URL to reshare (repost). URLs are normalized to the canonical URN in storage and responses. Use values like urn:li:share:<id>, urn:li:ugcPost:<id>, or urn:li:groupPost:<id>."
+                                }
+                              },
+                              "required": [
+                                "text"
+                              ],
+                              "type": "object"
+                            },
+                            "maxItems": 50,
+                            "type": "array"
+                          },
+                          "settings": {
+                            "anyOf": [
+                              {
+                                "additionalProperties": false,
+                                "description": "Settings specific to LinkedIn",
+                                "properties": {},
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "LinkedIn-specific settings"
+                          }
+                        },
+                        "required": [
+                          "enabled"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "LinkedIn configuration"
+                  },
+                  "mastodon": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "allOf": [
+                          {
+                            "if": {
+                              "properties": {
+                                "enabled": {
+                                  "const": true
+                                }
+                              },
+                              "required": [
+                                "enabled"
+                              ]
+                            },
+                            "then": {
+                              "required": [
+                                "posts"
+                              ]
+                            }
+                          }
+                        ],
+                        "description": "Configuration for Mastodon",
+                        "properties": {
+                          "enabled": {
+                            "description": "Required. Set true and include `posts` to publish to this platform; false (no `posts`) leaves it off.",
+                            "type": "boolean"
+                          },
+                          "posts": {
+                            "description": "Posts for this platform. Required when `enabled` is true; omit when false.",
+                            "items": {
+                              "additionalProperties": false,
+                              "description": "Schema for individual post content on platforms with link-preview controls.",
+                              "properties": {
+                                "text": {
+                                  "description": "The text content of the post.",
+                                  "maxLength": 50000,
+                                  "type": "string"
+                                },
+                                "media_ids": {
+                                  "description": "Media IDs to attach to the post; obtain them via the media upload endpoint.",
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "maxItems": 10,
+                                  "type": "array"
+                                },
+                                "hide_link_preview": {
+                                  "anyOf": [
+                                    {
+                                      "type": "boolean"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "Hide the link-preview card (the URL stays as plain text). When false, a preview is attached for the last URL. Omit (or send null) to keep the current value on update (false on create)."
+                                }
+                              },
+                              "required": [
+                                "text"
+                              ],
+                              "type": "object"
+                            },
+                            "maxItems": 50,
+                            "type": "array"
+                          },
+                          "settings": {
+                            "anyOf": [
+                              {
+                                "additionalProperties": false,
+                                "description": "Settings specific to Mastodon",
+                                "properties": {},
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Mastodon-specific settings"
+                          }
+                        },
+                        "required": [
+                          "enabled"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Mastodon configuration"
+                  },
+                  "threads": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "allOf": [
+                          {
+                            "if": {
+                              "properties": {
+                                "enabled": {
+                                  "const": true
+                                }
+                              },
+                              "required": [
+                                "enabled"
+                              ]
+                            },
+                            "then": {
+                              "required": [
+                                "posts"
+                              ]
+                            }
+                          }
+                        ],
+                        "description": "Configuration for Threads",
+                        "properties": {
+                          "enabled": {
+                            "description": "Required. Set true and include `posts` to publish to this platform; false (no `posts`) leaves it off.",
+                            "type": "boolean"
+                          },
+                          "posts": {
+                            "description": "Posts for this platform. Required when `enabled` is true; omit when false.",
+                            "items": {
+                              "additionalProperties": false,
+                              "description": "Schema for individual post content on platforms with link-preview controls.",
+                              "properties": {
+                                "text": {
+                                  "description": "The text content of the post.",
+                                  "maxLength": 50000,
+                                  "type": "string"
+                                },
+                                "media_ids": {
+                                  "description": "Media IDs to attach to the post; obtain them via the media upload endpoint.",
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "maxItems": 10,
+                                  "type": "array"
+                                },
+                                "hide_link_preview": {
+                                  "anyOf": [
+                                    {
+                                      "type": "boolean"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "Hide the link-preview card (the URL stays as plain text). When false, a preview is attached for the last URL. Omit (or send null) to keep the current value on update (false on create)."
+                                }
+                              },
+                              "required": [
+                                "text"
+                              ],
+                              "type": "object"
+                            },
+                            "maxItems": 50,
+                            "type": "array"
+                          },
+                          "settings": {
+                            "anyOf": [
+                              {
+                                "additionalProperties": false,
+                                "description": "Settings specific to Threads",
+                                "properties": {},
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Threads-specific settings"
+                          }
+                        },
+                        "required": [
+                          "enabled"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Threads configuration"
+                  },
+                  "bluesky": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "allOf": [
+                          {
+                            "if": {
+                              "properties": {
+                                "enabled": {
+                                  "const": true
+                                }
+                              },
+                              "required": [
+                                "enabled"
+                              ]
+                            },
+                            "then": {
+                              "required": [
+                                "posts"
+                              ]
+                            }
+                          }
+                        ],
+                        "description": "Configuration for Bluesky",
+                        "properties": {
+                          "enabled": {
+                            "description": "Required. Set true and include `posts` to publish to this platform; false (no `posts`) leaves it off.",
+                            "type": "boolean"
+                          },
+                          "posts": {
+                            "description": "Posts for this platform. Required when `enabled` is true; omit when false.",
+                            "items": {
+                              "additionalProperties": false,
+                              "description": "Schema for individual post content on platforms with link-preview controls.",
+                              "properties": {
+                                "text": {
+                                  "description": "The text content of the post.",
+                                  "maxLength": 50000,
+                                  "type": "string"
+                                },
+                                "media_ids": {
+                                  "description": "Media IDs to attach to the post; obtain them via the media upload endpoint.",
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "maxItems": 10,
+                                  "type": "array"
+                                },
+                                "hide_link_preview": {
+                                  "anyOf": [
+                                    {
+                                      "type": "boolean"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "Hide the link-preview card (the URL stays as plain text). When false, a preview is attached for the last URL. Omit (or send null) to keep the current value on update (false on create)."
+                                }
+                              },
+                              "required": [
+                                "text"
+                              ],
+                              "type": "object"
+                            },
+                            "maxItems": 50,
+                            "type": "array"
+                          },
+                          "settings": {
+                            "anyOf": [
+                              {
+                                "additionalProperties": false,
+                                "description": "Settings specific to Bluesky",
+                                "properties": {},
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Bluesky-specific settings"
+                          }
+                        },
+                        "required": [
+                          "enabled"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Bluesky configuration"
+                  },
+                  "substack": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "allOf": [
+                          {
+                            "if": {
+                              "properties": {
+                                "enabled": {
+                                  "const": true
+                                }
+                              },
+                              "required": [
+                                "enabled"
+                              ]
+                            },
+                            "then": {
+                              "required": [
+                                "posts"
+                              ]
+                            }
+                          }
+                        ],
+                        "description": "Configuration for Substack Notes. Substack doesn't support threads, so `posts` must contain a single post.",
+                        "properties": {
+                          "enabled": {
+                            "description": "Required. Set true and include `posts` to publish to this platform; false (no `posts`) leaves it off.",
+                            "type": "boolean"
+                          },
+                          "posts": {
+                            "description": "Single note for this platform. Required when `enabled` is true; omit when false.",
+                            "items": {
+                              "additionalProperties": false,
+                              "description": "Schema for individual post content on platforms with link-preview controls.",
+                              "properties": {
+                                "text": {
+                                  "description": "The text content of the post.",
+                                  "maxLength": 50000,
+                                  "type": "string"
+                                },
+                                "media_ids": {
+                                  "description": "Media IDs to attach to the post; obtain them via the media upload endpoint.",
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "maxItems": 10,
+                                  "type": "array"
+                                },
+                                "hide_link_preview": {
+                                  "anyOf": [
+                                    {
+                                      "type": "boolean"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "Hide the link-preview card (the URL stays as plain text). When false, a preview is attached for the last URL. Omit (or send null) to keep the current value on update (false on create)."
+                                }
+                              },
+                              "required": [
+                                "text"
+                              ],
+                              "type": "object"
+                            },
+                            "maxItems": 1,
+                            "type": "array"
+                          },
+                          "settings": {
+                            "anyOf": [
+                              {
+                                "additionalProperties": false,
+                                "description": "Settings specific to Substack",
+                                "properties": {},
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Substack-specific settings"
+                          }
+                        },
+                        "required": [
+                          "enabled"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Substack Notes configuration"
+                  },
+                  "x_article": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "description": "Configuration for an X Article draft.",
+                        "properties": {
+                          "content_markdown": {
+                            "anyOf": [
+                              {
+                                "maxLength": 50000,
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "X Article Markdown. The first non-empty block must be `# Title`; remaining blocks are body. Supports paragraphs, blockquotes, lists, `#`/`##` headings, bold, italic, strikethrough, links, fenced code with an optional single-token language, and standalone `---`/`***` dividers (`GET` returns `---`). Code interiors stay literal. Escape delimiter-only prose such as `\\---`. Embeds must be alone on a line: `<typ:media media_id=\"...\" />`, `<typ:x-post url=\"https://x.com/user/status/123\" />`. Preserve comment-thread marker tags from `GET` when PATCHing. `GET` returns canonical Markdown, not submitted bytes. Required when creating an X Article draft; optional on PATCH when only changing `cover_media_id`."
+                          },
+                          "cover_media_id": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Optional media ID for the X Article cover image. Must reference an uploaded, ready, account-owned static image. Omit on PATCH to keep the current cover; send null to remove it."
+                          }
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "X Article configuration. This platform is standalone: do not combine it with other platforms."
+                  }
+                },
+                "type": "object"
+              },
+              "draft_title": {
+                "anyOf": [
+                  {
+                    "maxLength": 512,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Draft title, for internal organization only; not posted to social media."
+              },
+              "scratchpad_text": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Plain text scratchpad notes for the draft. Formatting is stripped."
+              },
+              "tags": {
+                "description": "Tag slugs (not names). Tags must already exist in the social set - list them via /tags.",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "type": "array"
+              },
+              "share": {
+                "default": false,
+                "description": "Whether to generate a public share URL for this draft. When true, anyone with the URL can view the draft content.",
+                "type": "boolean"
+              },
+              "publish_at": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "enum": [
+                      "now",
+                      "next-free-slot"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "When to publish: \"now\" (immediate), \"next-free-slot\" (next available posting slot), or a future ISO 8601 datetime with timezone. Omit to save as a draft. Mutually exclusive with `plan_at`. \"now\" is asynchronous: the response returns `publish_state`=\"in_progress\" while `status` stays \"draft\" and published URLs are null - success, not failure; poll GET /drafts/{id} until `publish_state`=\"finished\", then read `status` and the published URLs."
+              },
+              "plan_at": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "const": "next-free-slot",
+                    "enum": [
+                      "next-free-slot"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "When to plan the draft. A planned draft is dated but inert: it shows on the queue and calendar at its date but never auto-publishes until confirmed by later setting `publish_at`. Accepts \"next-free-slot\" or a future ISO 8601 datetime with timezone (\"now\" is not valid). Mutually exclusive with `publish_at`. Omit to save as a plain draft."
+              }
+            },
+            "required": [
+              "platforms"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "requestBody"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "get_draft",
+      "description": "Retrieve a specific draft by ID, including its content for all configured platforms, status, and scheduling information.\n\nIf the draft has comment threads, the response includes Typefully comment-thread markers in `posts[*].text` and, for X Articles, in `platforms.x_article.content_markdown`. These markers are structural anchor metadata for `GET → modify → PATCH` round-trips; preserve them exactly when editing.\n\nFor read-only display/export, pass `?exclude_comment_markers=true` to render draft text without markers. Content returned with that flag set should not be PATCHed back unless you intend to resolve or remove comment anchors.\n\n**Draft statuses:** 'draft' = saved but not scheduled. 'scheduled' = queued to auto-publish at its scheduled_date. 'planned' = dated but inert: it has a scheduled_date but will NOT auto-publish until confirmed (by setting publish_at). A planned draft whose scheduled_date has passed is NOT overdue and NOT a failure - it simply hasn't been confirmed; replan it or confirm it. 'publishing' = a publish is in flight (transient). 'published' = successfully posted. 'error' = publishing failed.\n\n**Required permission:** READ access to this social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "draft_id": {
+            "type": "number"
+          },
+          "exclude_comment_markers": {
+            "default": false,
+            "description": "When true, render `posts[*].text` as plain user-visible text without `<typ:comment-thread>` markers, and render X Article `content_markdown` without comment markers. Use only for read-only flows (LLM context windows, exports). The default (false) emits markers so a round-trip back to PATCH preserves comment anchors.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "draft_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "delete_draft",
+      "description": "Delete a draft. Requires WRITE access. You can delete your own drafts in any status (DRAFT, ERROR, SCHEDULED, PUBLISHED, PUBLISHING) with WRITE access. Drafts created by other users also require WRITE access to delete.\n\n**Required permission:** WRITE access to this social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "draft_id": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "draft_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "edit_draft",
+      "description": "Update an existing draft with partial update semantics. Only provided fields are updated; omitted fields remain unchanged. Scheduled drafts require publish access to edit.\n\n## Planning\n\nA planned draft is dated but inert: it has a `scheduled_date` but never auto-publishes until confirmed. Use `plan_at` and `publish_at` (mutually exclusive per request) to move a draft through the lifecycle:\n\n- `plan_at=<datetime|\"next-free-slot\">` on a plain draft plans it, on a planned draft moves the date (both write access), and on a scheduled draft unschedules it into a plan (publish access - it disarms a live schedule).\n- `publish_at=<datetime|\"next-free-slot\">` on a planned draft confirms it into a real schedule (publish access; echo the draft's `scheduled_date` to confirm at the planned date). `publish_at=\"now\"` publishes it immediately.\n- An explicit `plan_at=null` or `publish_at=null` clears the date and returns the draft to plain draft status (write access from planned, publish access from scheduled).\n- Content edits on a planned draft require write access only.\n\n## Note about Comment-thread markers\n\nIf the draft has comment threads, submitted `posts[*].text` and X Article `platforms.x_article.content_markdown` must preserve the Typefully comment-thread markers received from `GET /drafts/{id}`. Validation is platform-level: every comment thread anchored on a platform must appear somewhere in that platform's submitted text.\n\nRecommended edit flow: GET the draft without `exclude_comment_markers`, modify text while preserving markers exactly, then PATCH with `force_overwrite_comments: false` (the default).\n\n- `409 COMMENTS_MARKER_MISMATCH` will be thrown if an expected comment thread marker is missing unless `\"force_overwrite_comments\": true` is set, in which case the affected threads are resolved server-side.\n- `400 COMMENTS_MARKER_UNKNOWN_ID` will be thrown if you submit an id that doesn't exist on this draft. - `400 COMMENTS_MARKER_MALFORMED` will be thrown if the marker tag is malformed (bad UUID, unbalanced, attribute violations, etc.).\n\nPass `?exclude_comment_markers=true` to render the response text without markers (read-only / display rendering — does NOT skip server-side marker validation on the request body). Do not PATCH content returned with that flag unless you intend to resolve or remove comment anchors.\n\n**Required permission:** WRITE access to edit drafts. PUBLISH access is required to edit scheduled drafts, schedule, or publish.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "draft_id": {
+            "type": "number"
+          },
+          "exclude_comment_markers": {
+            "default": false,
+            "description": "Render the response's `posts[*].text` as plain text without `<typ:comment-thread>` markers, and render X Article `content_markdown` without comment markers. Render-only — does not affect request-body validation.",
+            "type": "boolean"
+          },
+          "requestBody": {
+            "additionalProperties": false,
+            "description": "Request schema for updating a draft (partial updates supported)",
+            "properties": {
+              "platforms": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "description": "Schema for all platform configurations",
+                    "properties": {
+                      "x": {
+                        "anyOf": [
+                          {
+                            "additionalProperties": false,
+                            "allOf": [
+                              {
+                                "if": {
+                                  "properties": {
+                                    "enabled": {
+                                      "const": true
+                                    }
+                                  },
+                                  "required": [
+                                    "enabled"
+                                  ]
+                                },
+                                "then": {
+                                  "required": [
+                                    "posts"
+                                  ]
+                                }
+                              }
+                            ],
+                            "description": "Configuration for X (Twitter)",
+                            "properties": {
+                              "enabled": {
+                                "description": "Required. Set true and include `posts` to publish to this platform; false (no `posts`) leaves it off.",
+                                "type": "boolean"
+                              },
+                              "posts": {
+                                "description": "Posts for this platform. Required when `enabled` is true; omit when false.",
+                                "items": {
+                                  "additionalProperties": false,
+                                  "description": "Schema for individual X post content.",
+                                  "properties": {
+                                    "text": {
+                                      "description": "The text content of the post.",
+                                      "maxLength": 50000,
+                                      "type": "string"
+                                    },
+                                    "media_ids": {
+                                      "description": "Media IDs to attach to the post; obtain them via the media upload endpoint.",
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "maxItems": 10,
+                                      "type": "array"
+                                    },
+                                    "hide_link_preview": {
+                                      "anyOf": [
+                                        {
+                                          "type": "boolean"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ],
+                                      "description": "Hide the link-preview card (the URL stays as plain text). When false, a preview is attached for the last URL. Omit (or send null) to keep the current value on update (false on create)."
+                                    },
+                                    "quote_post_url": {
+                                      "anyOf": [
+                                        {
+                                          "maxLength": 2048,
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ],
+                                      "description": "URL of the X post to quote in this post (equivalent to Typefully's 'convert to quote' action)."
+                                    },
+                                    "subscribers_only": {
+                                      "default": false,
+                                      "description": "Whether this individual post should be visible only to paying Subscribers. This only works for X accounts approved for creator Subscriptions.",
+                                      "type": "boolean"
+                                    },
+                                    "paid_partnership": {
+                                      "default": false,
+                                      "description": "Whether this post should be labeled as a paid partnership.",
+                                      "type": "boolean"
+                                    },
+                                    "made_with_ai": {
+                                      "default": false,
+                                      "description": "Whether this post should be labeled as made with AI.",
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "text"
+                                  ],
+                                  "type": "object"
+                                },
+                                "maxItems": 50,
+                                "type": "array"
+                              },
+                              "settings": {
+                                "anyOf": [
+                                  {
+                                    "additionalProperties": false,
+                                    "description": "Settings specific to X (Twitter)",
+                                    "properties": {
+                                      "reply_to_url": {
+                                        "anyOf": [
+                                          {
+                                            "maxLength": 2048,
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "null"
+                                          }
+                                        ],
+                                        "description": "URL of the X post to reply to. When provided, the first post in your thread will be posted as a reply."
+                                      },
+                                      "community_id": {
+                                        "anyOf": [
+                                          {
+                                            "maxLength": 255,
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "null"
+                                          }
+                                        ],
+                                        "description": "ID of the X community to post to. Find the ID in the community URL (e.g., x.com/i/communities/1493446837214187523). You must have permission to post to the community, otherwise publishing will fail."
+                                      },
+                                      "share_with_followers": {
+                                        "anyOf": [
+                                          {
+                                            "type": "boolean"
+                                          },
+                                          {
+                                            "type": "null"
+                                          }
+                                        ],
+                                        "description": "When posting to a community, whether to also share the post to your timeline/followers. Defaults to true if not specified. Only has an effect when community_id is provided."
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "description": "X-specific settings"
+                              }
+                            },
+                            "required": [
+                              "enabled"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "X (Twitter) configuration"
+                      },
+                      "linkedin": {
+                        "anyOf": [
+                          {
+                            "additionalProperties": false,
+                            "allOf": [
+                              {
+                                "if": {
+                                  "properties": {
+                                    "enabled": {
+                                      "const": true
+                                    }
+                                  },
+                                  "required": [
+                                    "enabled"
+                                  ]
+                                },
+                                "then": {
+                                  "required": [
+                                    "posts"
+                                  ]
+                                }
+                              }
+                            ],
+                            "description": "Configuration for LinkedIn",
+                            "properties": {
+                              "enabled": {
+                                "description": "Required. Set true and include `posts` to publish to this platform; false (no `posts`) leaves it off.",
+                                "type": "boolean"
+                              },
+                              "posts": {
+                                "description": "Posts for this platform. Required when `enabled` is true; omit when false.",
+                                "items": {
+                                  "additionalProperties": false,
+                                  "description": "Schema for individual LinkedIn post content.",
+                                  "properties": {
+                                    "text": {
+                                      "description": "The text content of the post. You can tag companies with mention syntax: @[Company Name](urn:li:organization:123456).",
+                                      "maxLength": 50000,
+                                      "type": "string"
+                                    },
+                                    "media_ids": {
+                                      "description": "Media IDs to attach to the post; obtain them via the media upload endpoint.",
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "maxItems": 10,
+                                      "type": "array"
+                                    },
+                                    "hide_link_preview": {
+                                      "anyOf": [
+                                        {
+                                          "type": "boolean"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ],
+                                      "description": "Hide the link-preview card (the URL stays as plain text). When false, a preview is attached for the last URL. Omit (or send null) to keep the current value on update (false on create)."
+                                    },
+                                    "linkedin_reshare_target": {
+                                      "anyOf": [
+                                        {
+                                          "maxLength": 2048,
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ],
+                                      "description": "Canonical URN or full LinkedIn post URL to reshare (repost). URLs are normalized to the canonical URN in storage and responses. Use values like urn:li:share:<id>, urn:li:ugcPost:<id>, or urn:li:groupPost:<id>."
+                                    }
+                                  },
+                                  "required": [
+                                    "text"
+                                  ],
+                                  "type": "object"
+                                },
+                                "maxItems": 50,
+                                "type": "array"
+                              },
+                              "settings": {
+                                "anyOf": [
+                                  {
+                                    "additionalProperties": false,
+                                    "description": "Settings specific to LinkedIn",
+                                    "properties": {},
+                                    "type": "object"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "description": "LinkedIn-specific settings"
+                              }
+                            },
+                            "required": [
+                              "enabled"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "LinkedIn configuration"
+                      },
+                      "mastodon": {
+                        "anyOf": [
+                          {
+                            "additionalProperties": false,
+                            "allOf": [
+                              {
+                                "if": {
+                                  "properties": {
+                                    "enabled": {
+                                      "const": true
+                                    }
+                                  },
+                                  "required": [
+                                    "enabled"
+                                  ]
+                                },
+                                "then": {
+                                  "required": [
+                                    "posts"
+                                  ]
+                                }
+                              }
+                            ],
+                            "description": "Configuration for Mastodon",
+                            "properties": {
+                              "enabled": {
+                                "description": "Required. Set true and include `posts` to publish to this platform; false (no `posts`) leaves it off.",
+                                "type": "boolean"
+                              },
+                              "posts": {
+                                "description": "Posts for this platform. Required when `enabled` is true; omit when false.",
+                                "items": {
+                                  "additionalProperties": false,
+                                  "description": "Schema for individual post content on platforms with link-preview controls.",
+                                  "properties": {
+                                    "text": {
+                                      "description": "The text content of the post.",
+                                      "maxLength": 50000,
+                                      "type": "string"
+                                    },
+                                    "media_ids": {
+                                      "description": "Media IDs to attach to the post; obtain them via the media upload endpoint.",
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "maxItems": 10,
+                                      "type": "array"
+                                    },
+                                    "hide_link_preview": {
+                                      "anyOf": [
+                                        {
+                                          "type": "boolean"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ],
+                                      "description": "Hide the link-preview card (the URL stays as plain text). When false, a preview is attached for the last URL. Omit (or send null) to keep the current value on update (false on create)."
+                                    }
+                                  },
+                                  "required": [
+                                    "text"
+                                  ],
+                                  "type": "object"
+                                },
+                                "maxItems": 50,
+                                "type": "array"
+                              },
+                              "settings": {
+                                "anyOf": [
+                                  {
+                                    "additionalProperties": false,
+                                    "description": "Settings specific to Mastodon",
+                                    "properties": {},
+                                    "type": "object"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "description": "Mastodon-specific settings"
+                              }
+                            },
+                            "required": [
+                              "enabled"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Mastodon configuration"
+                      },
+                      "threads": {
+                        "anyOf": [
+                          {
+                            "additionalProperties": false,
+                            "allOf": [
+                              {
+                                "if": {
+                                  "properties": {
+                                    "enabled": {
+                                      "const": true
+                                    }
+                                  },
+                                  "required": [
+                                    "enabled"
+                                  ]
+                                },
+                                "then": {
+                                  "required": [
+                                    "posts"
+                                  ]
+                                }
+                              }
+                            ],
+                            "description": "Configuration for Threads",
+                            "properties": {
+                              "enabled": {
+                                "description": "Required. Set true and include `posts` to publish to this platform; false (no `posts`) leaves it off.",
+                                "type": "boolean"
+                              },
+                              "posts": {
+                                "description": "Posts for this platform. Required when `enabled` is true; omit when false.",
+                                "items": {
+                                  "additionalProperties": false,
+                                  "description": "Schema for individual post content on platforms with link-preview controls.",
+                                  "properties": {
+                                    "text": {
+                                      "description": "The text content of the post.",
+                                      "maxLength": 50000,
+                                      "type": "string"
+                                    },
+                                    "media_ids": {
+                                      "description": "Media IDs to attach to the post; obtain them via the media upload endpoint.",
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "maxItems": 10,
+                                      "type": "array"
+                                    },
+                                    "hide_link_preview": {
+                                      "anyOf": [
+                                        {
+                                          "type": "boolean"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ],
+                                      "description": "Hide the link-preview card (the URL stays as plain text). When false, a preview is attached for the last URL. Omit (or send null) to keep the current value on update (false on create)."
+                                    }
+                                  },
+                                  "required": [
+                                    "text"
+                                  ],
+                                  "type": "object"
+                                },
+                                "maxItems": 50,
+                                "type": "array"
+                              },
+                              "settings": {
+                                "anyOf": [
+                                  {
+                                    "additionalProperties": false,
+                                    "description": "Settings specific to Threads",
+                                    "properties": {},
+                                    "type": "object"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "description": "Threads-specific settings"
+                              }
+                            },
+                            "required": [
+                              "enabled"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Threads configuration"
+                      },
+                      "bluesky": {
+                        "anyOf": [
+                          {
+                            "additionalProperties": false,
+                            "allOf": [
+                              {
+                                "if": {
+                                  "properties": {
+                                    "enabled": {
+                                      "const": true
+                                    }
+                                  },
+                                  "required": [
+                                    "enabled"
+                                  ]
+                                },
+                                "then": {
+                                  "required": [
+                                    "posts"
+                                  ]
+                                }
+                              }
+                            ],
+                            "description": "Configuration for Bluesky",
+                            "properties": {
+                              "enabled": {
+                                "description": "Required. Set true and include `posts` to publish to this platform; false (no `posts`) leaves it off.",
+                                "type": "boolean"
+                              },
+                              "posts": {
+                                "description": "Posts for this platform. Required when `enabled` is true; omit when false.",
+                                "items": {
+                                  "additionalProperties": false,
+                                  "description": "Schema for individual post content on platforms with link-preview controls.",
+                                  "properties": {
+                                    "text": {
+                                      "description": "The text content of the post.",
+                                      "maxLength": 50000,
+                                      "type": "string"
+                                    },
+                                    "media_ids": {
+                                      "description": "Media IDs to attach to the post; obtain them via the media upload endpoint.",
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "maxItems": 10,
+                                      "type": "array"
+                                    },
+                                    "hide_link_preview": {
+                                      "anyOf": [
+                                        {
+                                          "type": "boolean"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ],
+                                      "description": "Hide the link-preview card (the URL stays as plain text). When false, a preview is attached for the last URL. Omit (or send null) to keep the current value on update (false on create)."
+                                    }
+                                  },
+                                  "required": [
+                                    "text"
+                                  ],
+                                  "type": "object"
+                                },
+                                "maxItems": 50,
+                                "type": "array"
+                              },
+                              "settings": {
+                                "anyOf": [
+                                  {
+                                    "additionalProperties": false,
+                                    "description": "Settings specific to Bluesky",
+                                    "properties": {},
+                                    "type": "object"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "description": "Bluesky-specific settings"
+                              }
+                            },
+                            "required": [
+                              "enabled"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Bluesky configuration"
+                      },
+                      "substack": {
+                        "anyOf": [
+                          {
+                            "additionalProperties": false,
+                            "allOf": [
+                              {
+                                "if": {
+                                  "properties": {
+                                    "enabled": {
+                                      "const": true
+                                    }
+                                  },
+                                  "required": [
+                                    "enabled"
+                                  ]
+                                },
+                                "then": {
+                                  "required": [
+                                    "posts"
+                                  ]
+                                }
+                              }
+                            ],
+                            "description": "Configuration for Substack Notes. Substack doesn't support threads, so `posts` must contain a single post.",
+                            "properties": {
+                              "enabled": {
+                                "description": "Required. Set true and include `posts` to publish to this platform; false (no `posts`) leaves it off.",
+                                "type": "boolean"
+                              },
+                              "posts": {
+                                "description": "Single note for this platform. Required when `enabled` is true; omit when false.",
+                                "items": {
+                                  "additionalProperties": false,
+                                  "description": "Schema for individual post content on platforms with link-preview controls.",
+                                  "properties": {
+                                    "text": {
+                                      "description": "The text content of the post.",
+                                      "maxLength": 50000,
+                                      "type": "string"
+                                    },
+                                    "media_ids": {
+                                      "description": "Media IDs to attach to the post; obtain them via the media upload endpoint.",
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "maxItems": 10,
+                                      "type": "array"
+                                    },
+                                    "hide_link_preview": {
+                                      "anyOf": [
+                                        {
+                                          "type": "boolean"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ],
+                                      "description": "Hide the link-preview card (the URL stays as plain text). When false, a preview is attached for the last URL. Omit (or send null) to keep the current value on update (false on create)."
+                                    }
+                                  },
+                                  "required": [
+                                    "text"
+                                  ],
+                                  "type": "object"
+                                },
+                                "maxItems": 1,
+                                "type": "array"
+                              },
+                              "settings": {
+                                "anyOf": [
+                                  {
+                                    "additionalProperties": false,
+                                    "description": "Settings specific to Substack",
+                                    "properties": {},
+                                    "type": "object"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "description": "Substack-specific settings"
+                              }
+                            },
+                            "required": [
+                              "enabled"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Substack Notes configuration"
+                      },
+                      "x_article": {
+                        "anyOf": [
+                          {
+                            "additionalProperties": false,
+                            "description": "Configuration for an X Article draft.",
+                            "properties": {
+                              "content_markdown": {
+                                "anyOf": [
+                                  {
+                                    "maxLength": 50000,
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "description": "X Article Markdown. The first non-empty block must be `# Title`; remaining blocks are body. Supports paragraphs, blockquotes, lists, `#`/`##` headings, bold, italic, strikethrough, links, fenced code with an optional single-token language, and standalone `---`/`***` dividers (`GET` returns `---`). Code interiors stay literal. Escape delimiter-only prose such as `\\---`. Embeds must be alone on a line: `<typ:media media_id=\"...\" />`, `<typ:x-post url=\"https://x.com/user/status/123\" />`. Preserve comment-thread marker tags from `GET` when PATCHing. `GET` returns canonical Markdown, not submitted bytes. Required when creating an X Article draft; optional on PATCH when only changing `cover_media_id`."
+                              },
+                              "cover_media_id": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "description": "Optional media ID for the X Article cover image. Must reference an uploaded, ready, account-owned static image. Omit on PATCH to keep the current cover; send null to remove it."
+                              }
+                            },
+                            "type": "object"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "X Article configuration. This platform is standalone: do not combine it with other platforms."
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Platform configurations. Only provided platforms will be updated; omitted platforms remain unchanged."
+              },
+              "draft_title": {
+                "anyOf": [
+                  {
+                    "maxLength": 512,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Draft title, for internal organization only; not posted to social media. Omit to keep unchanged."
+              },
+              "scratchpad_text": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Plain text scratchpad notes for the draft. Formatting is stripped. Omit to keep unchanged."
+              },
+              "tags": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 10,
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Tag slugs (not names). Tags must already exist in the social set - list them via /tags. Omit to keep unchanged."
+              },
+              "share": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Whether to generate a public share URL. Omit to keep unchanged."
+              },
+              "publish_at": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "enum": [
+                      "now",
+                      "next-free-slot"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "When to publish: \"now\" (immediate), \"next-free-slot\", or a future ISO 8601 datetime with timezone. On a planned draft, a datetime or \"next-free-slot\" confirms the plan into a real schedule (echo `scheduled_date` from a GET to confirm at the planned date); \"now\" publishes it immediately. Explicit null returns a scheduled or planned draft to plain draft status. Mutually exclusive with `plan_at`. Omit to keep unchanged. \"now\" is asynchronous: the response returns `publish_state`=\"in_progress\" (success, not failure); poll GET /drafts/{id} until \"finished\"."
+              },
+              "plan_at": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "const": "next-free-slot",
+                    "enum": [
+                      "next-free-slot"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "When to plan. A planned draft is dated but inert: on the queue and calendar but never auto-publishing until confirmed via `publish_at`. A future datetime with timezone or \"next-free-slot\" plans a plain draft, replans a planned one, or unschedules a scheduled one into a plan (requires publish access; \"now\" invalid). Explicit null returns a planned or scheduled draft to plain draft status. Mutually exclusive with `publish_at`. Omit to keep unchanged."
+              },
+              "force_overwrite_comments": {
+                "default": false,
+                "description": "Comment-thread anchor preservation toggle. When false (the default), submitting `posts[*].text` or X Article `content_markdown` whose `<typ:comment-thread>` markers don't match the draft's stored comment threads is rejected with `409 COMMENTS_MARKER_MISMATCH`; re-include the missing markers and retry. When true, missing markers are accepted: their comment threads are resolved server-side and their anchors stripped; submitted markers still validate normally. Only JSON `true`/`false` (not `\"true\"` strings).",
+                "type": "boolean"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "draft_id",
+          "requestBody"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "create_media_upload",
+      "description": "Generate a presigned S3 upload URL for images, videos, GIFs, or PDFs. After you receive the URL, upload the file contents with a PUT request and then reference the returned media_id when creating drafts.\n\n**Uploading:** Send a plain PUT with only raw file bytes as the body — no extra headers (`Content-Type`, `Authorization`, etc.). The presigned URL signature was calculated without them, so adding headers causes a `403 SignatureDoesNotMatch`. Use `curl -T <file>` (not `--data-binary`), `requests.put(url, data=file_bytes)` in Python, or `fetch(url, {method:'PUT', body:buffer})` in JS. A successful upload returns `200` or `204`.\n\n**Required permission:** WRITE access to the social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "requestBody": {
+            "description": "Schema for media upload request",
+            "properties": {
+              "file_name": {
+                "description": "Original filename with extension (e.g., 'image.jpg', 'video.mp4'). Used for MIME type detection and display. Allowed characters: letters, numbers, hyphens, underscores, periods, parentheses. Allowed extensions: .jpg, .jpeg, .png, .webp, .gif, .mp4, .mov, .pdf",
+                "maxLength": 255,
+                "pattern": "^[a-zA-Z0-9_.()\\-]+\\.([jJ][pP][gG]|[jJ][pP][eE][gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[mM][pP]4|[mM][oO][vV]|[pP][dD][fF])$",
+                "type": "string"
+              },
+              "alt_text": {
+                "anyOf": [
+                  {
+                    "maxLength": 1000,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Accessibility description for the media, used as alt text when publishing. Can also be set later with PATCH /media/{media_id}. Platform-specific character limits are validated when the media is attached to a draft."
+              }
+            },
+            "required": [
+              "file_name"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "requestBody"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_media_status",
+      "description": "Retrieves the processing status of an uploaded media file. Poll this endpoint after uploading to check when the file is ready to use in drafts.\n\nIf no file is received before the upload URL expires (1 hour), the media transitions to 'failed' — create a new media upload and try again.\n\n**Required permission:** READ access to the social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "media_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "media_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "update_media",
+      "description": "Updates metadata of an uploaded media file. Currently supports setting or clearing `alt_text`.\n\nAlt text is copied into a draft when the media is attached (draft create or edit), so set it **before** referencing the media in a draft. To reliably change alt text on media already attached to a draft, update the media and then re-send the draft content with a draft PATCH. (Some platforms fall back to the media's current alt text when the draft snapshot has none, but only re-sending the draft content updates it everywhere.)\n\n**Required permission:** WRITE access to the social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "media_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "requestBody": {
+            "description": "Schema for media update request",
+            "properties": {
+              "alt_text": {
+                "anyOf": [
+                  {
+                    "maxLength": 1000,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Accessibility description for the media, used as alt text when publishing. Pass null to clear it. If omitted, the current value is kept."
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "media_id",
+          "requestBody"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_tags",
+      "description": "Retrieve all tags for a social set, ordered by their slugs.\n\n**Required permission:** READ access to the social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "maximum": 50,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 10,
+            "description": "Maximum number of items to return per page"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Number of items to skip from the beginning",
+            "minimum": 0,
+            "type": "number"
+          }
+        },
+        "required": [
+          "social_set_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "create_tag",
+      "description": "Create a new tag for a social set. The slug is automatically generated from the tag name, which must be unique per social set.\n\n**Required permission:** WRITE access to the social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "requestBody": {
+            "additionalProperties": false,
+            "description": "Request schema for creating a tag",
+            "properties": {
+              "name": {
+                "description": "Display name for the tag. The slug will be auto-generated from this name.",
+                "maxLength": 32,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "requestBody"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_queue_schedule",
+      "description": "Retrieve the queue schedule rules for a social set.\n\n**Required permission:** READ access to this social set.\n\nBehavior:\n- If the schedule row does not exist yet, it is created with defaults.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "social_set_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "queue_put_queue_schedule",
+      "description": "Replace the queue schedule rules for a social set.\n\n**Required permission:** ADMIN access to this social set.\nSemantics: full replacement (atomic).\n\nRule validation:\n- `h` in `0..23`, `m` in `0..59`\n- `days` values are one of: `mon,tue,wed,thu,fri,sat,sun`\n- Duplicate day+time combinations are rejected\n\nNote: `rules=[]` is allowed and represents an empty schedule.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "requestBody": {
+            "additionalProperties": false,
+            "description": "Request schema for fully replacing queue schedule rules.",
+            "properties": {
+              "rules": {
+                "description": "New schedule rules (full replacement).",
+                "items": {
+                  "additionalProperties": false,
+                  "description": "Single schedule rule (local time + days of week).",
+                  "properties": {
+                    "h": {
+                      "description": "Hour in 24h clock (0-23)",
+                      "maximum": 23,
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "m": {
+                      "description": "Minute (0-59)",
+                      "maximum": 59,
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "days": {
+                      "description": "Days of week this rule applies to",
+                      "items": {
+                        "enum": [
+                          "mon",
+                          "tue",
+                          "wed",
+                          "thu",
+                          "fri",
+                          "sat",
+                          "sun"
+                        ],
+                        "type": "string"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "h",
+                    "m",
+                    "days"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "rules"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "requestBody"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_queue",
+      "description": "Retrieve queue slots and the scheduled AND planned drafts occupying them, between `start_date` and `end_date` (inclusive). Check each draft's `status`: 'scheduled' = will auto-publish at its `scheduled_date`; 'planned' = dated but inert - it will NOT auto-publish until confirmed (a past planned date is not overdue and not a failure).\n\n**Required permission:** READ access to this social set.\n\nNotes:\n- `start_date` and `end_date` are interpreted in the social set timezone.\n- Ranges larger than 62 days are rejected.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "start_date": {
+            "type": "string"
+          },
+          "end_date": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "start_date",
+          "end_date"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "linkedin_resolve_linkedin_organization_from_url",
+      "description": "Resolve a LinkedIn company/school URL into organization metadata that can be used to build LinkedIn mention syntax in post text.\n\nThis endpoint is resolver-only and is not a general organization search endpoint.\n\nMention format: `@[Company Name](urn:li:organization:123456)`\n\n**Required permission:** READ access to the social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "organization_url": {
+            "description": "Public LinkedIn organization URL (company or school profile).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "organization_url"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "list_comments",
+      "description": "Retrieve comment threads attached to a draft, ordered by creation time. Each thread includes the original `selected_text` snapshot and the full ordered list of comments.\n\nBy default this endpoint returns only unresolved threads (`status=unresolved`). Use `status=resolved` to list resolved threads or `status=all` to list both unresolved and resolved threads. Example: `GET /v2/social-sets/4/drafts/12/comment-threads?status=all&limit=50`.\n\n**Required permission:** READ access to this social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "draft_id": {
+            "type": "number"
+          },
+          "platform": {
+            "anyOf": [
+              {
+                "enum": [
+                  "x",
+                  "linkedin",
+                  "mastodon",
+                  "threads",
+                  "bluesky",
+                  "substack",
+                  "x_article"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional platform filter."
+          },
+          "status": {
+            "default": "unresolved",
+            "description": "Resolution filter. Defaults to `unresolved`, so resolved threads are omitted unless you request `resolved` or `all`.",
+            "enum": [
+              "unresolved",
+              "resolved",
+              "all"
+            ],
+            "type": "string"
+          },
+          "limit": {
+            "default": 10,
+            "maximum": 50,
+            "minimum": 1,
+            "type": "number"
+          },
+          "offset": {
+            "default": 0,
+            "minimum": 0,
+            "type": "number"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "draft_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "create_comment",
+      "description": "Create a new comment thread on a draft. A comment thread is the anchored discussion container; comments are the messages inside the thread.\n\nFor post platforms (`x`, `linkedin`, `mastodon`, `threads`, `bluesky`, `substack`), provide `post_index` and anchor to a substring of that post's visible text using `selected_text`. Use `occurrence` to disambiguate when the same substring appears more than once; omit it to anchor on the first match.\n\nFor X Articles, send `platform: \"x_article\"` and omit `post_index` (or use 0). `selected_text` matches commentable article text in document order; Markdown syntax, media tags, X post embed tags, and fenced-code text are ignored. Code blocks do not support comment anchors. X Article text comments cannot overlap existing stored X Article anchors; unsupported or overlapping selections return `400 VALIDATION_ERROR`.\n\nLinkedIn mentions appear in `posts[*].text` as `@[Name](urn:li:organization:ID)` or `@[Name](urn:li:person:ID)`. A mention is indivisible — `selected_text` must either contain the entire mention substring or stay outside it.\n\n**Required permission:** WRITE access to this social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "draft_id": {
+            "type": "number"
+          },
+          "requestBody": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "Create a new comment thread anchored on a span of a draft post.",
+                "properties": {
+                  "post_index": {
+                    "description": "Zero-based index of the target post within the platform's posts array.",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "platform": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "x",
+                          "linkedin",
+                          "mastodon",
+                          "threads",
+                          "bluesky",
+                          "substack"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Required when the draft has multiple commentable platforms; otherwise resolves to the source platform."
+                  },
+                  "selected_text": {
+                    "description": "Exact substring (codepoint-equal) of the target platform's visible flat text the comment thread is anchored to. Copy verbatim from the GET response.\n\nLinkedIn mentions appear inside `posts[*].text` as `@[Name](urn:li:organization:ID)` or `@[Name](urn:li:person:ID)`. Mentions are indivisible — `selected_text` may either include the entire mention substring or stay outside it. A selection that starts or ends in the middle of a mention is rejected with `400 VALIDATION_ERROR`.",
+                    "maxLength": 50000,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "occurrence": {
+                    "default": 0,
+                    "description": "Zero-based occurrence of `selected_text` within the post when the same substring appears multiple times.",
+                    "maximum": 10000,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "text": {
+                    "description": "Plain-text comment body. The server derives the stored rich_text from this.",
+                    "maxLength": 10000,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "post_index",
+                  "selected_text",
+                  "text"
+                ],
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "description": "Create a new comment thread anchored on visible X Article text.",
+                "properties": {
+                  "post_index": {
+                    "anyOf": [
+                      {
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Omit for X Article comments. If supplied with `platform: \"x_article\"`, it must be 0."
+                  },
+                  "platform": {
+                    "const": "x_article",
+                    "description": "Use `x_article` to anchor the comment thread on the draft article.",
+                    "enum": [
+                      "x_article"
+                    ],
+                    "type": "string"
+                  },
+                  "selected_text": {
+                    "description": "Exact substring (codepoint-equal) of the article's rendered visible text. Markdown syntax, media tags, and X post embed tags are not part of the match text.\n\nX Article text comments cannot overlap existing X Article text comments in this API version.",
+                    "maxLength": 50000,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "occurrence": {
+                    "default": 0,
+                    "description": "Zero-based occurrence of `selected_text` within the article when the same substring appears multiple times.",
+                    "maximum": 10000,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "text": {
+                    "description": "Plain-text comment body. The server derives the stored rich_text from this.",
+                    "maxLength": 10000,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "platform",
+                  "selected_text",
+                  "text"
+                ],
+                "type": "object"
+              }
+            ],
+            "description": "The JSON request body."
+          }
+        },
+        "required": [
+          "social_set_id",
+          "draft_id",
+          "requestBody"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "comments_add_comment_to_thread",
+      "description": "Append a comment to an existing comment thread. Returns the full updated thread.\n\n**Required permission:** WRITE access to this social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "draft_id": {
+            "type": "number"
+          },
+          "comment_thread_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "requestBody": {
+            "additionalProperties": false,
+            "description": "Add a comment to an existing comment thread.",
+            "properties": {
+              "text": {
+                "description": "Plain-text comment body. The server derives the stored rich_text from this.",
+                "maxLength": 10000,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "draft_id",
+          "comment_thread_id",
+          "requestBody"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "comments_resolve_thread",
+      "description": "Resolves the comment thread and removes the corresponding comment markers from the text.\n\n**Required permission:** Either authorship of the comment thread or WRITE access on the social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "draft_id": {
+            "type": "number"
+          },
+          "comment_thread_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "draft_id",
+          "comment_thread_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "delete_comment",
+      "description": "Deletes a comment from a comment thread. If `comment_id` identifies the *root* (oldest) comment, the entire thread is deleted and the corresponding comment markers are removed from the text.\n\n**Required permission:** Authorship of the comment or WRITE access on the social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "draft_id": {
+            "type": "number"
+          },
+          "comment_thread_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "comment_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "draft_id",
+          "comment_thread_id",
+          "comment_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "update_comment",
+      "description": "Update the plain-text body of a single comment. Returns the full updated thread.\n\n**Required permission:** Authorship of the comment.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "draft_id": {
+            "type": "number"
+          },
+          "comment_thread_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "comment_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "requestBody": {
+            "additionalProperties": false,
+            "description": "Update the text body of a single comment within a comment thread.",
+            "properties": {
+              "text": {
+                "description": "Plain-text comment body. The server derives the stored rich_text from this.",
+                "maxLength": 10000,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "draft_id",
+          "comment_thread_id",
+          "comment_id",
+          "requestBody"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "delete_thread",
+      "description": "Deletes the comment thread along with all its comments and removes the corresponding comment markers from the text.\n\n**Required permission:** Authorship of the comment thread or WRITE access on the social set.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "social_set_id": {
+            "type": "number"
+          },
+          "draft_id": {
+            "type": "number"
+          },
+          "comment_thread_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "social_set_id",
+          "draft_id",
+          "comment_thread_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ]
+}

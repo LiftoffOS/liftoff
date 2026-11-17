@@ -1,0 +1,312 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Detect which paths changed so downstream jobs can skip when irrelevant
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      contents: read
+    outputs:
+      src: ${{ steps.filter.outputs.src }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            src:
+              - 'src/**'
+              - 'packages/**'
+              - 'package*.json'
+              - 'jest.config.*'
+              - 'tsconfig*.json'
+
+  lint:
+    name: Lint
+    needs: changes
+    if: needs.changes.outputs.src == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - uses: ./.github/actions/npm-auth
+      - run: npm ci
+      - run: npm run lint
+
+  typecheck:
+    name: Type Check
+    needs: changes
+    if: needs.changes.outputs.src == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - uses: ./.github/actions/npm-auth
+      - run: npm ci
+      # Every local workspace package under packages/* is symlinked into
+      # node_modules by npm ci, but the `main`/`types` fields point at
+      # dist/, which the repo gitignores. Build all workspaces with a
+      # build script so tsc + jest can resolve `@liftoffos/*` imports.
+      - run: npm run build --workspaces --if-present
+      - run: npm run typecheck
+
+  no-focused-tests:
+    name: No .only() in tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check for .only() in test files
+        run: |
+          if grep -rn '\.only(' --include='*.test.ts' --include='*.spec.ts' src/ packages/ 2>/dev/null; then
+            echo ""
+            echo "ERROR: Found .only() in test files. This silently skips other tests."
+            echo "Remove all .only() calls before merging."
+            exit 1
+          fi
+
+  test:
+    name: Test (${{ matrix.shard }})
+    needs: changes
+    if: needs.changes.outputs.src == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1/3, 2/3, 3/3]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - uses: ./.github/actions/npm-auth
+      - run: npm ci
+      # Every local workspace package under packages/* is symlinked into
+      # node_modules by npm ci, but the `main`/`types` fields point at
+      # dist/, which the repo gitignores. Build all workspaces with a
+      # build script so tsc + jest can resolve `@liftoffos/*` imports.
+      - run: npm run build --workspaces --if-present
+      - run: npm test -- --shard=${{ matrix.shard }} --coverage --forceExit --maxWorkers=100% --workerIdleMemoryLimit=512MB
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage-report-${{ strategy.job-index }}
+          path: coverage/
+          retention-days: 14
+
+  build:
+    name: Build
+    needs: changes
+    if: needs.changes.outputs.src == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - uses: ./.github/actions/npm-auth
+      - run: npm ci
+      # Every local workspace package under packages/* is symlinked into
+      # node_modules by npm ci, but the `main`/`types` fields point at
+      # dist/, which the repo gitignores. Build all workspaces with a
+      # build script so tsc + jest can resolve `@liftoffos/*` imports.
+      - run: npm run build --workspaces --if-present
+      - run: npm run build
+
+  # Single required status check. Branch protection requires ONLY this context.
+  #
+  # The path-filtered jobs (lint/typecheck/test/build all carry
+  # `if: needs.changes.outputs.src == 'true'`) are SKIPPED on a change that
+  # touches no source — a workflow edit, a docs change, a sandbox-sidecar
+  # lockfile bump. GitHub does not treat a skipped required check as satisfied:
+  # it stays "expected" forever and the pull request can never merge. Worse, a
+  # skipped MATRIX job reports under its unexpanded name
+  # `Test (${{ matrix.shard }})`, so the per-shard contexts never appear at all.
+  #
+  # That is not hypothetical here. It blocked every non-source pull request in
+  # this repository, including Dependabot's grouped action bumps and the
+  # sandbox-sidecar lockfile updates, which sat unmergeable indefinitely.
+  # liftoff-platform-backend hit the same wall and solved it this way.
+  #
+  # This gate always runs and always reports: it passes when every gated job
+  # succeeded OR was skipped, and fails when one actually failed or was
+  # cancelled.
+  required-checks:
+    name: Required Checks
+    if: always()
+    needs: [changes, lint, typecheck, test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gate on the gated jobs
+        run: |
+          echo "changes=${{ needs.changes.result }} lint=${{ needs.lint.result }} typecheck=${{ needs.typecheck.result }} test=${{ needs.test.result }} build=${{ needs.build.result }}"
+          for r in \
+            "${{ needs.changes.result }}" \
+            "${{ needs.lint.result }}" \
+            "${{ needs.typecheck.result }}" \
+            "${{ needs.test.result }}" \
+            "${{ needs.build.result }}"; do
+            case "$r" in
+              success|skipped) ;;
+              *) echo "::error::a required job did not pass (result=$r)"; exit 1 ;;
+            esac
+          done
+          echo "All required checks passed or were legitimately skipped."
+
+  proto-breaking:
+    # tenant-runtime consumes @liftoffos/proto-gen (generated from the
+    # liftoff-proto) for the connector-service RPC client. A breaking
+    # change landing in liftoff-proto would surface here only at runtime.
+    # This mirrors the equivalent check in liftoff-platform-backend CI.
+    #
+    # liftoff-proto is private (org policy: no repo goes public) and the
+    # default GITHUB_TOKEN can't clone cross-repo. Cross-repo auth is minted
+    # per-run from the ci org App (app-id in the LIFTOFF_CI_APP_ID
+    # repo variable; private key in the LIFTOFF_CI_APP_PRIVATE_KEY secret).
+    # The App already has contents:read on all org repos, and per-run tokens
+    # never expire — unlike the fine-grained PAT this replaced, which expired
+    # and hard-failed actions/checkout on every push. If the key is absent or
+    # invalid, token minting is non-fatal and the check skips (job stays green)
+    # with a warning, so a credential gap never reddens main.
+    name: Proto Breaking Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mint ci App token (contents:read on liftoff-proto)
+        id: app-token
+        continue-on-error: true
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.LIFTOFF_CI_APP_ID }}
+          private-key: ${{ secrets.LIFTOFF_CI_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: liftoff-proto
+      - name: Note when proto-breaking is skipped
+        if: steps.app-token.outcome != 'success'
+        run: |
+          echo "::warning title=proto-breaking skipped::Could not mint a ci App token — set the LIFTOFF_CI_APP_PRIVATE_KEY secret (and LIFTOFF_CI_APP_ID variable, currently ${{ vars.LIFTOFF_CI_APP_ID }}) to enable the buf breaking check."
+      - name: Checkout liftoff-proto
+        if: steps.app-token.outcome == 'success'
+        uses: actions/checkout@v7
+        with:
+          repository: LiftoffOS/liftoff-proto
+          token: ${{ steps.app-token.outputs.token }}
+          ref: main
+          fetch-depth: 0
+          path: liftoff-proto
+      - name: Run buf breaking against liftoff-proto main
+        if: steps.app-token.outcome == 'success'
+        uses: bufbuild/buf-action@v1
+        with:
+          breaking_against: 'liftoff-proto#format=git,ref=HEAD~1'
+          input: liftoff-proto
+          push: false
+          breaking: true
+          lint: false
+          format: false
+          # buf-action attempts to post a PR comment when it has findings;
+          # without explicit pull-requests / issues write scope the
+          # GITHUB_TOKEN default fails with "Resource not accessible by
+          # integration" even when buf itself found nothing. Disable.
+          pr_comment: false
+
+  docker-scan:
+    name: Container Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: CRITICAL,HIGH
+          exit-code: 0
+          ignore-unfixed: true
+
+  pr-title:
+    name: PR Title
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+
+  notify-failure:
+    name: Slack Notify
+    if: github.ref == 'refs/heads/main' && failure()
+    needs: [lint, typecheck, test, build, proto-breaking, docker-scan, no-focused-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve Slack user
+        id: slack-user
+        run: |
+          SLACK_ID=$(echo '${{ vars.SLACK_USER_MAP }}' | python3 -c "import json,sys; m=json.load(sys.stdin); print(m.get('${{ github.actor }}',''))")
+          echo "id=$SLACK_ID" >> $GITHUB_OUTPUT
+          if [ -n "$SLACK_ID" ]; then
+            echo "mention=<@$SLACK_ID>" >> $GITHUB_OUTPUT
+          else
+            echo "mention=${{ github.actor }}" >> $GITHUB_OUTPUT
+          fi
+      - name: Post to #ci-alerts
+        run: |
+          curl -s -X POST -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"channel\":\"#ci-alerts\",\"text\":\":red_circle: *CI failed on main* — <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.repository }}>\\nCommit: \`${{ github.sha }}\` by ${{ steps.slack-user.outputs.mention }}\"}" \
+            https://slack.com/api/chat.postMessage
+      - name: DM the author
+        if: steps.slack-user.outputs.id != ''
+        run: |
+          curl -s -X POST -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"channel\":\"${{ steps.slack-user.outputs.id }}\",\"text\":\":red_circle: Your commit broke CI on *${{ github.repository }}* main\\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View failed run>\"}" \
+            https://slack.com/api/chat.postMessage

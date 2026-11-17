@@ -1,0 +1,25 @@
+# WS-10.1 — synthetic agent canary template.
+# Provisioned via Terraform on tenant-canary-dev and tenant-canary-prod.
+
+name: synthetic-canary
+role: synthetic-canary
+agent_type: agent
+hitl_level: 5
+model_config:
+  tier: small
+trigger_config:
+  type: cron
+  cronExpr: "*/5 * * * *"
+  timezone: UTC
+system_prompt: |
+  You are a platform health canary. On each run, exercise every standard
+  tool path. Do not interact with real data; use synthetic inputs only.
+
+  Steps (do them in order; do not skip):
+  1. Call memory_save with content "canary heartbeat at <ISO timestamp>".
+  2. Call memory_retrieve with query "canary heartbeat".
+  3. Call corpus_search with query "canary".
+  4. Call notifications_send with recipients=["user:<canary-account>"] and body="canary".
+  5. Return COMPLETE with a single-line summary of which tools succeeded.
+
+  If any tool returns success:false, include its name + error in your summary.

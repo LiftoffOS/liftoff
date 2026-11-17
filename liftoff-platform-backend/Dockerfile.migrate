@@ -1,0 +1,111 @@
+# Liftoff Platform Backend - Migration Runner
+# Runs database migrations via node-pg-migrate.
+#
+# Multi-stage (mirrors Dockerfile): the Artifact Registry token lives only in the
+# builder stage, so it never lands in the final image's layers/history. The final
+# stage installs no token, runs as the non-root `node` user, and uses
+# --no-install-recommends. This clears the Trivy DS-0031/DS-0002/DS-0029 findings.
+
+# ── Builder: install dependencies (needs the private-registry token) ──
+FROM node:22-slim AS builder
+
+# GCP AR token for fetching @liftoffos/proto-gen (not a workspace package)
+ARG ARTIFACT_REGISTRY_TOKEN
+
+WORKDIR /app
+
+# Copy package files including workspace packages (needed for npm ci with workspaces)
+COPY package*.json ./
+COPY packages/ ./packages/
+COPY .npmrc ./
+RUN ARTIFACT_REGISTRY_TOKEN="${ARTIFACT_REGISTRY_TOKEN}" npm ci && npm cache clean --force
+
+# ── Final: no token, non-root, minimal ──
+FROM node:22-slim
+
+# Install postgresql-client for pg_isready (Cloud SQL proxy readiness check)
+RUN apt-get update && apt-get install -y --no-install-recommends postgresql-client && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Bring dependencies + workspace packages from the builder (token stays behind)
+COPY --chown=node:node --from=builder /app/node_modules ./node_modules
+COPY --chown=node:node --from=builder /app/packages ./packages
+COPY --chown=node:node package*.json ./
+
+# Copy migrations
+COPY --chown=node:node migrations ./migrations
+
+# The live-registry drift check and the baseline it compares against.
+#
+# This job is the ONLY place in the pipeline that can reach a live database, so
+# it is where the migration chain's answer gets compared with the environment's
+# own. The baseline is produced by the migration gate's throwaway Postgres
+# (scripts/ci/dump-registry-baseline.cjs) and lands in the build context.
+#
+# The glob is deliberate: `registry-baseline.jso[n]` matches zero files without
+# failing the build, so an image built when the gate could not run still builds
+# and the check reports itself INCONCLUSIVE instead of blocking a deploy over
+# its own plumbing.
+COPY --chown=node:node scripts/ci/check-live-registry-drift.cjs ./scripts/ci/
+COPY --chown=node:node registry-baseline.jso[n] ./
+
+# Create the migration entrypoint script
+# node-pg-migrate expects DATABASE_URL environment variable
+# Cloud SQL Unix socket format: postgresql://user:password@localhost/database?host=/cloudsql/connection-name
+#
+# --no-check-order: Required because migration 057 was deployed but its pgmigrations
+# record was not saved, causing an ordering gap (058 exists but 057 doesn't).
+# All migrations use IF NOT EXISTS / ADD COLUMN IF NOT EXISTS so re-running is safe.
+RUN echo '#!/bin/bash' > /app/run-migrations.sh && \
+    echo 'set -e' >> /app/run-migrations.sh && \
+    echo 'export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@localhost/${DB_NAME}?host=/cloudsql/${CLOUD_SQL_CONNECTION_NAME}"' >> /app/run-migrations.sh && \
+    echo '' >> /app/run-migrations.sh && \
+    echo '# Wait for Cloud SQL proxy sidecar to be ready' >> /app/run-migrations.sh && \
+    echo 'echo "Waiting for Cloud SQL proxy to be ready..."' >> /app/run-migrations.sh && \
+    echo 'PROXY_READY=false' >> /app/run-migrations.sh && \
+    echo 'for i in $(seq 1 30); do' >> /app/run-migrations.sh && \
+    echo '  if PGPASSWORD="${DB_PASSWORD}" psql -h /cloudsql/${CLOUD_SQL_CONNECTION_NAME} -U ${DB_USER} -d ${DB_NAME} -c "SELECT 1" >/dev/null 2>&1; then' >> /app/run-migrations.sh && \
+    echo '    echo "Cloud SQL proxy is ready (attempt ${i}/30)"' >> /app/run-migrations.sh && \
+    echo '    PROXY_READY=true' >> /app/run-migrations.sh && \
+    echo '    break' >> /app/run-migrations.sh && \
+    echo '  fi' >> /app/run-migrations.sh && \
+    echo '  echo "Waiting for Cloud SQL proxy... attempt ${i}/30"' >> /app/run-migrations.sh && \
+    echo '  sleep 2' >> /app/run-migrations.sh && \
+    echo 'done' >> /app/run-migrations.sh && \
+    echo '' >> /app/run-migrations.sh && \
+    echo 'if [ "${PROXY_READY}" != "true" ]; then' >> /app/run-migrations.sh && \
+    echo '  echo "ERROR: Cloud SQL proxy failed to become ready after 60 seconds"' >> /app/run-migrations.sh && \
+    echo '  exit 1' >> /app/run-migrations.sh && \
+    echo 'fi' >> /app/run-migrations.sh && \
+    echo '' >> /app/run-migrations.sh && \
+    echo 'echo "Running migrations..."' >> /app/run-migrations.sh && \
+    echo '# Pre-mark manual-only cutover migrations to prevent node-pg-migrate from auto-running them.' >> /app/run-migrations.sh && \
+    echo '# 129 and 130 require DBA review + cutover gate checks and must NEVER run automatically.' >> /app/run-migrations.sh && \
+    echo 'PGPASSWORD="${DB_PASSWORD}" psql -h /cloudsql/${CLOUD_SQL_CONNECTION_NAME} -U ${DB_USER} -d ${DB_NAME} -c "INSERT INTO pgmigrations (name, run_on) SELECT \$\$129_billing_cutover_drop\$\$, NOW() WHERE NOT EXISTS (SELECT 1 FROM pgmigrations WHERE name = \$\$129_billing_cutover_drop\$\$);" 2>&1 || echo "Note: pgmigrations pre-mark skipped (table may not exist yet)"' >> /app/run-migrations.sh && \
+    echo 'PGPASSWORD="${DB_PASSWORD}" psql -h /cloudsql/${CLOUD_SQL_CONNECTION_NAME} -U ${DB_USER} -d ${DB_NAME} -c "INSERT INTO pgmigrations (name, run_on) SELECT \$\$130_hris_cutover_drop\$\$, NOW() WHERE NOT EXISTS (SELECT 1 FROM pgmigrations WHERE name = \$\$130_hris_cutover_drop\$\$);" 2>&1 || echo "Note: pgmigrations pre-mark skipped (table may not exist yet)"' >> /app/run-migrations.sh && \
+    echo 'npx node-pg-migrate up --migrations-dir=migrations --no-check-order --ignore-pattern ".*\\.md"' >> /app/run-migrations.sh && \
+    echo '' >> /app/run-migrations.sh && \
+    echo '# Verify migrations actually applied by checking pgmigrations table' >> /app/run-migrations.sh && \
+    echo 'MIGRATION_COUNT=$(PGPASSWORD="${DB_PASSWORD}" psql -h /cloudsql/${CLOUD_SQL_CONNECTION_NAME} -U ${DB_USER} -d ${DB_NAME} -t -c "SELECT COUNT(*) FROM pgmigrations;" | tr -d " ")' >> /app/run-migrations.sh && \
+    echo 'echo "Verified: ${MIGRATION_COUNT} migrations recorded in pgmigrations table"' >> /app/run-migrations.sh && \
+    echo 'if [ "${MIGRATION_COUNT}" -eq 0 ]; then' >> /app/run-migrations.sh && \
+    echo '  echo "ERROR: No migrations recorded - migrations may not have applied"' >> /app/run-migrations.sh && \
+    echo '  exit 1' >> /app/run-migrations.sh && \
+    echo 'fi' >> /app/run-migrations.sh && \
+    echo '' >> /app/run-migrations.sh && \
+    echo 'echo "Migrations completed and verified successfully"' >> /app/run-migrations.sh && \
+    echo '' >> /app/run-migrations.sh && \
+    echo '# The chain has just finished applying, so this database should now BE' >> /app/run-migrations.sh && \
+    echo '# the chain. Where it is not, a non-migration writer changed a value a' >> /app/run-migrations.sh && \
+    echo '# migration owns, and the rebuilt and live databases disagree from here' >> /app/run-migrations.sh && \
+    echo '# on with nothing else comparing them. Blocks the deploy; the remedy is' >> /app/run-migrations.sh && \
+    echo '# one idempotent migration, which the failure prints.' >> /app/run-migrations.sh && \
+    echo 'echo "Comparing the live registry against the migration chain..."' >> /app/run-migrations.sh && \
+    echo 'node /app/scripts/ci/check-live-registry-drift.cjs' >> /app/run-migrations.sh && \
+    chmod +x /app/run-migrations.sh && \
+    chown node:node /app/run-migrations.sh
+
+USER node
+
+CMD ["/app/run-migrations.sh"]

@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/connector-warm.response.schema.json",
+  "title": "ConnectorWarmResponse",
+  "description": "Response from POST /api/connectors/warm.",
+  "type": "object",
+  "required": ["warmedConnectorTypes", "failures"],
+  "additionalProperties": false,
+  "properties": {
+    "warmedConnectorTypes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "failures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["connectorType", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "connectorType": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

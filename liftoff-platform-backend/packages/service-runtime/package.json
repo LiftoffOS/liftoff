@@ -1,0 +1,26 @@
+{
+  "name": "@liftoffos/service-runtime",
+  "version": "0.3.0",
+  "description": "Graceful-shutdown + readiness helpers for Liftoff Cloud Run services. Handles SIGTERM in a way that respects Cloud Run's terminationGracePeriodSeconds (35s).",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LiftoffOS/liftoff.git",
+    "directory": "liftoff-platform-backend/packages/service-runtime"
+  },
+  "author": "Liftoff",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@liftoffos/browser-record",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "The browser record's wire shapes and its one prose renderer: a takeover segment, a point, an assistant call, and the Browser state block every assistant reads at the top of a turn.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  }
+}

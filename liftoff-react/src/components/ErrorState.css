@@ -1,0 +1,408 @@
+/* Full-page error state - unique animations per variant */
+.error-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: var(--space-8);
+  background: var(--color-white);
+}
+
+.error-state__content {
+  text-align: center;
+  max-width: 440px;
+}
+
+.error-state__visual {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto var(--space-8);
+}
+
+.error-state__visual-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  background: var(--color-white);
+  border: 2px solid var(--border-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent);
+  z-index: 2;
+}
+
+.error-state__visual-center svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* ===================
+   ERROR VARIANT
+   Broken/disconnected feel with subtle shake and drifting fragments
+   =================== */
+
+.error-state--error .error-state__visual-center {
+  animation: error-shake 4s ease-in-out infinite;
+}
+
+@keyframes error-shake {
+  0%, 90%, 100% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  92% {
+    transform: translate(-50%, -50%) rotate(-3deg);
+  }
+  94% {
+    transform: translate(-50%, -50%) rotate(3deg);
+  }
+  96% {
+    transform: translate(-50%, -50%) rotate(-2deg);
+  }
+  98% {
+    transform: translate(-50%, -50%) rotate(1deg);
+  }
+}
+
+/* Drifting fragments for error state */
+.error-state__fragment {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--color-gray-200);
+  border-radius: 2px;
+  opacity: 0.6;
+}
+
+.error-state__fragment--1 {
+  top: 20%;
+  left: 15%;
+  animation: fragment-drift-1 8s ease-in-out infinite;
+}
+
+.error-state__fragment--2 {
+  top: 10%;
+  right: 20%;
+  animation: fragment-drift-2 9s ease-in-out infinite;
+  animation-delay: -2s;
+}
+
+.error-state__fragment--3 {
+  bottom: 15%;
+  left: 20%;
+  animation: fragment-drift-3 7s ease-in-out infinite;
+  animation-delay: -4s;
+}
+
+.error-state__fragment--4 {
+  bottom: 20%;
+  right: 15%;
+  animation: fragment-drift-4 10s ease-in-out infinite;
+  animation-delay: -1s;
+}
+
+.error-state__fragment--5 {
+  top: 35%;
+  left: 5%;
+  animation: fragment-drift-5 11s ease-in-out infinite;
+  animation-delay: -3s;
+}
+
+@keyframes fragment-drift-1 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translate(-8px, -5px) rotate(45deg);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate(-5px, 8px) rotate(90deg);
+    opacity: 0.7;
+  }
+  75% {
+    transform: translate(6px, 3px) rotate(135deg);
+    opacity: 0.5;
+  }
+}
+
+@keyframes fragment-drift-2 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0.5;
+  }
+  33% {
+    transform: translate(10px, 6px) rotate(-60deg);
+    opacity: 0.7;
+  }
+  66% {
+    transform: translate(-6px, -8px) rotate(-120deg);
+    opacity: 0.4;
+  }
+}
+
+@keyframes fragment-drift-3 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate(8px, -10px) rotate(180deg);
+    opacity: 0.4;
+  }
+}
+
+@keyframes fragment-drift-4 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0.5;
+  }
+  25% {
+    transform: translate(-6px, 8px) rotate(30deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-10px, -4px) rotate(60deg);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translate(5px, -6px) rotate(90deg);
+    opacity: 0.7;
+  }
+}
+
+@keyframes fragment-drift-5 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0.4;
+  }
+  20% {
+    transform: translate(7px, -6px) rotate(-40deg);
+    opacity: 0.6;
+  }
+  60% {
+    transform: translate(-5px, 10px) rotate(-100deg);
+    opacity: 0.5;
+  }
+  80% {
+    transform: translate(4px, 4px) rotate(-140deg);
+    opacity: 0.7;
+  }
+}
+
+/* ===================
+   NOT FOUND VARIANT
+   Lost/searching feel with wandering question marks
+   =================== */
+
+.error-state--notFound .error-state__visual-center {
+  animation: notfound-float 6s ease-in-out infinite;
+}
+
+@keyframes notfound-float {
+  0%, 100% {
+    transform: translate(-50%, -50%);
+  }
+  50% {
+    transform: translate(-50%, calc(-50% - 6px));
+  }
+}
+
+/* Wandering question marks */
+.error-state__question {
+  position: absolute;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-gray-300);
+  opacity: 0;
+}
+
+.error-state__question--1 {
+  top: 8%;
+  left: 25%;
+  animation: question-wander-1 6s ease-in-out infinite;
+}
+
+.error-state__question--2 {
+  top: 20%;
+  right: 10%;
+  animation: question-wander-2 7s ease-in-out infinite;
+  animation-delay: -2s;
+}
+
+.error-state__question--3 {
+  bottom: 25%;
+  left: 8%;
+  animation: question-wander-3 5s ease-in-out infinite;
+  animation-delay: -1s;
+}
+
+.error-state__question--4 {
+  bottom: 10%;
+  right: 25%;
+  animation: question-wander-4 8s ease-in-out infinite;
+  animation-delay: -3s;
+}
+
+.error-state__question--5 {
+  top: 40%;
+  right: 5%;
+  animation: question-wander-5 9s ease-in-out infinite;
+  animation-delay: -4s;
+}
+
+@keyframes question-wander-1 {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(15px, 20px);
+    opacity: 0.4;
+  }
+  90% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes question-wander-2 {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-20px, 15px);
+    opacity: 0.7;
+  }
+  85% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes question-wander-3 {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate(18px, -12px);
+    opacity: 0.5;
+  }
+  80% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes question-wander-4 {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-12px, -18px);
+    opacity: 0.4;
+  }
+  88% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes question-wander-5 {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-15px, 12px);
+    opacity: 0.6;
+  }
+  85% {
+    opacity: 0.5;
+  }
+}
+
+/* ===================
+   SHARED STYLES
+   =================== */
+
+.error-state__header {
+  font-size: var(--text-3xl);
+  font-weight: 500;
+  color: var(--color-black);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-3);
+}
+
+.error-state__subtext {
+  font-size: var(--text-base);
+  color: var(--color-gray-400);
+  line-height: 1.6;
+  max-width: 380px;
+  margin: 0 auto var(--space-6);
+}
+
+.error-state__actions {
+  display: inline-flex;
+  gap: var(--space-3);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .error-state {
+    padding: var(--space-6);
+  }
+
+  .error-state__visual {
+    width: 120px;
+    height: 120px;
+  }
+
+  .error-state__visual-center {
+    width: 48px;
+    height: 48px;
+  }
+
+  .error-state__visual-center svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .error-state__fragment {
+    width: 6px;
+    height: 6px;
+  }
+
+  .error-state__question {
+    font-size: 14px;
+  }
+
+  .error-state__header {
+    font-size: var(--text-2xl);
+  }
+
+  .error-state__subtext {
+    font-size: var(--text-sm);
+  }
+}

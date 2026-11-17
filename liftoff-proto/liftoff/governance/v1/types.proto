@@ -1,0 +1,142 @@
+syntax = "proto3";
+
+// Governance engine domain types — HITL levels, admission status,
+// action / usage ledger entries, kill-switch state, allowlists.
+package liftoff.governance.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// Overall admission decision returned by Preflight.
+enum AdmissionStatus {
+  ADMISSION_STATUS_UNSPECIFIED = 0;
+  ADMISSION_STATUS_ADMITTED = 1;
+  ADMISSION_STATUS_THROTTLED = 2;
+  ADMISSION_STATUS_BLOCKED = 3;
+}
+
+// Reason a tool call was not admitted. Mirrors AdmissionReason in TS.
+enum AdmissionReason {
+  ADMISSION_REASON_UNSPECIFIED = 0;
+  ADMISSION_REASON_CREDITS_EXHAUSTED = 1;
+  ADMISSION_REASON_RATE_LIMIT = 2;
+  ADMISSION_REASON_KILL_SWITCH_GLOBAL = 3;
+  ADMISSION_REASON_KILL_SWITCH_TENANT = 4;
+  ADMISSION_REASON_KILL_SWITCH_AGENT = 5;
+  ADMISSION_REASON_KILL_SWITCH_CONNECTOR = 6;
+  ADMISSION_REASON_ABUSE_SUSPECTED = 7;
+  ADMISSION_REASON_ALLOWLIST_MISS = 8;
+  ADMISSION_REASON_KILL_SWITCH_TRIGGERED = 9;
+}
+
+// HITL escalation level. Levels 1-3 require human approval before an
+// action executes. Levels 4-5 auto-approve with audit logging only.
+enum HitlLevel {
+  HITL_LEVEL_UNSPECIFIED = 0;
+  HITL_LEVEL_1 = 1;
+  HITL_LEVEL_2 = 2;
+  HITL_LEVEL_3 = 3;
+  HITL_LEVEL_4 = 4;
+  HITL_LEVEL_5 = 5;
+}
+
+// Per-capability allowlist entry. Actions matching an allowlist entry
+// bypass the authorize synchronous RPC.
+message ActionAllowlist {
+  string connector = 1;
+  string entity_type = 2;
+  string action_type = 3;
+  // Optional scope pattern (e.g. `repo:acme/*`). Empty = all scopes.
+  string scope_pattern = 4;
+}
+
+// Kill-switch state snapshot returned in preflight. Consumers also receive
+// push invalidation via Pub/Sub for sub-5-second propagation.
+message KillSwitchState {
+  // Global platform kill switch — stops everything.
+  bool global = 1;
+  // Tenant-level kill switch.
+  bool tenant = 2;
+  // Specific agent IDs with kill switches on.
+  repeated string agent_ids = 3;
+  // Specific connector types with kill switches on.
+  repeated string connector_types = 4;
+}
+
+// Recorded action — immutable row in the action ledger.
+message ActionRecord {
+  string id = 1;
+  string tenant_id = 2;
+  string agent_id = 3;
+  string workflow_id = 4;
+  string task_id = 5;
+  string idempotency_key = 6;
+  string connector = 7;
+  string entity_type = 8;
+  string action_type = 9;
+  string target_ref = 10;
+  string trace_id = 11;
+  int32 instruction_version = 12;
+  UndoSupportMode undo_support_mode = 13;
+  ActionStatus status = 14;
+  string error = 15;
+  google.protobuf.Timestamp created_at = 16;
+  google.protobuf.Timestamp completed_at = 17;
+  // Normalised USD cost from the connector call (ExecuteResponse.cost_usd).
+  double cost_usd = 18;
+  // Invocation ID that triggered this action (for thread-level attribution).
+  string invocation_id = 19;
+  // Allocated infrastructure cost (Cloud Run, Cloud SQL, etc.) proportionally
+  // assigned to this action by the snapshot service.
+  double infra_cost_usd = 20;
+}
+
+enum ActionStatus {
+  ACTION_STATUS_UNSPECIFIED = 0;
+  ACTION_STATUS_PENDING = 1;
+  ACTION_STATUS_EXECUTING = 2;
+  ACTION_STATUS_COMPLETED = 3;
+  ACTION_STATUS_FAILED = 4;
+  ACTION_STATUS_COMPENSATED = 5;
+}
+
+enum UndoSupportMode {
+  UNDO_SUPPORT_MODE_UNSPECIFIED = 0;
+  UNDO_SUPPORT_MODE_FULL = 1;
+  UNDO_SUPPORT_MODE_PARTIAL = 2;
+  UNDO_SUPPORT_MODE_NONE = 3;
+}
+
+// HITL approval request — caller waits for human decision.
+message HitlApprovalRequest {
+  string id = 1;
+  string tenant_id = 2;
+  string workflow_id = 3;
+  string task_id = 4;
+  string agent_id = 5;
+  HitlLevel hitl_level = 6;
+  string tool_calls_hash = 7;
+  string reason = 8;
+  ApprovalStatus status = 9;
+  string decided_by = 10;
+  string decided_by_role = 11;
+  ApprovalDecision decision = 12;
+  string rejection_reason = 13;
+  google.protobuf.Timestamp decided_at = 14;
+  google.protobuf.Timestamp expires_at = 15;
+  google.protobuf.Timestamp created_at = 16;
+  google.protobuf.Timestamp updated_at = 17;
+}
+
+enum ApprovalStatus {
+  APPROVAL_STATUS_UNSPECIFIED = 0;
+  APPROVAL_STATUS_PENDING = 1;
+  APPROVAL_STATUS_APPROVED = 2;
+  APPROVAL_STATUS_REJECTED = 3;
+  APPROVAL_STATUS_EXPIRED = 4;
+}
+
+enum ApprovalDecision {
+  APPROVAL_DECISION_UNSPECIFIED = 0;
+  APPROVAL_DECISION_APPROVED = 1;
+  APPROVAL_DECISION_REJECTED = 2;
+}

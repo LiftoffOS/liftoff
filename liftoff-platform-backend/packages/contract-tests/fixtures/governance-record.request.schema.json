@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/governance-record.request.schema.json",
+  "title": "GovernanceRecordRequest",
+  "description": "Request body for POST /api/governance/record — fire-and-forget post-execution ledger write.",
+  "type": "object",
+  "required": [
+    "preflightToken",
+    "idempotencyKey",
+    "connector",
+    "entityType",
+    "actionType",
+    "targetRef",
+    "durationMs",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "preflightToken": { "type": "string", "minLength": 1 },
+    "idempotencyKey": { "type": "string", "minLength": 1 },
+    "connector": { "type": "string", "minLength": 1 },
+    "entityType": { "type": "string", "minLength": 1 },
+    "actionType": { "type": "string", "minLength": 1 },
+    "targetRef": { "type": "string" },
+    "traceId": { "type": "string" },
+    "durationMs": { "type": "integer", "minimum": 0 },
+    "status": { "type": "string", "enum": ["completed", "failed"] },
+    "error": { "type": "string" },
+    "costUsd": { "type": "number", "minimum": 0 },
+    "externalResponse": {}
+  }
+}

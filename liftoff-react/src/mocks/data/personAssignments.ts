@@ -1,0 +1,112 @@
+// Mock person-assignment data for development
+// Sources from tenant_members.
+
+import type { PersonnelMember } from '../../services/personAssignments'
+
+export function generateMockPersonnel(): PersonnelMember[] {
+  return [
+    {
+      accountId: 'account-owner-000',
+      personId: 'tm_owner_001',
+      firstName: 'Sarah',
+      lastName: 'Chen',
+      email: 'sarah.chen@acme.com',
+      onboardStatus: null,
+      joinedAt: '2023-06-01T00:00:00Z',
+      costPerMonth: null,
+      tasks30d: 142,
+      isAssignable: true,
+      assignments: [
+        { agentId: 'internal-agent-sales-001', agentType: 'internal', agentName: 'Sales Outreach Agent' },
+        { agentId: 'internal-agent-support-002', agentType: 'internal', agentName: 'Customer Support Bot' },
+      ],
+    },
+    {
+      accountId: 'account-jane-001',
+      personId: 'tm_jane_001',
+      firstName: 'Jane',
+      lastName: 'Smith',
+      email: 'jane@email.com',
+      onboardStatus: null,
+      joinedAt: '2024-01-15T00:00:00Z',
+      costPerMonth: '$8,333',
+      tasks30d: 87,
+      isAssignable: true,
+      assignments: [
+        { agentId: 'internal-agent-support-002', agentType: 'internal', agentName: 'Customer Support Bot' },
+      ],
+    },
+    {
+      accountId: 'account-bob-002',
+      personId: 'tm_bob_001',
+      firstName: 'Bob',
+      lastName: 'Johnson',
+      email: 'bob.johnson@acme.com',
+      onboardStatus: null,
+      joinedAt: '2024-06-01T00:00:00Z',
+      costPerMonth: '$6,250',
+      tasks30d: 31,
+      isAssignable: true,
+      assignments: [
+        { agentId: 'internal-agent-onboarding-003', agentType: 'internal', agentName: 'Onboarding Coordinator' },
+      ],
+    },
+    {
+      accountId: 'account-alice-003',
+      personId: 'tm_alice_001',
+      firstName: 'Alice',
+      lastName: 'Williams',
+      email: 'alice.williams@acme.com',
+      onboardStatus: null,
+      joinedAt: '2023-09-10T00:00:00Z',
+      costPerMonth: '$7,083',
+      tasks30d: 64,
+      isAssignable: true,
+      assignments: [
+        { agentId: 'ext-agent-2', agentType: 'external', agentName: 'Customer Support Assistant' },
+      ],
+    },
+    {
+      accountId: 'account-carlos-004',
+      personId: 'tm_carlos_001',
+      firstName: 'Carlos',
+      lastName: 'Garcia',
+      email: 'carlos.garcia@acme.com',
+      onboardStatus: null,
+      joinedAt: '2024-03-20T00:00:00Z',
+      costPerMonth: null,
+      tasks30d: 12,
+      isAssignable: true,
+      assignments: [],
+    },
+    {
+      accountId: 'account-newuser-005',
+      personId: 'tm_newuser_001',
+      firstName: '',
+      lastName: '',
+      email: 'newuser@acme.com',
+      onboardStatus: null,
+      joinedAt: '2026-03-28T00:00:00Z',
+      costPerMonth: null,
+      tasks30d: 0,
+      isAssignable: true,
+      assignments: [],
+    },
+    {
+      accountId: 'account-marco-006',
+      personId: 'tm_marco_001',
+      firstName: 'Marco',
+      lastName: 'Rossi',
+      email: 'marco.rossi@freelance.com',
+      onboardStatus: null,
+      joinedAt: '2025-01-10T00:00:00Z',
+      costPerMonth: '$4,500',
+      tasks30d: 23,
+      isAssignable: true,
+      assignments: [
+        { agentId: 'internal-agent-billing-004', agentType: 'internal', agentName: 'Billing Assistant' },
+        { agentId: 'ext-agent-1', agentType: 'external', agentName: 'Data Analysis Bot' },
+      ],
+    },
+  ]
+}

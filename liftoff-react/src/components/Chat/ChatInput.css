@@ -1,0 +1,391 @@
+/* Floating input — blur background.
+   `position: absolute` (not fixed) so it anchors to the chat-page's bottom
+   edge, which already respects the dashboard sidebar via .dashboard-main's
+   margin-left. With `position: fixed` the input was anchored to the
+   viewport and would slide under the sidebar as the browser pane grew. */
+.chat-input__blur {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  pointer-events: none;
+  z-index: 997;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.0) 25%,
+    rgba(0, 0, 0, 0.5) 50%,
+    rgba(0, 0, 0, 1.0) 75%,
+    black 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.0) 25%,
+    rgba(0, 0, 0, 0.5) 50%,
+    rgba(0, 0, 0, 1.0) 75%,
+    black 100%
+  );
+}
+
+/* Floating input — container.
+   `position: absolute` so it anchors to the chat-page's right edge (which
+   shifts in with the browser pane via .chat-page--browser-pane-open) and
+   to the chat-page's left edge (which respects the sidebar margin). */
+.chat-input__container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 998;
+  padding: 0 1.5rem 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  pointer-events: auto;
+}
+
+/* Glass effect wrapper */
+.chat-input__glass {
+  width: 100%;
+  max-width: 700px;
+  border-radius: 54px;
+  position: relative;
+  isolation: isolate;
+}
+
+/* A file being dragged over the composer. The outline is the only signal that
+   dropping here will do something — without it the person is guessing, and the
+   browser's own default for a dropped file is to navigate away from the page
+   they were typing on. */
+.chat-input__glass--dragover {
+  outline: 2px dashed var(--color-gray-400);
+  outline-offset: 4px;
+}
+
+.chat-input__glass--multiline {
+  border-radius: 28px;
+}
+
+.chat-input__glass::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(5px) saturate(180%);
+  -webkit-backdrop-filter: blur(5px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.12),
+              inset 0 4px 20px rgba(255, 255, 255, 0.2);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Form inside glass */
+.chat-input__form {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-2) var(--space-3);
+  margin: 2px;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(80px) saturate(20%);
+  -webkit-backdrop-filter: blur(80px) saturate(20%);
+  border: 1px solid var(--color-gray-200);
+}
+
+.chat-input__form--multiline {
+  align-items: flex-end;
+  border-radius: 24px;
+}
+
+/* Textarea */
+.chat-input__textarea {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  resize: none;
+  outline: none;
+  line-height: 24px;
+  height: 24px;
+  min-height: 24px;
+  max-height: 140px;
+  overflow-y: auto;
+  padding: 0;
+  margin: 0;
+}
+
+.chat-input__textarea:focus-visible {
+  outline: none;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.chat-input__textarea::placeholder {
+  color: var(--color-gray-400);
+}
+
+.chat-input__textarea:disabled {
+  opacity: 0.5;
+}
+
+/* Mention highlighting (composer surfaces that pass `mentionItems` only).
+
+   A textarea cannot colour part of its own text, so the text is painted by a
+   mirror sitting directly behind it while the textarea's own glyphs go
+   transparent. Both layers hold the same string and the same typography, so
+   the browser wraps them identically and the mirror needs no per-character
+   measurement to stay aligned. Every property below that affects line
+   breaking must therefore match .chat-input__textarea exactly. */
+.chat-input__editor {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-input__highlights {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: 24px;
+  color: var(--color-black);
+  padding: 0;
+  margin: 0;
+  border: none;
+
+  /* A textarea does not inherit these from body (its UA `font` shorthand
+     resets them), but a div does. Left alone the mirror renders at "wght" 320
+     with tightened tracking while the textarea renders at 400, so the two
+     layers drift apart word by word. Pin the mirror to what the textarea
+     actually computes. */
+  font-variation-settings: normal;
+  font-feature-settings: normal;
+  letter-spacing: normal;
+  text-rendering: auto;
+}
+
+/* index.css forces 16px on input/textarea/select below this breakpoint to stop
+   iOS zooming on focus. A div is not in that selector, so the mirror has to
+   follow the textarea up or the two desync on small screens. */
+@media (max-width: 768px) {
+  .chat-input__highlights {
+    font-size: 16px;
+  }
+}
+
+.chat-input__textarea--highlighted {
+  position: relative;
+  z-index: 1;
+  color: transparent;
+  caret-color: var(--color-black);
+}
+
+/* The selection is drawn above the mirror, so it has to stay translucent or
+   it would paint over the very text it is selecting. */
+.chat-input__textarea--highlighted::selection {
+  background: var(--color-accent-light);
+}
+
+.chat-input__mention {
+  color: var(--color-accent);
+}
+
+/* Send button */
+.chat-input__send {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-accent);
+  color: var(--color-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.chat-input__send:hover {
+  background: var(--color-accent-hover);
+}
+
+.chat-input__send:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Ghost icon buttons rendered immediately left of the send button —
+   matches the .chat-page__icon-btn aesthetic in the chat header. No
+   outline, transparent background, gray-100 pill + black icon on hover. */
+.chat-input__left-action {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: color var(--duration-fast, 150ms) var(--ease-out, ease-out),
+              background var(--duration-fast, 150ms) var(--ease-out, ease-out);
+}
+
+.chat-input__left-action:hover {
+  color: var(--color-black);
+  background: var(--color-gray-100);
+}
+
+/* Listening state for the voice input mic: hold the hover treatment while
+   active and add a soft grey expanding pulse. */
+.chat-input__left-action--listening,
+.chat-input__left-action--listening:hover {
+  color: var(--color-black);
+  background: var(--color-gray-100);
+  animation: chat-input-listening-pulse 1.6s ease-out infinite;
+}
+
+@keyframes chat-input-listening-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-gray-400) 45%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+/* Wave the audio-lines glyph while listening: each bar scales vertically
+   around its own center, staggered left to right so the motion travels
+   across the icon like a waveform. Negative delays start every bar
+   mid-wave instead of in lockstep. */
+.chat-input__left-action--listening svg path {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chat-input-audio-wave 1.1s ease-in-out infinite;
+}
+
+.chat-input__left-action--listening svg path:nth-child(2) { animation-delay: -0.9s; }
+.chat-input__left-action--listening svg path:nth-child(3) { animation-delay: -0.75s; }
+.chat-input__left-action--listening svg path:nth-child(4) { animation-delay: -0.6s; }
+.chat-input__left-action--listening svg path:nth-child(5) { animation-delay: -0.45s; }
+.chat-input__left-action--listening svg path:nth-child(6) { animation-delay: -0.3s; }
+
+@keyframes chat-input-audio-wave {
+  0%,
+  100% {
+    transform: scaleY(0.5);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-input__left-action--listening,
+  .chat-input__left-action--listening:hover,
+  .chat-input__left-action--listening svg path {
+    animation: none;
+  }
+}
+
+/* Solid square glyph for the stop button — same circular button chrome as send. */
+.chat-input__stop-glyph {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+/* Attachment pills */
+.chat-input__attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  flex-basis: 100%;
+  padding: var(--space-2) 0 0 0;
+}
+
+/* No fill: the 1px border already draws the pill, and a grey block on the
+   composer's glass reads as a second surface stacked on the input. */
+.chat-input__attachment-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: transparent;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 16px;
+  font-size: var(--text-xs);
+  color: var(--color-black);
+}
+
+/* A media pill carries a picture, so it is taller than a name-only one and
+   sits a little tighter on the left where the thumbnail begins. */
+.chat-input__attachment-pill--media {
+  padding-left: var(--space-1);
+}
+
+.chat-input__attachment-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+}
+
+/* flex, so the name sits on the pill's optical centre next to the icon
+   rather than on the text baseline. */
+.chat-input__attachment-name {
+  display: flex;
+  align-items: center;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-input__attachment-remove {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: transparent;
+  color: var(--color-gray-400);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.chat-input__attachment-remove:hover {
+  color: var(--color-black);
+}

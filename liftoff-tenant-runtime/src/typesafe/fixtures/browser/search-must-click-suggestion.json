@@ -1,0 +1,98 @@
+{
+  "set": {
+    "id": "browser_step",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "page": {
+    "url": "https://fixture.test/search",
+    "title": "Fixture",
+    "w": 756,
+    "h": 413,
+    "text": "Search\nZurich hotels",
+    "scroll": {
+      "y": 0,
+      "height": 413
+    },
+    "actions": [
+      {
+        "node": 1,
+        "role": "combobox",
+        "label": "Search",
+        "rect": {
+          "x": 77.53125,
+          "y": 30,
+          "w": 153,
+          "h": 21
+        },
+        "expanded": "false",
+        "kind": "fill",
+        "value": "Zurich hotels",
+        "id": "e1"
+      },
+      {
+        "node": 1,
+        "role": "combobox",
+        "label": "Open Search",
+        "rect": {
+          "x": 77.53125,
+          "y": 30,
+          "w": 153,
+          "h": 21
+        },
+        "expanded": "false",
+        "kind": "click",
+        "value": "Zurich hotels",
+        "id": "e2"
+      },
+      {
+        "node": 2,
+        "role": "option",
+        "label": "Zurich hotels",
+        "rect": {
+          "x": 30,
+          "y": 51,
+          "w": 696,
+          "h": 18
+        },
+        "kind": "click",
+        "value": "",
+        "id": "e3"
+      },
+      {
+        "id": "wait",
+        "kind": "wait",
+        "label": "Wait for the page to update"
+      }
+    ],
+    "marker": null,
+    "page_key": null,
+    "guards": {},
+    "omitted_actions": 0,
+    "fingerprint": "bbb5a433754acc941ad42f7ede16779144be90fea9614a6332f1a0d2d17a454e"
+  },
+  "goal": "Search for \"Zurich hotels\" and open the results",
+  "history": [
+    {
+      "step": 1,
+      "action": "Search",
+      "kind": "fill",
+      "operation": "TYPE_TEXT",
+      "probability": 1,
+      "confidence": 1,
+      "latencyMs": 100,
+      "url": "https://fixture.test/login",
+      "pageChanged": true,
+      "typed": true
+    }
+  ],
+  "expect": {
+    "operation": {
+      "choice": "CLICK"
+    },
+    "click_target": {
+      "label": "Zurich hotels"
+    }
+  },
+  "note": "A typed query still needs its autocomplete suggestion selected."
+}

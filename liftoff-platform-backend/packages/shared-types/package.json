@@ -1,0 +1,32 @@
+{
+  "name": "@liftoffos/shared-types",
+  "version": "1.7.0",
+  "description": "Canonical shared TypeScript types used across Liftoff platform-backend, tenant-runtime, and liftoff-react",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LiftoffOS/liftoff.git",
+    "directory": "liftoff-platform-backend/packages/shared-types"
+  },
+  "keywords": [
+    "liftoff",
+    "types",
+    "shared",
+    "agent",
+    "workflow"
+  ],
+  "author": "Liftoff",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

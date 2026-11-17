@@ -1,0 +1,72 @@
+{
+  "connectorType": "sparktoro",
+  "harvestedAt": "2026-09-15",
+  "source": "vendor_docs",
+  "sourceUrl": "https://sparktoro.com/mcp/docs",
+  "tools": [
+    {
+      "name": "create_report",
+      "description": "Build a new audience report from a natural-language description. Returns a report_id and an initial status."
+    },
+    {
+      "name": "get_report_status",
+      "description": "Check whether an in-progress report is ready. Used by clients to poll after create_report."
+    },
+    {
+      "name": "list_reports",
+      "description": "List the audience reports tied to your account."
+    },
+    {
+      "name": "get_demographics",
+      "description": "Age, gender, seniority, company size, salary, and location breakdowns."
+    },
+    {
+      "name": "get_tam",
+      "description": "Total addressable market — the estimated size of the audience."
+    },
+    {
+      "name": "get_bio_keywords",
+      "description": "The words your audience uses to describe themselves in their bios."
+    },
+    {
+      "name": "get_social",
+      "description": "Social accounts your audience follows and engages with."
+    },
+    {
+      "name": "get_networks",
+      "description": "Which social networks the audience is most active on."
+    },
+    {
+      "name": "get_websites",
+      "description": "Websites your audience reads regularly."
+    },
+    {
+      "name": "get_press",
+      "description": "Publications and press outlets your audience trusts."
+    },
+    {
+      "name": "get_new_podcasts",
+      "description": "Podcasts your audience subscribes to and downloads."
+    },
+    {
+      "name": "get_youtube",
+      "description": "YouTube channels your audience watches."
+    },
+    {
+      "name": "get_reddit",
+      "description": "Subreddits where your audience participates."
+    },
+    {
+      "name": "get_keywords",
+      "description": "Keywords your audience searches for."
+    },
+    {
+      "name": "get_apps",
+      "description": "Mobile and desktop apps your audience uses."
+    },
+    {
+      "name": "get_prompts",
+      "description": "Prompts your audience uses when talking to AI tools."
+    }
+  ]
+}

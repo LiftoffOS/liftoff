@@ -1,0 +1,110 @@
+[
+  {
+    "tool": "create_custom_objects",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_custom_objects",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_custom_objects",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_object_categories",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_object_categories",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_object_categories",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_custom_objects_custom_object_api_name_fields",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_custom_objects_custom_object_api_name_fields",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_custom_objects_custom_object_api_name_fields",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_custom_objects_custom_object_api_name_records",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "list_by_query_custom_objects_custom_object_api_name_records",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_custom_objects_custom_object_api_name_records",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_custom_objects_custom_object_api_name_records",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "bulk_create_custom_objects_custom_object_api_name_records",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "bulk_update_custom_objects_custom_object_api_name_records",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "bulk_delete_custom_objects_custom_object_api_name_records",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_supergroups_group_id_inclusion_members",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_supergroups_group_id_exclusion_members",
+    "categories": [
+      "dataChanges"
+    ]
+  }
+]

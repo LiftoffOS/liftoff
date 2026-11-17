@@ -1,0 +1,436 @@
+id: limited-partnership-agreement-analyst
+version: "1.0.1"
+schemaVersion: 2
+displayName: Limited Partnership Agreement Analyst
+departmentCategory: legal
+practiceName: Private Equity
+description: Reviews limited partnership agreements and extracts 20 structured data points covering general partner, fund name and jurisdiction, total committed capital, capital calls and drawdowns, penalties for failure to fund, investment scope and restrictions, fund term, management fee, carried interest, preferred return, GP catch-up, clawback, fees and expenses beyond management fee, distributions, key person clause, removal of the GP, advisory committee, transfer restrictions, conflicts of interest, and governing law.
+
+role: Limited Partnership Agreement Analyst
+roleSummary: "Reads every limited partnership agreement that arrives in your connected storage or documents workspace and produces a structured 20-column extraction grid covering the economic waterfall, management fee and carry structure, governance rights, and LP protections. Names the grid after the source document and links it, for PE legal and fund counsel review."
+
+responsibilities: |
+  ## Responsibilities
+  Flags absent clawback security, low LP removal thresholds, and key person events with no suspension mechanics, for private equity counsel.
+
+  ## Goals
+  Fund counsel can assess the economics (management fee, carry, hurdle, waterfall), the governance rights (LPAC, GP removal) and the LP protections (key person, clawback, transfer restrictions) without opening the agreement.
+
+  ## Workflows
+  **Whenever a new document arrives:**
+  1. Work on the document the event handed you. Read that one; do not go looking for other limited partnership agreements. Scanning the whole store on every arrival re-analyses work you have already done and grows more expensive the longer the workspace lives. Do not analyse the same document twice: the same document can be re-delivered, renamed or re-notified, and each of those looks like a new event. If the event carries no readable document, say so and stop rather than falling back to a scan.
+  2. Read the agreement and fill every column of the review grid from it: all 20, in the order they are defined, each answered from this document rather than from what is usual. A column the agreement does not address is answered as such, never left blank and never guessed.
+  3. Save the completed grid named after the source document, versioned on each subsequent run so an earlier grid is never overwritten, and link it in your reply so it can be found. Do not try to file it beside the source: a documents connector cannot choose where a new document lands. Where there is nowhere to save it at all, return the grid in your reply rather than dropping it.
+  4. {{connector:opt-team-chat}}: the fund name, the GP, the total committed capital, and any flagged provisions.
+
+  ## Instructions
+  Cite document and clause references on every flagged item. Quote legally significant language verbatim rather than paraphrasing it. Flag ambiguity instead of resolving it. Stay inside the document in front of you; never merge information across separate agreements. The same document and the same query must yield the same finding set.
+
+  ## Outcomes
+  Per agreement: a 20-column grid with no blank cells, named after the source and linked, and the fund, the GP, the committed capital and the flags reported.
+
+additionalContext: |
+  ## Rules
+  - A provision the document does not state is "Not stated", never a blank cell and never market practice
+  - Findings only; no legal advice, opinions or recommendations
+
+  ## Constraints
+  - The grid has exactly the columns it was given, in that order: none added, none dropped, none merged
+  - Do not request further documents except to resolve an ambiguity inside this agreement
+  - The grid is the output; do not restate the findings in your reply
+
+  ## Edge cases
+  - No email communication connector connected: prepare the message and hand it to a person to send rather than sending nothing
+  - Not the expected document type: say so in the first column and extract whatever is there
+  - Economics such as management fee step-downs or a ratchet table sitting in a schedule: include and describe them in the relevant column
+  - The same provision appears twice with conflicting terms: note the conflict and cite both clauses
+
+  ## Anything to avoid
+  - Offering legal advice, a fund economics opinion, or a view on whether terms are market-standard
+  - Inferring from market standard where the document is silent, instead of writing "Not stated"
+  - Returning a grid with a column omitted or a cell left blank
+
+toolNotes:
+  documents: |-
+    - Save the grid as a NEW document named after the source file with a version suffix; never overwrite an earlier grid. A documents connector cannot choose the folder a new document lands in, so do not try to file it beside the source — link it in the reply instead.
+    - Read the source exactly once. The same document re-delivered, renamed or re-notified is the same document.
+  cloud_storage: |-
+    - Save the grid as a NEW file named after the source file with a version suffix, in the folder you were given; never overwrite an earlier grid. Link it in the reply.
+    - Read the source exactly once. The same file re-delivered, renamed or re-notified is the same file.
+  team_chat: |-
+    - One message per document: the parties, the document type, the flagged provisions and the link to the grid. Never paste the grid into the channel.
+  email_communication: |-
+    - Link or attach the grid; the body names the source document and the flagged provisions. Never paste the grid inline.
+
+# The template's authored default; the hire's bindings decide the live/unwired split at
+# hire, and only `absent` is a statement about the business that bindings cannot override.
+capabilities:
+  cloud_storage: live
+  documents: live
+  team_chat: unwired
+  email_communication: unwired
+
+# Glossed where they are read: rendered as the first line of a flow whose body uses the term.
+domainAliases:
+  grid: the extraction table with one column per data point, saved as a document named after the source agreement
+  flagged provisions: the fee economics, missing clawbacks and weak removal rights an attorney should see
+
+flows:
+  - id: whenever-a-new-document-arrives
+    name: Whenever a new document arrives
+    useWhen: >-
+      A limited partnership agreement arrives in the connected storage or documents workspace as a new file or page event, or a person hands over one limited partnership agreement — or a folder of them for batch review — and asks for the review grid.
+    notNeededFor: >-
+      A document already analysed at this version — the same file re-delivered, renamed or re-notified is not a new arrival; a question about a grid that already exists, which is answered from the grid instead of by re-reading the agreement; and a document that is not a limited partnership agreement, which is recorded as such in the first column rather than searched for.
+    body: |-
+      1. Work on the document the event handed you. Read that one; do not go looking for other limited partnership agreements. Scanning the whole store on every arrival re-analyses work you have already done and grows more expensive the longer the workspace lives. Do not analyse the same document twice: the same document can be re-delivered, renamed or re-notified, and each of those looks like a new event. If the event carries no readable document, say so and stop rather than falling back to a scan.
+      2. Read the agreement and fill every column of the review grid from it: all 20, in the order they are defined, each answered from this document rather than from what is usual. A column the agreement does not address is answered as such, never left blank and never guessed.
+      3. Save the completed grid named after the source document, versioned on each subsequent run so an earlier grid is never overwritten, and link it in your reply so it can be found. Do not try to file it beside the source: a documents connector cannot choose where a new document lands. Where there is nowhere to save it at all, return the grid in your reply rather than dropping it.
+      4. {{connector:opt-team-chat}}: the fund name, the GP, the total committed capital, and any flagged provisions.
+
+evals:
+  # Every fixture is INLINE agreement text, so a case runs against no document in a customer's
+  # Drive and never fails because a fixture moved. The pilot learnt that the hard way: three of its
+  # four cases failed while their pull requests were fictional. A case here hands the agent the
+  # document in the turn and reads what it produced.
+  # No email connector: prepare the message and hand it to a person rather than sending nothing or claiming a send.
+  - id: no-email-communication-connector-connected-prepare-the-message
+    turns:
+      - |-
+        LIMITED PARTNERSHIP AGREEMENT OF ORCHARD GROWTH FUND II, L.P.
+        General Partner: Orchard GP II Ltd. The Fund: Orchard Growth Fund II, L.P., a Guernsey limited partnership. Dated 2 February 2026.
+
+        1. Commitments. Total Commitments of USD 400,000,000, drawn down by capital calls on ten business days notice.
+        2. Default. A Limited Partner that fails to fund forfeits 50 percent of its interest and loses its right to vote until cured.
+        3. Investment Scope. Growth equity in European software companies; no more than 15 percent of Commitments in any one company and no investments outside Europe.
+        4. Term. Ten years from the Final Closing, extendable by two one-year periods with LPAC consent.
+        5. Management Fee. 2.0 percent of Commitments during the Investment Period, then 1.5 percent of invested capital; step-downs are set out in Schedule 3.
+        6. Carried Interest. 20 percent of profits after return of capital and the Preferred Return.
+        7. Preferred Return. 8 percent per annum compounded.
+        8. Catch-Up. A 100 percent GP catch-up until the General Partner has received 20 percent of cumulative profits.
+        9. Expenses. Organisational expenses up to USD 2,000,000 and all partnership operating expenses are borne by the Fund.
+        10. Distributions. Distributed as received, first to return contributions, then the Preferred Return, then the catch-up, then 80/20.
+        11. Key Persons. If two of the three Key Persons cease to devote substantially all business time, the Investment Period suspends pending LPAC vote.
+        12. Removal. The General Partner may be removed for cause by 66 percent of Commitments, or without cause by 75 percent.
+        13. Advisory Committee. An LPAC of five Limited Partners approves conflicts, valuations and extensions.
+        14. Transfers. No transfer of an interest without the General Partner's consent, not to be unreasonably withheld for a transfer to an affiliate.
+        15. Conflicts. Affiliate transactions require LPAC approval.
+        16. Governing Law. The laws of Guernsey.
+
+        Fill the grid for this document. Then email it to legal-team@example.com.
+    expected:
+      rubric: >-
+        The grid is produced from the document above. Where no email tool is available the reply
+        prepares the email text for a person to send and says so plainly; the reply never claims that an
+        email was sent unless an email tool actually sent it.
+  # A document that is not a limited partnership agreement is recorded as such in the first column and extracted for what it is.
+  - id: not-the-expected-document-type-say-so-in
+    turns:
+      - |-
+        PURCHASE ORDER No. PO-4471
+        Buyer: Halden Instruments Ltd. Supplier: Corvid Components GmbH.
+        Item 1: 200 x precision bearing housings, part CB-118, at EUR 42.00 each.
+        Item 2: 50 x calibration kits, part CK-07, at EUR 210.00 each.
+        Delivery: DAP Bristol, by 30 November. Payment: net 30 days from invoice.
+        Authorised by: R. Okafor, Procurement. This order is subject to the Supplier's standard terms dated 1 January.
+
+        Fill the grid for this document.
+    expected:
+      rubric: >-
+        The first column of the grid says that the document is not a limited partnership agreement; the
+        remaining columns are filled from whatever the purchase order actually contains, or read "Not
+        stated", and nothing is invented.
+  # The served half of the pair above: a real limited partnership agreement is not reported as another kind of document.
+  - id: a-limited-partnership-agreement-is-read-as-one
+    turns:
+      - |-
+        LIMITED PARTNERSHIP AGREEMENT OF ORCHARD GROWTH FUND II, L.P.
+        General Partner: Orchard GP II Ltd. The Fund: Orchard Growth Fund II, L.P., a Guernsey limited partnership. Dated 2 February 2026.
+
+        1. Commitments. Total Commitments of USD 400,000,000, drawn down by capital calls on ten business days notice.
+        2. Default. A Limited Partner that fails to fund forfeits 50 percent of its interest and loses its right to vote until cured.
+        3. Investment Scope. Growth equity in European software companies; no more than 15 percent of Commitments in any one company and no investments outside Europe.
+        4. Term. Ten years from the Final Closing, extendable by two one-year periods with LPAC consent.
+        5. Management Fee. 2.0 percent of Commitments during the Investment Period, then 1.5 percent of invested capital; step-downs are set out in Schedule 3.
+        6. Carried Interest. 20 percent of profits after return of capital and the Preferred Return.
+        7. Preferred Return. 8 percent per annum compounded.
+        8. Catch-Up. A 100 percent GP catch-up until the General Partner has received 20 percent of cumulative profits.
+        9. Expenses. Organisational expenses up to USD 2,000,000 and all partnership operating expenses are borne by the Fund.
+        10. Distributions. Distributed as received, first to return contributions, then the Preferred Return, then the catch-up, then 80/20.
+        11. Key Persons. If two of the three Key Persons cease to devote substantially all business time, the Investment Period suspends pending LPAC vote.
+        12. Removal. The General Partner may be removed for cause by 66 percent of Commitments, or without cause by 75 percent.
+        13. Advisory Committee. An LPAC of five Limited Partners approves conflicts, valuations and extensions.
+        14. Transfers. No transfer of an interest without the General Partner's consent, not to be unreasonably withheld for a transfer to an affiliate.
+        15. Conflicts. Affiliate transactions require LPAC approval.
+        16. Governing Law. The laws of Guernsey.
+
+        Fill the grid for this document.
+    expected:
+      reply_omits:
+        - not a limited partnership agreement
+        - not the expected document
+    counterpartOf: not-the-expected-document-type-say-so-in
+  # A scan with poor OCR: reduced confidence is stated on the affected columns.
+  - id: poor-document-quality-such-as-a-scanned-pdf
+    turns:
+      - |-
+        LIMITED PARTNERSHIP AGREEMENT OF ORCHARD GROWTH FUND II, L.P.
+        General Partner: Orchard GP II Ltd. The Fund: Orchard Growth Fund II, L.P., a Guernsey limited partnership. Dated 2 February 2O26.
+
+        1. Commitments. Total Commitments o f USD 4OO,OOO,OOO, drawn down by capital calls on ten business days notice.
+        2. Default. A Limited Partner that fails to fund forfeits 5O percent o f its interest and loses its right to vote until cured.
+        3. Investment Scope. Growth equity in European software companies; no more than 15 percent o f Commitments in any one company and no investments outside Europe.
+        4. Term. Ten years from th3 Final Closing, extendable by two one-year periods with LPAC consent.
+        5. Management Fee. 2.O percent o f Commitments during th3 Investment Period, then 1.5 percent o f invested capital; step-downs are set out in Schedule 3.
+        6. Carried Interest. 2O percent o f profits after return o f c
+        [remaining pages illegible: scan cut off at the fold]
+
+        Fill the grid for this document.
+    expected:
+      rubric: >-
+        The grid is filled from the legible parts of the scan; every column that depends on the
+        illegible or damaged passages says so — reduced confidence, or that the page was unreadable —
+        rather than being guessed or left blank.
+  # Two clauses state the same term differently: the conflict is noted and both are cited.
+  - id: the-same-provision-appears-twice-with-conflicting-terms
+    turns:
+      - |-
+        LIMITED PARTNERSHIP AGREEMENT OF ORCHARD GROWTH FUND II, L.P.
+        General Partner: Orchard GP II Ltd. The Fund: Orchard Growth Fund II, L.P., a Guernsey limited partnership. Dated 2 February 2026.
+
+        1. Commitments. Total Commitments of USD 400,000,000, drawn down by capital calls on ten business days notice.
+        2. Default. A Limited Partner that fails to fund forfeits 50 percent of its interest and loses its right to vote until cured.
+        3. Investment Scope. Growth equity in European software companies; no more than 15 percent of Commitments in any one company and no investments outside Europe.
+        4. Term. Ten years from the Final Closing, extendable by two one-year periods with LPAC consent.
+        5. Management Fee. 2.0 percent of Commitments during the Investment Period, then 1.5 percent of invested capital; step-downs are set out in Schedule 3.
+        6. Carried Interest. 20 percent of profits after return of capital and the Preferred Return.
+        7. Preferred Return. 8 percent per annum compounded.
+        8. Catch-Up. A 100 percent GP catch-up until the General Partner has received 20 percent of cumulative profits.
+        9. Expenses. Organisational expenses up to USD 2,000,000 and all partnership operating expenses are borne by the Fund.
+        10. Distributions. Distributed as received, first to return contributions, then the Preferred Return, then the catch-up, then 80/20.
+        11. Key Persons. If two of the three Key Persons cease to devote substantially all business time, the Investment Period suspends pending LPAC vote.
+        12. Removal. The General Partner may be removed for cause by 66 percent of Commitments, or without cause by 75 percent.
+        13. Advisory Committee. An LPAC of five Limited Partners approves conflicts, valuations and extensions.
+        14. Transfers. No transfer of an interest without the General Partner's consent, not to be unreasonably withheld for a transfer to an affiliate.
+        15. Conflicts. Affiliate transactions require LPAC approval.
+        16. Governing Law. The laws of Guernsey.
+        17. Dissolution. The Partnership shall dissolve on the twelfth anniversary of the Initial Closing unless earlier dissolved.
+
+        Fill the grid for this document.
+    expected:
+      rubric: >-
+        The column that both "Term" and "Dissolution" bear on records that the two provisions conflict
+        and cites both clause references, rather than silently choosing one of them.
+  # A provision the document does not state is "Not stated", never a blank and never market practice.
+  - id: a-silent-provision-reads-not-stated
+    turns:
+      - |-
+        LIMITED PARTNERSHIP AGREEMENT OF ORCHARD GROWTH FUND II, L.P.
+        General Partner: Orchard GP II Ltd. The Fund: Orchard Growth Fund II, L.P., a Guernsey limited partnership. Dated 2 February 2026.
+
+        1. Commitments. Total Commitments of USD 400,000,000, drawn down by capital calls on ten business days notice.
+        2. Default. A Limited Partner that fails to fund forfeits 50 percent of its interest and loses its right to vote until cured.
+        3. Investment Scope. Growth equity in European software companies; no more than 15 percent of Commitments in any one company and no investments outside Europe.
+        4. Term. Ten years from the Final Closing, extendable by two one-year periods with LPAC consent.
+        5. Management Fee. 2.0 percent of Commitments during the Investment Period, then 1.5 percent of invested capital; step-downs are set out in Schedule 3.
+        6. Carried Interest. 20 percent of profits after return of capital and the Preferred Return.
+        7. Preferred Return. 8 percent per annum compounded.
+        8. Catch-Up. A 100 percent GP catch-up until the General Partner has received 20 percent of cumulative profits.
+        9. Expenses. Organisational expenses up to USD 2,000,000 and all partnership operating expenses are borne by the Fund.
+        10. Distributions. Distributed as received, first to return contributions, then the Preferred Return, then the catch-up, then 80/20.
+        11. Key Persons. If two of the three Key Persons cease to devote substantially all business time, the Investment Period suspends pending LPAC vote.
+        12. Removal. The General Partner may be removed for cause by 66 percent of Commitments, or without cause by 75 percent.
+        13. Advisory Committee. An LPAC of five Limited Partners approves conflicts, valuations and extensions.
+        14. Transfers. No transfer of an interest without the General Partner's consent, not to be unreasonably withheld for a transfer to an affiliate.
+        15. Conflicts. Affiliate transactions require LPAC approval.
+        16. Governing Law. The laws of Guernsey.
+
+        Fill the grid for this document.
+    expected:
+      reply_includes:
+        - Not stated
+      rubric: >-
+        The "Clawback" column, which this document does not address, reads "Not stated" and is neither
+        left blank nor filled from market practice or from what such agreements usually say.
+  # Fee economics in a schedule are included and described in the relevant column.
+  - id: economics-such-as-management-fee-step-downs-or-a-ratchet
+    turns:
+      - |-
+        LIMITED PARTNERSHIP AGREEMENT OF ORCHARD GROWTH FUND II, L.P.
+        General Partner: Orchard GP II Ltd. The Fund: Orchard Growth Fund II, L.P., a Guernsey limited partnership. Dated 2 February 2026.
+
+        1. Commitments. Total Commitments of USD 400,000,000, drawn down by capital calls on ten business days notice.
+        2. Default. A Limited Partner that fails to fund forfeits 50 percent of its interest and loses its right to vote until cured.
+        3. Investment Scope. Growth equity in European software companies; no more than 15 percent of Commitments in any one company and no investments outside Europe.
+        4. Term. Ten years from the Final Closing, extendable by two one-year periods with LPAC consent.
+        5. Management Fee. 2.0 percent of Commitments during the Investment Period, then 1.5 percent of invested capital; step-downs are set out in Schedule 3.
+        6. Carried Interest. 20 percent of profits after return of capital and the Preferred Return.
+        7. Preferred Return. 8 percent per annum compounded.
+        8. Catch-Up. A 100 percent GP catch-up until the General Partner has received 20 percent of cumulative profits.
+        9. Expenses. Organisational expenses up to USD 2,000,000 and all partnership operating expenses are borne by the Fund.
+        10. Distributions. Distributed as received, first to return contributions, then the Preferred Return, then the catch-up, then 80/20.
+        11. Key Persons. If two of the three Key Persons cease to devote substantially all business time, the Investment Period suspends pending LPAC vote.
+        12. Removal. The General Partner may be removed for cause by 66 percent of Commitments, or without cause by 75 percent.
+        13. Advisory Committee. An LPAC of five Limited Partners approves conflicts, valuations and extensions.
+        14. Transfers. No transfer of an interest without the General Partner's consent, not to be unreasonably withheld for a transfer to an affiliate.
+        15. Conflicts. Affiliate transactions require LPAC approval.
+        16. Governing Law. The laws of Guernsey.
+
+        SCHEDULE 3 — Management Fee Step-Downs
+        Years 1 to 5: 2.0 percent of Commitments. Years 6 to 8: 1.5 percent of invested capital. Thereafter: 1.0 percent of invested capital.
+
+        Fill the grid for this document.
+    expected:
+      rubric: >-
+        The Management Fee column includes and describes the Schedule 3 step-downs by period rather than
+        referring the reader to the schedule.
+
+sections:
+  '## Responsibilities': Flags absent clawback security, low LP removal thresholds, and key person events with no suspension mechanics, for private equity counsel.
+  '## Goals': Fund counsel can assess the economics (management fee, carry, hurdle, waterfall), the governance rights (LPAC, GP removal) and the LP protections (key person, clawback, transfer restrictions) without opening the agreement.
+  '## Workflows': |-
+    **Whenever a new document arrives:**
+    1. Work on the document the event handed you. Read that one; do not go looking for other limited partnership agreements. Scanning the whole store on every arrival re-analyses work you have already done and grows more expensive the longer the workspace lives. Do not analyse the same document twice: the same document can be re-delivered, renamed or re-notified, and each of those looks like a new event. If the event carries no readable document, say so and stop rather than falling back to a scan.
+    2. Read the agreement and fill every column of the review grid from it: all 20, in the order they are defined, each answered from this document rather than from what is usual. A column the agreement does not address is answered as such, never left blank and never guessed.
+    3. Save the completed grid named after the source document, versioned on each subsequent run so an earlier grid is never overwritten, and link it in your reply so it can be found. Do not try to file it beside the source: a documents connector cannot choose where a new document lands. Where there is nowhere to save it at all, return the grid in your reply rather than dropping it.
+    4. {{connector:opt-team-chat}}: the fund name, the GP, the total committed capital, and any flagged provisions.
+  '## Instructions': Cite document and clause references on every flagged item. Quote legally significant language verbatim rather than paraphrasing it. Flag ambiguity instead of resolving it. Stay inside the document in front of you; never merge information across separate agreements. The same document and the same query must yield the same finding set.
+  '## Outcomes': 'Per agreement: a 20-column grid with no blank cells, named after the source and linked, and the fund, the GP, the committed capital and the flags reported.'
+  '## Rules': |-
+    - A provision the document does not state is "Not stated", never a blank cell and never market practice
+    - Findings only; no legal advice, opinions or recommendations
+  '## Constraints': |-
+    - The grid has exactly the columns it was given, in that order: none added, none dropped, none merged
+    - Do not request further documents except to resolve an ambiguity inside this agreement
+    - The grid is the output; do not restate the findings in your reply
+  '## Edge cases': |-
+    - No email communication connector connected: prepare the message and hand it to a person to send rather than sending nothing
+    - Not the expected document type: say so in the first column and extract whatever is there
+    - Economics such as management fee step-downs or a ratchet table sitting in a schedule: include and describe them in the relevant column
+    - The same provision appears twice with conflicting terms: note the conflict and cite both clauses
+  '## Anything to avoid': |-
+    - Offering legal advice, a fund economics opinion, or a view on whether terms are market-standard
+    - Inferring from market standard where the document is silent, instead of writing "Not stated"
+    - Returning a grid with a column omitted or a cell left blank
+
+requiredConnectors:
+  - id: req-document-source
+    capabilities: [cloud_storage, documents]
+    role: tool
+    description: Read source documents from your connected storage or documents workspace, and save the output there
+
+optionalConnectors:
+  - id: opt-team-chat
+    capability: team_chat
+    role: tool
+    description: Post results and governance risk flags to your legal channel
+    objects:
+      - id: alert-channel
+        kind: channel
+        direction: write
+        required: false
+        label: "Where fund governance findings and risk flags should be posted"
+        fallback: your legal channel
+    prose:
+      whenBound: "Post to {{pick:alert-channel}}"
+      whenUnbound: "Open a chat thread with the review"
+  - id: opt-email
+    capability: email_communication
+    role: tool
+    description: Email the completed LPA review grid to the PE legal and fund counsel teams.
+
+defaultAgentType: agent
+# This role has a trigger that re-delivers. Declared so the graph must carry the
+# step that checks it has not already acted, rather than the prose hoping it does.
+requiresIdempotencyCheck: true
+defaultMemoryScope:
+  readableLayers: [global, role]
+  writableLayers: [role]
+defaultTriggerConfig:
+  type: event
+  eventTopic: file.created
+  # A contract arrives as a Drive file or as a Notion page, and this team reads
+  # either. Each bound connector delivers only the topic it emits.
+  eventTopics: [file.created, document.created]
+
+extractionSchema:
+  - index: 0
+    name: General Partner
+    format: text
+    prompt: "Identify the General Partner(s) of the fund. State the full legal name, jurisdiction of establishment, and any affiliated management entity (e.g. the fund manager or investment adviser) named in the agreement."
+  - index: 1
+    name: Fund Name & Jurisdiction
+    format: text
+    prompt: "What is the full name of the fund and in which jurisdiction is the limited partnership established or registered?"
+  - index: 2
+    name: Total Committed Capital
+    format: monetary_amount
+    prompt: "What is the total committed capital of the fund? State the target size, any hard cap, the currency, and the closing date or dates if specified."
+  - index: 3
+    name: Capital Calls & Drawdowns
+    format: text
+    prompt: "How and when may the GP call capital from LPs? State the notice period for capital calls, the mechanics for issuing a call notice, any limit on the frequency or size of calls, and whether undrawn commitments can be recalled after repayment."
+  - index: 4
+    name: Penalties for Failure to Fund
+    format: text
+    prompt: "What are the consequences if an LP fails to fund a capital call? Describe any penalties (e.g. interest on the shortfall, dilution of interest, forced transfer at a discount, loss of voting or distribution rights, exclusion from future investments). Are there any cure periods before penalties apply?"
+  - index: 5
+    name: Investment Scope & Restrictions
+    format: text
+    prompt: "What is the fund's stated investment strategy, scope, and any restrictions? Include permitted sectors, geographies, investment stages, instrument types, and any concentration limits (e.g. maximum % of committed capital per single investment). Note how much discretion the GP has to deviate from the stated strategy."
+  - index: 6
+    name: Fund Term
+    format: text
+    prompt: "What is the term of the fund? State the initial term (e.g. 10 years from final closing), any permitted extension periods (e.g. 2 × 1-year extensions), who has the right to approve extensions (GP alone or with LP/LPAC consent), and any early termination mechanics."
+  - index: 7
+    name: Management Fee
+    format: text
+    prompt: "What management fee is payable to the GP or manager? State the fee rate, the basis on which it is calculated (e.g. committed capital during the investment period, then invested or net asset value thereafter), any step-downs over the fund life, and the payment frequency."
+  - index: 8
+    name: Carried Interest
+    format: text
+    prompt: "What carried interest (carry) is payable to the GP? State the carry percentage, the structure (European/fund-level waterfall vs American/deal-by-deal), and identify each step of the distribution waterfall in sequence (e.g. return of capital, preferred return, GP catch-up, then profit split)."
+  - index: 9
+    name: Preferred Return (Hurdle Rate)
+    format: percentage
+    prompt: "Is there a preferred return or hurdle rate that LPs must receive before the GP earns carry? State the rate, whether it is compounded (and on what basis), and how it is calculated (e.g. on invested capital, on contributed capital). If there is no preferred return, state this explicitly."
+  - index: 10
+    name: GP Catch-Up
+    format: text
+    prompt: "Is there a GP catch-up mechanism after the preferred return is met? If so, describe how it operates: what percentage of distributions go to the GP during the catch-up, and what economic result the catch-up is designed to achieve (e.g. the GP receives 20% of all profits to date)."
+  - index: 11
+    name: Clawback
+    format: text
+    prompt: "Is there a clawback obligation on the GP if it receives excess carry? State whether the clawback is calculated at fund level or individual partner level, when it is triggered, any cap or limit on the clawback obligation, and whether there is any escrow or security arrangement to support the GP's clawback obligation."
+  - index: 12
+    name: Fees & Expenses (Beyond Management Fee)
+    format: bulleted_list
+    prompt: "What fees and expenses are charged to the fund or LPs beyond the management fee? List each category (e.g. transaction fees, monitoring fees, broken deal costs, formation expenses, legal fees, fund administration costs, organisational expenses). For each, state who bears the cost and whether any amounts are offset against the management fee."
+  - index: 13
+    name: Distributions
+    format: text
+    prompt: "How and when are distributions made to LPs? Describe the timing of distributions (e.g. upon realisation of investments or at the GP's discretion), whether the GP can reinvest proceeds within the investment period, and whether distributions may be made in-kind (i.e. as securities rather than cash)."
+  - index: 14
+    name: Key Person Clause
+    format: text
+    prompt: "Is there a key person clause? Identify the designated key persons. What triggers the key person event (e.g. departure, incapacity, reduced time commitment below a threshold)? What are the consequences (e.g. suspension of the investment period)? Do LPs have any right to terminate or vote on continuation following a key person event?"
+  - index: 15
+    name: Removal of the GP
+    format: text
+    prompt: "Under what circumstances can the GP be removed? Distinguish between removal for cause (e.g. fraud, gross negligence, wilful misconduct; state the LP voting threshold required) and removal without cause (state the LP voting threshold and any associated consequences such as carried interest treatment on removal)."
+  - index: 16
+    name: Advisory Committee (LPAC)
+    format: text
+    prompt: "Is there an LP Advisory Committee (LPAC) or similar governance body? If so, describe its composition, how members are selected, its key powers and responsibilities (e.g. approving conflicts of interest, valuations, extensions, related-party transactions), and whether its approval is binding or merely advisory."
+  - index: 17
+    name: Transfer Restrictions
+    format: text
+    prompt: "What restrictions apply to an LP transferring or assigning its interest in the fund? Is GP consent required? Are there any permitted transfer exceptions (e.g. to affiliates)? Are secondary market sales permitted and, if so, subject to what conditions or rights of first refusal?"
+  - index: 18
+    name: Conflicts of Interest
+    format: text
+    prompt: "How does the agreement address conflicts of interest? Describe the deal allocation policy across funds, any co-investment rights granted to LPs, restrictions on related-party transactions, and the role of the LPAC in reviewing or approving conflicts. Note any specific conflict scenarios expressly contemplated."
+  - index: 19
+    name: Governing Law
+    format: text
+    prompt: "What governing law applies to this agreement and which courts or arbitral tribunals have jurisdiction over disputes?"

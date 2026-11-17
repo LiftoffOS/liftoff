@@ -1,0 +1,1363 @@
+# Cloud Build Configuration for Platform Backend
+# Optimized with npm caching and Kaniko Docker layer caching
+# Triggered by pushes to dev, staging, or main branches
+
+substitutions:
+  _ENVIRONMENT: 'dev'
+  _REGION: 'us-west1'
+  _SERVICE_NAME: 'platform-backend'
+  _CACHE_BUCKET: 'YOUR_CONTROL_PROJECT_STAGING-build-cache'
+  # Telemetry-only ($0.00) — the OU meter is a usage dimension, not a charge.
+  # prod=price_YOUR_STRIPE_ID, test=price_YOUR_STRIPE_ID.
+  # The $3.00 predecessors are archived in both Stripe modes; never reinstate one.
+  _STRIPE_OU_PRICE_ID: ''
+  # Post-deploy smoke runner image. Defaults to a generic builder so the
+  # cloudbuild parses cleanly when a trigger hasn't set _SMOKE_IMAGE yet
+  # (the smoke step itself no-ops via the empty-canary check inside the
+  # step body when _CANARY_TENANT_ID / _CANARY_AGENT_ID are unset).
+  _SMOKE_IMAGE: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+  _CANARY_TENANT_ID: ''
+  _CANARY_AGENT_ID: ''
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  substitution_option: 'ALLOW_LOOSE'
+  # 8 vCPU / 8 GB — the emit `build` (tsc) needs more heap than the default machine
+  # affords now that the codebase has grown; see the build step's NODE_OPTIONS.
+  machineType: 'E2_HIGHCPU_8'
+
+steps:
+  # Step 0: Cancel any older builds for this trigger so only the newest runs.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'cancel-stale-builds'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Skip when not started by a trigger (manual `gcloud builds submit`):
+        # those builds carry no TRIGGER_NAME, and the filter would otherwise
+        # match every other manual build in flight.
+        if [ -z "${TRIGGER_NAME}" ]; then
+          echo "Manual build (no TRIGGER_NAME); skipping stale-build cancellation."
+          exit 0
+        fi
+        gcloud builds list \
+          --project=${PROJECT_ID} \
+          --region=${LOCATION} \
+          --filter="status=WORKING OR status=QUEUED" \
+          --format='value(id,substitutions.TRIGGER_NAME)' | \
+          awk -v me="${BUILD_ID}" -v key="${TRIGGER_NAME}" '$$1!=me && $$2==key {print $$1}' | \
+        while read OLD_ID; do
+          echo "Cancelling stale build: $$OLD_ID"
+          gcloud builds cancel "$$OLD_ID" --project=${PROJECT_ID} --region=${LOCATION} --quiet 2>/dev/null || true
+        done
+    waitFor: ['-']
+
+  # Step 1: Restore npm + Jest transform cache from GCS
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'restore-npm-cache'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Restoring npm cache..."
+        gsutil -q cp gs://${_CACHE_BUCKET}/npm-cache.tar.gz /tmp/npm-cache.tar.gz 2>/dev/null && \
+        tar -xzf /tmp/npm-cache.tar.gz -C /root/ 2>/dev/null && \
+        echo "npm cache restored" || \
+        echo "No npm cache found, starting fresh"
+        echo "Restoring Jest transform cache..."
+        gsutil -q cp gs://${_CACHE_BUCKET}/jest-cache.tar.gz /tmp/jest-cache.tar.gz 2>/dev/null && \
+        mkdir -p /workspace/node_modules/.cache && \
+        tar -xzf /tmp/jest-cache.tar.gz -C /workspace/node_modules/.cache 2>/dev/null && \
+        echo "Jest cache restored" || \
+        echo "No Jest cache found, starting fresh"
+
+  # Step 1.5: Fetch GCP AR access token for @liftoffos/* package auth.
+  # @liftoffos/proto-gen resolves from GCP AR (not a workspace package).
+  # Node images don't have gcloud; run this in parallel as a cloud-sdk step.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'get-ar-token'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'gcloud auth print-access-token > /workspace/.ar-token'
+    waitFor: ['-']
+
+  # Step 2: Install dependencies (uses restored cache)
+  - name: 'node:22-slim'
+    id: 'install'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Copy cache if it exists
+        if [ -d /root/.npm ]; then
+          cp -r /root/.npm ~/.npm 2>/dev/null || true
+        fi
+        export ARTIFACT_REGISTRY_TOKEN=$(cat /workspace/.ar-token)
+        npm ci --prefer-offline
+    waitFor: ['restore-npm-cache', 'get-ar-token']
+
+  # Step 3: Build workspace packages (must run before typecheck)
+  - name: 'node:22-slim'
+    id: 'build-packages'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        # Some packages import types from a sibling: composio-overlays from
+        # connector-types, contract-tests from shared-types, chat-attachments
+        # from service-runtime. npm fans the rest out alphabetically, which runs
+        # a dependent before its provider, so the providers are built first and
+        # their dist/ exists by then. A new package that imports a sibling
+        # belongs in this list.
+        npm run build --workspace=packages/connector-types --workspace=packages/shared-types --workspace=packages/service-runtime
+        npm run build --workspaces --if-present
+    waitFor: ['install']
+
+  # Step 3.5: Migration collision check (prevents future NNN duplicates)
+  - name: 'node:22-slim'
+    id: 'check-migration-collisions'
+    entrypoint: 'bash'
+    args: ['scripts/check-migration-collisions.sh', 'migrations']
+    waitFor: ['install']
+
+  # A throwaway Postgres for the migration check below.
+  #
+  # pgvector/pgvector:pg15, and both halves matter: Cloud SQL runs POSTGRES_15,
+  # and a gate on a different major version can reject SQL production accepts
+  # and accept SQL production rejects; and `CREATE EXTENSION vector` is in the
+  # migration set, which stock postgres images do not carry, so a plain image
+  # reports a perfectly good migration as broken.
+  #
+  # Detached on the `cloudbuild` network so later steps reach it by name.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'migration-verify-db'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        docker run -d --network=cloudbuild --name migration-verify-pg \
+          -e POSTGRES_PASSWORD=verify -e POSTGRES_USER=verify -e POSTGRES_DB=verify \
+          pgvector/pgvector:pg15 >/dev/null
+        echo "migration-verify-pg started (pgvector/pgvector:pg15, matching Cloud SQL)"
+    waitFor: ['-']
+
+  # The gate's Postgres major must equal Cloud SQL's. The image tag is pinned by
+  # hand, so it drifts the day someone upgrades the database without thinking
+  # about CI — and a gate on the wrong major is worse than no gate, because it
+  # is green while answering a question about a database nobody runs.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'migration-gate-version-guard'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        bash scripts/ci/check-migration-gate-version.sh \
+          "YOUR_GCP_PROJECT" \
+          "control-plane-pg-${_ENVIRONMENT}"
+    waitFor: ['-']
+
+  # Apply every migration to that empty database.
+  #
+  # The one defect class nothing else here can see: the suite has no database, so
+  # a migration's SQL is never executed until the migrate step runs it against
+  # Cloud SQL, after the images are built. The tenant-runtime lost a morning to
+  # exactly this (42803, a window function inside an aggregate's arguments) and
+  # took an unrelated migration down with it, because node-pg-migrate applies the
+  # pending batch in ONE transaction.
+  #
+  # Placed beside the collision check rather than after the image builds: it needs
+  # no artifact, so failing here costs a minute instead of the whole build.
+  - name: 'node:22-slim'
+    id: 'verify-migrations'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        # `pg` is already a dependency, so polling the port needs no extra install.
+        node -e '
+          const {Client} = require("pg");
+          const url = "postgres://verify:verify@migration-verify-pg:5432/verify";
+          (async () => {
+            for (let i = 0; i < 60; i++) {
+              const c = new Client({connectionString: url});
+              try { await c.connect(); await c.end(); process.exit(0); }
+              catch { await new Promise(r => setTimeout(r, 1000)); }
+            }
+            console.error("migration-verify-pg never became ready");
+            process.exit(1);
+          })();
+        '
+        set +e
+        DATABASE_URL=postgres://verify:verify@migration-verify-pg:5432/verify \
+          bash scripts/ci/verify-migrations.sh
+        STATUS=$$?
+        set -e
+        # exit 1 = a migration Postgres refused: block, that is the job.
+        # exit 2 = the check could not run: do NOT block. It has no information
+        # about the SQL, and a gate that fails the build over its own plumbing
+        # gets deleted rather than fixed. Loud instead.
+        if [ $$STATUS -eq 2 ]; then
+          echo "############################################################"
+          echo "# verify-migrations could NOT RUN. Migrations are UNCHECKED."
+          echo "# Not failing the build: an inconclusive check knows nothing."
+          echo "# Fix the runner — this protection is off until you do."
+          echo "############################################################"
+          exit 0
+        fi
+        exit $$STATUS
+    waitFor: ['install', 'migration-verify-db']
+
+  # The registry and the code constants must give the same answer: every model
+  # id a request can reach has an approved `models` row, and every TIER resolves
+  # to the same id in the registry and in the seed. Neither is checkable by the
+  # unit suite — it has no database and excludes *.integration.test.ts for that
+  # reason — so without this step the ratchet would be a file nothing runs.
+  #
+  # A step of its own rather than a tail on verify-migrations, because the two
+  # have different prerequisites and sharing one step gave this check the wrong
+  # ones. verify-migrations needs only `install`: it executes SQL and must fail
+  # early and cheap. This needs the WORKSPACE PACKAGES BUILT as well, because
+  # the assertions import each provider module to read its tier constants and a
+  # provider reaches @liftoffos/telemetry through infrastructure/logging.
+  #
+  # It reuses the database verify-migrations just migrated — same container on
+  # the cloudbuild network — so this costs a jest run and nothing else. Ordering
+  # after verify-migrations is also what makes the database meaningful: an
+  # unmigrated one has no `models` table, which the script reports as
+  # INCONCLUSIVE rather than as drift.
+  - name: 'node:22-slim'
+    id: 'check-registry-drift'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set +e
+        DATABASE_URL=postgres://verify:verify@migration-verify-pg:5432/verify \
+          bash scripts/ci/check-registry-drift.sh
+        STATUS=$$?
+        set -e
+        # The same three-state contract verify-migrations uses, and for the same
+        # reason: exit 2 means the check could not run, which is not evidence of
+        # anything and must not fail the build.
+        if [ $$STATUS -eq 2 ]; then
+          echo "############################################################"
+          echo "# check-registry-drift could NOT RUN. The registry is"
+          echo "# UNCHECKED against the code constants."
+          echo "# Not failing the build: an inconclusive check knows nothing."
+          echo "# Fix the runner — this protection is off until you do."
+          echo "############################################################"
+          exit 0
+        fi
+        exit $$STATUS
+    # build-packages is load-bearing here, not just for lint and typecheck: this
+    # is a Jest suite importing src/llm/providers/*, which reaches
+    # infrastructure/logging and therefore @liftoffos/telemetry. Without the
+    # packages built the suite dies with "Cannot find module
+    # '@liftoffos/telemetry'" before it asserts anything, and the failure names a
+    # dependency rather than the drift it was checking. Every other step that
+    # runs code out of src/ already waits on build-packages.
+    waitFor: ['verify-migrations', 'build-packages']
+
+  # A gate's feature-flag row exists in a database built from the chain.
+  #
+  # `isEnabled` reads FALSE for a MISSING row, which is the right default and a
+  # silent one: a gate whose row was never inserted is indistinguishable from a
+  # gate somebody turned off. The injection detector spent its whole life there
+  # — every screen in two services, gated on two keys that existed in no
+  # environment. Migration 540 seeds them; this step is what notices when a
+  # later migration drops or flips them, which the migration gate cannot see
+  # because it applies the chain and asks nothing about its output.
+  #
+  # Same freshly migrated database and the same three-state contract as
+  # check-registry-drift above. It reads `feature_flags` and imports nothing
+  # out of src/, so `build-packages` is not among its prerequisites — but the
+  # step still waits on it, because every other consumer of this container does
+  # and ordering them alike keeps the gate's dependency graph readable.
+  - name: 'node:22-slim'
+    id: 'check-seeded-feature-flags'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set +e
+        DATABASE_URL=postgres://verify:verify@migration-verify-pg:5432/verify \
+          bash scripts/ci/check-seeded-feature-flags.sh
+        STATUS=$$?
+        set -e
+        if [ $$STATUS -eq 2 ]; then
+          echo "############################################################"
+          echo "# check-seeded-feature-flags could NOT RUN. The rows the"
+          echo "# injection detector is gated on are UNCHECKED, and a"
+          echo "# missing row reads exactly like a gate turned off."
+          echo "# Not failing the build: an inconclusive check knows nothing."
+          echo "# Fix the runner — this protection is off until you do."
+          echo "############################################################"
+          exit 0
+        fi
+        exit $$STATUS
+    waitFor: ['verify-migrations', 'build-packages']
+
+  # The workspace export's reads mean what they say. queries.ts is SQL whose
+  # value is in its predicates (an assignment removed AFTER the cutoff stays
+  # in, a person's upload is never a produced file, a boundary timestamp
+  # survives a page break); the unit suite pins the statement TEXT with a
+  # mocked client and cannot see what it means. The assertions that can live
+  # in src/workspace-export/__tests__/queries.integration.test.ts, and this is
+  # the step that runs them, on the same freshly migrated database and with
+  # the same three-state contract as check-registry-drift above.
+  - name: 'node:22-slim'
+    id: 'check-workspace-export-reads'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set +e
+        DATABASE_URL=postgres://verify:verify@migration-verify-pg:5432/verify \
+          bash scripts/ci/check-workspace-export-reads.sh
+        STATUS=$$?
+        set -e
+        if [ $$STATUS -eq 2 ]; then
+          echo "############################################################"
+          echo "# check-workspace-export-reads could NOT RUN. The export's"
+          echo "# reads are UNCHECKED against the schema."
+          echo "# Not failing the build: an inconclusive check knows nothing."
+          echo "# Fix the runner — this protection is off until you do."
+          echo "############################################################"
+          exit 0
+        fi
+        exit $$STATUS
+    # The suite imports src/workspace-export/queries.ts, which reaches
+    # infrastructure/database and through it @liftoffos/database, so the
+    # packages must be built; and it needs the migrated database.
+    waitFor: ['verify-migrations', 'build-packages']
+
+  # Step 3.52: the tenant database behaves as asserted. Two suites on the same
+  # freshly migrated database, with the same three-state contract as the two
+  # checks above:
+  #   - the RLS census (migrations/__tests__/200_verification…), which has
+  #     existed since migration 200 with nothing running it — long enough for
+  #     its own baseline to drift out of step with the schema it guards;
+  #   - the continuation rows (chat_continuations, migration 514), a state
+  #     machine in SQL where a claim that takes a row twice runs a paid turn
+  #     twice and a cancel that misses a claimed row runs work the person has
+  #     moved on from. The unit suite pins only the statements' text.
+  - name: 'node:22-slim'
+    id: 'check-chat-continuations'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set +e
+        DATABASE_URL=postgres://verify:verify@migration-verify-pg:5432/verify \
+          bash scripts/ci/check-chat-continuations.sh
+        STATUS=$$?
+        set -e
+        if [ $$STATUS -eq 2 ]; then
+          echo "############################################################"
+          echo "# check-chat-continuations could NOT RUN. Tenant isolation"
+          echo "# and the continuation rows are UNCHECKED against the schema."
+          echo "# Not failing the build: an inconclusive check knows nothing."
+          echo "# Fix the runner — this protection is off until you do."
+          echo "############################################################"
+          exit 0
+        fi
+        exit $$STATUS
+    waitFor: ['verify-migrations', 'build-packages']
+
+  # Step 3.55a: Fetch an OIDC id-token + the connector-service bearer token
+  # for the sync-drift check below. The cloud-sdk image has gcloud; the node
+  # image does not — so we split the auth fetch into its own step and hand
+  # the files off via /workspace.
+  #
+  # Cloud Build's default SA (cloud-build-dev@YOUR_CI_PROJECT_STAGING) has
+  # roles/run.invoker on connector-service-dev (it deploys the service) and
+  # roles/secretmanager.secretAccessor on connector-service-token (granted
+  # by terraform/modules/connector-iam).
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'fetch-catalog-auth'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # connector-service's public hostname, never its run.app URL: the
+        # run.app path was closed (it negotiates TLS 1.0) and the service's
+        # ingress admits a caller from outside its project only through the
+        # load balancer. Non-fatal: if the OIDC token fetch fails, write empty
+        # sentinel files so check-connector-sync-drift skips gracefully. The
+        # deploy step does NOT depend on this step.
+        if [ "${_ENVIRONMENT}" = "prod" ]; then
+          CONNECTOR_SERVICE_URL=https://connectors.example.com
+        else
+          CONNECTOR_SERVICE_URL=https://connectors-${_ENVIRONMENT}.example.com
+        fi
+        echo "$${CONNECTOR_SERVICE_URL}" > /workspace/.connector-service-url
+
+        # Fetch connector-service bearer token from Secret Manager.
+        gcloud secrets versions access latest \
+          --secret=connector-service-token \
+          --project=YOUR_GCP_PROJECT \
+          > /workspace/.connector-service-token 2>/dev/null || echo "" > /workspace/.connector-service-token
+
+        # Generate an OIDC ID token for the connector-service audience.
+        # The metadata server /identity endpoint returns 404 in Cloud Build, so
+        # use the IAM Credentials API. Requires roles/iam.serviceAccountTokenCreator
+        # on the Cloud Build SA (already granted). Non-fatal on failure.
+        ACCESS_TOKEN=$$(gcloud auth print-access-token 2>/dev/null || echo "")
+        SA_EMAIL=$$(gcloud auth list --filter=status:ACTIVE --format='value(account)' 2>/dev/null | head -1)
+        if [ -n "$$ACCESS_TOKEN" ] && [ -n "$$SA_EMAIL" ]; then
+          ID_TOKEN=$$(curl -sSf -X POST \
+            -H "Authorization: Bearer $${ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/$${SA_EMAIL}:generateIdToken" \
+            -d "{\"audience\":\"$${CONNECTOR_SERVICE_URL}\",\"includeEmail\":true}" \
+            2>/dev/null | sed -n 's/.*"token":"\([^"]*\)".*/\1/p' || echo "")
+          echo -n "$${ID_TOKEN}" > /workspace/.connector-id-token
+          if [ -z "$$ID_TOKEN" ]; then
+            echo "WARNING: OIDC token generation failed — connector drift check will be skipped"
+          fi
+        else
+          echo "WARNING: No active auth — skipping OIDC token fetch"
+          echo "" > /workspace/.connector-id-token
+        fi
+    waitFor: ['-']
+
+  # Step 3.55b: Regenerate src/connectors/connector-service-cache.static.ts
+  # from the live catalog and fail the build if it differs from what's
+  # committed. Forces developers to run `npm run sync:connectors` and
+  # commit the result whenever the registry changes.
+  - name: 'node:22-slim'
+    id: 'check-connector-sync-drift'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -euo pipefail
+        export CONNECTOR_SERVICE_URL="$$(cat /workspace/.connector-service-url 2>/dev/null || echo '')"
+        export CONNECTOR_SERVICE_TOKEN="$$(cat /workspace/.connector-service-token 2>/dev/null || echo '')"
+        export CONNECTOR_SERVICE_ID_TOKEN="$$(cat /workspace/.connector-id-token 2>/dev/null || echo '')"
+        # Skip drift check if we couldn't obtain connector-service credentials
+        # (happens when connector-service is not yet deployed or OIDC auth fails).
+        if [ -z "$$CONNECTOR_SERVICE_URL" ] || [ -z "$$CONNECTOR_SERVICE_ID_TOKEN" ]; then
+          echo "WARNING: connector-service URL or OIDC token unavailable — skipping sync drift check"
+          exit 0
+        fi
+        # node:22-slim has no git — save the committed file, regenerate,
+        # then compare with diff (same pattern as connector-service's docs check).
+        cp src/connectors/connector-service-cache.static.ts /workspace/.static-cache-committed
+        npm run sync:connectors
+        if ! diff -q /workspace/.static-cache-committed src/connectors/connector-service-cache.static.ts > /dev/null; then
+          echo ""
+          echo "ERROR: src/connectors/connector-service-cache.static.ts is stale."
+          echo "The CONNECTORS registry in liftoff-connector-service changed;"
+          echo "run 'npm run sync:connectors' locally and commit the result."
+          echo ""
+          echo "See scripts/sync-connector-static-fallback.ts for auth setup."
+          diff -u /workspace/.static-cache-committed src/connectors/connector-service-cache.static.ts | head -40
+          exit 1
+        fi
+    waitFor: ['install', 'fetch-catalog-auth', 'build-packages']
+
+  # Step 3.6: Phase 0 CI fences (warn mode during Phase 0-2, flip to fail at
+  # Phase 1c / Phase 3 per the implementation plan). These guard against
+  # legacy agent_type literals, snake_case WorkflowStep fields, and local
+  # duplicates of canonical @liftoffos/shared-types types.
+  - name: 'node:22-slim'
+    id: 'ci-fences'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        scripts/ci-fences/legacy-literal-fence.sh src packages || exit 1
+        scripts/ci-fences/workflow-step-case-fence.sh src packages || exit 1
+        scripts/ci-fences/shared-types-drift-fence.sh src packages || exit 1
+        # A turn writes more than once, and the row that is kept is what a
+        # reload and a /share link show. Without this fence an assistant can
+        # accumulate its rounds with nothing between them.
+        scripts/ci-fences/assistant-message-boundary-fence.sh src || exit 1
+        # INV-PB-001 — catches a migration that writes a system-agent row
+        # (tenant_id IS NULL) without dropping FORCE RLS. Otherwise such a
+        # migration fails only at the migrate step, which is 20 minutes and
+        # a full image build later than here.
+        scripts/ci-fences/system-agent-rls-fence.sh migrations || exit 1
+        scripts/ci-fences/migration-force-rls-fence.sh migrations || exit 1
+        # INV-PB-014 — an MCP credential is revoked one person at a time, never
+        # by a script or a migration: a deploy must not sign a coding tool out.
+        scripts/ci-fences/credential-revocation-fence.sh src migrations || exit 1
+        # The voice block is carried by every customer-facing surface across two
+        # repos, and no test inside one checkout can see the other's copy. Exit 2
+        # is INCONCLUSIVE (no sibling checkout on a single-repo runner) and does
+        # not block, the same convention verify-migrations.sh uses; exit 1 means
+        # the two trees genuinely disagree and does.
+        # $$ escapes: Cloud Build expands a single $ as a substitution before the
+        # shell ever sees it, so $? and $rc would arrive empty and the build would
+        # be rejected at validation with an empty log. The repo's cloudbuild lint
+        # catches this; it caught this exact line.
+        scripts/ci-fences/agent-voice-parity.sh; rc=$$?
+        if [ "$$rc" -eq 1 ]; then exit 1; fi
+    waitFor: ['install']
+
+  # Step 4: Lint — runs in parallel with typecheck and test.
+  - name: 'node:22-slim'
+    id: 'lint'
+    entrypoint: 'npm'
+    args: ['run', 'lint']
+    waitFor: ['build-packages', 'check-migration-collisions', 'ci-fences']
+
+  # Step 5: Typecheck — runs in parallel with lint, freeing memory before test starts.
+  - name: 'node:22-slim'
+    id: 'typecheck'
+    entrypoint: 'npm'
+    args: ['run', 'typecheck']
+    env:
+      # Same reason the emit `build` step below carries this, and the same value.
+      # `tsc --noEmit` outgrows Node's ~2 GB default heap on this codebase and
+      # dies with exit 134 just under the ceiling. That is a threshold, not a
+      # flake: left at the default it tips over at random until it fails every
+      # time.
+      #
+      # Safe on the 8 GB machine: typecheck fans out with lint only (test waits
+      # on it precisely so the two never hold heap at once), and tsc's real
+      # working set is ~1.5-2 GB — this raises the ceiling, not the usage.
+      - 'NODE_OPTIONS=--max-old-space-size=4096'
+    waitFor: ['build-packages']
+
+  # Step 6: Test — starts after typecheck exits so its ~1.5 GB heap is freed
+  # before Jest workers spin up. tsc + 2 Jest workers simultaneously would
+  # push the 8 GB machine to ~6.5–7 GB which is too close to the limit.
+  # Bounded by wall clock so OOM-hung workers can't hang the build.
+  # `timeout --kill-after=15 900`: SIGTERM first, SIGKILL 15s later.
+  # 2 workers × 2 GB heap = 4 GB + ~1.5 GB OS = ~5.5 GB.
+  # isolatedModules: true in jest.config.js switches ts-jest to transpileModule
+  # (no full TS program per worker), cutting per-worker memory by ~50%.
+  - name: 'node:22-slim'
+    id: 'test'
+    entrypoint: 'bash'
+    timeout: '1500s'
+    env:
+      - 'NODE_OPTIONS=--max-old-space-size=2048'
+    args:
+      - '-c'
+      # No `|| echo …` swallow: test failures must fail the build. A swallow
+      # lets a broken suite ship silently, for as long as nobody looks.
+      - 'timeout --kill-after=15 900 npm test -- --ci --passWithNoTests --maxWorkers=2 --cacheDirectory=/workspace/node_modules/.cache/jest'
+    waitFor: ['typecheck']
+
+  # Step 6c: the TypeSafe fixture contract, against the LIVE vendor on the
+  # pinned model (src/typesafe/__tests__/fixtures.integration.test.ts, its own
+  # jest config; no database). Every phase whose kill defaults on ships with
+  # this evidence, so A MISSING OR UNREADABLE KEY FAILS THE BUILD here — the
+  # test would otherwise skip itself, and a green skip is exactly the no-op
+  # this step exists to refuse. The key is read the way fetch-catalog-auth
+  # reads the connector-service token; the runner prints the tightest
+  # passing band per threshold for a person to review.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'typesafe-contract-key'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -uo pipefail
+        # A missing secret is ABSENCE, not failure. TypeSafe is optional: a
+        # deployment without a key takes the non-Jev path at every call site, and
+        # failing the build here would mean nobody without an account could build
+        # the image at all. The contract step below skips itself and says so.
+        #
+        # Deliberately not `set -e` around the access: a missing secret and a
+        # denied permission both exit non-zero, and neither should stop a build.
+        if gcloud secrets versions access latest \
+             --secret=typesafe-api-key \
+             --project=YOUR_GCP_PROJECT \
+             > /workspace/.typesafe-api-key 2>/dev/null && [ -s /workspace/.typesafe-api-key ]; then
+          echo "typesafe-contract-key: key found; the contract will run."
+        else
+          : > /workspace/.typesafe-api-key
+          echo "typesafe-contract-key: no typesafe-api-key — the contract will be SKIPPED."
+          echo "  This build ships with the Jev rungs inert: the classifier, the bind rung and"
+          echo "  the routing rung each fall back to the model path they had before Jev, and"
+          echo "  effect_class is left UNSPECIFIED (see .env.example)."
+        fi
+        exit 0
+    waitFor: ['-']
+
+  - name: 'node:22-slim'
+    id: 'typesafe-contract'
+    entrypoint: 'bash'
+    timeout: '900s'
+    args:
+      - '-c'
+      - |
+        set -euo pipefail
+        export TYPESAFE_API_KEY="$$(cat /workspace/.typesafe-api-key)"
+        if [ -z "$$TYPESAFE_API_KEY" ]; then
+          # Skip, do not fail. The contract measures a LIVE vendor's answers, so
+          # with no key there is nothing to measure — and a contract that cannot
+          # run proves nothing either way. What it must never do is pass quietly:
+          # this says plainly that the evidence is absent.
+          echo "typesafe-contract: SKIPPED — no typesafe-api-key, so no live contract evidence exists for this build."
+          exit 0
+        fi
+        timeout --kill-after=15 600 npx jest --config jest.typesafe-contract.config.js --ci --runInBand
+    waitFor: ['typecheck', 'typesafe-contract-key']
+
+  # Step 7a: Save npm cache (right after install, not gated on tests)
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'save-npm-cache'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Saving npm cache..."
+        tar -czf /tmp/npm-cache.tar.gz -C /root/ .npm 2>/dev/null && \
+        gsutil -q cp /tmp/npm-cache.tar.gz gs://${_CACHE_BUCKET}/npm-cache.tar.gz && \
+        echo "npm cache saved" || \
+        echo "Failed to save npm cache (non-fatal)"
+    waitFor: ['install']
+
+  # Step 7b: Save Jest transform cache (after tests so cache is warm)
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'save-jest-cache'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Saving Jest transform cache..."
+        tar -czf /tmp/jest-cache.tar.gz -C /workspace/node_modules/.cache jest 2>/dev/null && \
+        gsutil -q cp /tmp/jest-cache.tar.gz gs://${_CACHE_BUCKET}/jest-cache.tar.gz && \
+        echo "Jest cache saved" || \
+        echo "Failed to save Jest cache (non-fatal)"
+    waitFor: ['test']
+
+  # Step 8: Build TypeScript
+  - name: 'node:22-slim'
+    id: 'build'
+    entrypoint: 'npm'
+    args: ['run', 'build']
+    env:
+      # emit needs more heap than `tsc --noEmit`; the default heap OOMs (exit 134)
+      # on the grown codebase. Fits inside the E2_HIGHCPU_8 machine (8 GB).
+      - 'NODE_OPTIONS=--max-old-space-size=4096'
+    waitFor: ['lint', 'typecheck', 'test', 'check-connector-sync-drift', 'typesafe-contract']
+
+  # Capture what the migration chain SAYS the registry holds, so the migrate job
+  # can compare it against what the LIVE database actually holds.
+  #
+  # The gate above runs on a database rebuilt from empty, which is what lets it
+  # read SQL the unit suite cannot — and is exactly why it can see a window that
+  # is MISSING and never one that is WRONG: a rebuilt database is the chain's
+  # output by construction. `grok-4.20-0309-non-reasoning` sat at 2,000,000 on
+  # dev and prod against 1,000,000 from the same migrations rebuilt, so the turn
+  # guard was parked above the model's real window where it could never fire,
+  # and every gate here stayed green for as long as that was true.
+  #
+  # This step is the cheap half of closing that: the database is already
+  # migrated and still running, so the dump costs one query. The comparison
+  # happens in the migrate job (check-live-registry-drift.cjs), which is the
+  # only place in this pipeline that can reach a live database.
+  #
+  # It waits on `build` rather than `build-packages` because it reads
+  # OPENROUTER_HOSTED_PROVIDERS out of dist/ — the providers the pricing sync
+  # sizes at runtime, whose live value is MEANT to differ and which must
+  # therefore be excluded at generation time rather than hardcoded downstream.
+  - name: 'node:22-slim'
+    id: 'dump-registry-baseline'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set +e
+        DATABASE_URL=postgres://verify:verify@migration-verify-pg:5432/verify \
+          node scripts/ci/dump-registry-baseline.cjs /workspace/registry-baseline.json
+        STATUS=$$?
+        set -e
+        # The same three-state contract as every other registry gate. A baseline
+        # that could not be produced is not drift: the migrate job finds no file
+        # and reports itself INCONCLUSIVE rather than blocking a deploy over its
+        # own plumbing.
+        if [ $$STATUS -ne 0 ]; then
+          echo "############################################################"
+          echo "# dump-registry-baseline could NOT RUN. The live registry"
+          echo "# will NOT be compared against the migration chain on this"
+          echo "# deploy. Not failing the build: no baseline is not drift."
+          echo "############################################################"
+          exit 0
+        fi
+    waitFor: ['verify-migrations', 'build']
+
+  # Step 8: Build Docker images (pass GCP AR token so npm ci inside the image
+  # can fetch @liftoffos/proto-gen from Artifact Registry)
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build-app'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        docker build \
+          --build-arg ARTIFACT_REGISTRY_TOKEN="$$(cat /workspace/.ar-token)" \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+          .
+    waitFor: ['build']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build-migrate'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        docker build \
+          -f Dockerfile.migrate \
+          --build-arg ARTIFACT_REGISTRY_TOKEN="$$(cat /workspace/.ar-token)" \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA} \
+          .
+    # dump-registry-baseline writes registry-baseline.json into the build
+    # context, which this image carries so the migrate job can compare the live
+    # registry against the chain. The Dockerfile copies it with a glob, so a
+    # build without it still succeeds and the job reports INCONCLUSIVE.
+    waitFor: ['build', 'dump-registry-baseline']
+
+  # Step 8.5: Push images to Artifact Registry — SHA-only. Artifact Registry
+  # vulnerability scanning bills per unique image; the old :latest + :${ENV}
+  # floating tags each counted as distinct scans per build (~3x the cost).
+  # All downstream refs below already use ${SHORT_SHA}.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-app'
+    args:
+      - 'push'
+      - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}'
+    waitFor: ['docker-build-app']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-migrate'
+    args:
+      - 'push'
+      - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA}'
+    waitFor: ['docker-build-migrate']
+
+  # Step 8.6: Create or update the Layer B (auditor) and Layer D (disagreement
+  # emitter) Cloud Run Jobs. Both reuse the platform-backend app image
+  # (already pushed to the existing `YOUR_GCP_PROJECT` Artifact Registry
+  # repo above) and override the container command to run the compiled scripts.
+  # Mirrors the cost-attribution-backfill pattern (no Terraform involvement;
+  # Terraform only owns SA + IAM + Cloud Scheduler trigger in
+  # agent_scheduler_audit.tf / agent_scheduler_disagreement.tf).
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-agent-scheduler-audit-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+
+        # The audit job connects as the liftoff_admin BYPASSRLS role, whose
+        # password is provisioned equal to control-plane-db-password in every
+        # environment (see DB_ADMIN_USER in the platform-control terraform).
+        # That is the secret mounted below.
+
+        IMAGE=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}
+        ENV_VARS="NODE_ENV=production,ENVIRONMENT=${_ENVIRONMENT},GCP_PROJECT_ID=YOUR_GCP_PROJECT,CLOUD_SQL_CONNECTION_NAME=YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT},DB_USER=liftoff_admin,DB_NAME=liftoff_control"
+
+        # control-plane-pg-${_ENVIRONMENT} is ipv4Enabled=false — private IP
+        # only. --set-cloudsql-instances mounts the /cloudsql socket, but the
+        # connection behind that socket still has to reach 10.x, so it needs
+        # the VPC connector and private-ranges egress too. The mount alone is
+        # enough only for a public-IP instance; against a private-IP one every
+        # execution fails with "Connection terminated due to connection
+        # timeout", and because the auditor is what watches the reconciler,
+        # nothing downstream would notice. Every working sibling job in this
+        # estate (outbox-ack-reconciler, billing-audit-anchor) carries both flags.
+        #
+        # Both branches set them: the update branch is the one that runs on
+        # every subsequent build, so omitting them there would leave an
+        # already-created job broken forever.
+        VPC_FLAGS="--network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT} --vpc-egress private-ranges-only"
+
+        if gcloud run jobs describe agent-scheduler-audit --region ${_REGION} --project YOUR_GCP_PROJECT 2>/dev/null; then
+          gcloud run jobs update agent-scheduler-audit \
+            --image "$$IMAGE" \
+            --region ${_REGION} --project YOUR_GCP_PROJECT \
+            --set-cloudsql-instances YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT} \
+            $$VPC_FLAGS \
+            --command node \
+            --args "dist/scripts/audit-agent-schedulers.js" \
+            --set-env-vars "$$ENV_VARS" \
+            --set-secrets "DB_PASSWORD=control-plane-db-password:latest"
+        else
+          gcloud run jobs create agent-scheduler-audit \
+            --image "$$IMAGE" \
+            --region ${_REGION} --project YOUR_GCP_PROJECT \
+            --service-account YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com \
+            --set-cloudsql-instances YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT} \
+            $$VPC_FLAGS \
+            --command node \
+            --args "dist/scripts/audit-agent-schedulers.js" \
+            --set-env-vars "$$ENV_VARS" \
+            --set-secrets "DB_PASSWORD=control-plane-db-password:latest" \
+            --memory 512Mi --cpu 1 --task-timeout 1800 --max-retries 1
+        fi
+    waitFor: ['docker-push-app']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-agent-scheduler-disagreement-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        IMAGE=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}
+        ENV_VARS="NODE_ENV=production,ENVIRONMENT=${_ENVIRONMENT},GCP_PROJECT_ID=YOUR_GCP_PROJECT"
+
+        if gcloud run jobs describe agent-scheduler-disagreement --region ${_REGION} --project YOUR_GCP_PROJECT 2>/dev/null; then
+          gcloud run jobs update agent-scheduler-disagreement \
+            --image "$$IMAGE" \
+            --region ${_REGION} --project YOUR_GCP_PROJECT \
+            --command node \
+            --args "dist/scripts/agent-scheduler-disagreement.js" \
+            --set-env-vars "$$ENV_VARS"
+        else
+          gcloud run jobs create agent-scheduler-disagreement \
+            --image "$$IMAGE" \
+            --region ${_REGION} --project YOUR_GCP_PROJECT \
+            --service-account YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com \
+            --command node \
+            --args "dist/scripts/agent-scheduler-disagreement.js" \
+            --set-env-vars "$$ENV_VARS" \
+            --memory 512Mi --cpu 1 --task-timeout 600 --max-retries 1
+        fi
+    waitFor: ['docker-push-app']
+
+  # Step 9: Create or update migration Cloud Run job
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-migrate-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Creating/updating migration job for ${_ENVIRONMENT}..."
+
+        # Check if job exists
+        if gcloud run jobs describe ${_SERVICE_NAME}-migrate --region ${_REGION} --project YOUR_GCP_PROJECT 2>/dev/null; then
+          echo "Updating existing migration job..."
+          gcloud run jobs update ${_SERVICE_NAME}-migrate \
+            --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA} \
+            --region ${_REGION} \
+            --project YOUR_GCP_PROJECT \
+            --set-env-vars "CLOUD_SQL_CONNECTION_NAME=YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT},DB_USER=liftoff_app,DB_NAME=liftoff_control" \
+            --set-secrets "DB_PASSWORD=control-plane-db-password:latest"
+        else
+          echo "Creating new migration job..."
+          gcloud run jobs create ${_SERVICE_NAME}-migrate \
+            --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA} \
+            --region ${_REGION} \
+            --project YOUR_GCP_PROJECT \
+            --set-cloudsql-instances YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT} \
+            --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT} \
+            --vpc-egress private-ranges-only \
+            --set-env-vars "CLOUD_SQL_CONNECTION_NAME=YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT},DB_USER=liftoff_app,DB_NAME=liftoff_control" \
+            --set-secrets "DB_PASSWORD=control-plane-db-password:latest" \
+            --memory 512Mi \
+            --cpu 1 \
+            --task-timeout 600 \
+            --max-retries 1
+        fi
+    waitFor: ['docker-push-migrate']
+
+  # Step 9a: Refresh the psql break-glass job's image.
+  #
+  # That job (terraform: psql_break_glass) runs the migrate image with its CMD
+  # overridden by a one-shot psql wrapper. Terraform owns its whole container
+  # spec EXCEPT the image, which it disclaims via
+  # lifecycle.ignore_changes = [...containers[0].image] on the assumption that CI
+  # keeps it current, so this step does. Every image in this repository is swept
+  # by the `delete-older-than-30d` cleanup policy with tagState ANY, so a pin
+  # that nobody refreshes stops existing after a month, and the job then points
+  # at a tag that no longer resolves.
+  #
+  # Image ONLY, unlike the create-or-update steps around it: those jobs are
+  # created by CI, so CI re-declares their command, args and env. This one is
+  # created by terraform, and the image is the single field terraform hands over.
+  # Passing --set-env-vars or --command here would clobber the psql wrapper.
+  #
+  # Never creates, and never fails the build. If the job is absent, terraform has
+  # not made it yet and inventing a half-configured one here would be worse than
+  # skipping. Break-glass tooling must not block a release either way.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'refresh-psql-job-image'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        JOB="${_SERVICE_NAME}-psql"
+        IMAGE="${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA}"
+
+        if gcloud run jobs describe "$$JOB" --region ${_REGION} \
+             --project YOUR_GCP_PROJECT >/dev/null 2>&1; then
+          echo "Refreshing $$JOB image -> $$IMAGE"
+          gcloud run jobs update "$$JOB" \
+            --image "$$IMAGE" \
+            --region ${_REGION} \
+            --project YOUR_GCP_PROJECT \
+            || echo "WARNING: could not refresh $$JOB image; break-glass queries may fail until this is fixed."
+        else
+          echo "$$JOB does not exist (terraform has not created it) — skipping."
+        fi
+    waitFor: ['docker-push-migrate']
+
+  # Step 9b: Create or update cost-attribution backfill Cloud Run job (one-shot, not scheduled)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-backfill-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Resolve service URLs for the environment (same pattern as deploy step)
+        GOVERNANCE_SERVICE_URL=$$(gcloud run services describe governance-engine \
+          --region ${_REGION} --project YOUR_GCP_PROJECT \
+          --format='value(status.url)' 2>/dev/null || echo "")
+        DEVELOPER_PROXY_SERVICE_URL=$$(gcloud run services describe developer-proxy \
+          --region ${_REGION} --project YOUR_GCP_PROJECT \
+          --format='value(status.url)' 2>/dev/null || echo "")
+        TENANT_RUNTIME_PROJECT=$$(gcloud projects list \
+          --filter="name:tenant-liftoffos" \
+          --format="value(projectId)" 2>/dev/null | grep "${_ENVIRONMENT}" | head -1 || echo "")
+        TENANT_RUNTIME_URL=""
+        if [ -n "$$TENANT_RUNTIME_PROJECT" ]; then
+          TENANT_RUNTIME_URL=$$(gcloud run services describe agent-service \
+            --region ${_REGION} --project "$$TENANT_RUNTIME_PROJECT" \
+            --format='value(status.url)' 2>/dev/null || echo "")
+        fi
+
+        ENV_VARS="NODE_ENV=production,ENVIRONMENT=${_ENVIRONMENT},GCP_PROJECT_ID=YOUR_GCP_PROJECT,CLOUD_SQL_CONNECTION_NAME=YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT},DB_USER=liftoff_app,DB_NAME=liftoff_control,STRIPE_OU_PRICE_ID=${_STRIPE_OU_PRICE_ID}"
+        if [ -n "$$GOVERNANCE_SERVICE_URL" ]; then
+          ENV_VARS="$$ENV_VARS,GOVERNANCE_SERVICE_URL=$$GOVERNANCE_SERVICE_URL"
+        fi
+        if [ -n "$$DEVELOPER_PROXY_SERVICE_URL" ]; then
+          ENV_VARS="$$ENV_VARS,DEVELOPER_PROXY_SERVICE_URL=$$DEVELOPER_PROXY_SERVICE_URL"
+        fi
+        if [ -n "$$TENANT_RUNTIME_URL" ]; then
+          ENV_VARS="$$ENV_VARS,TENANT_RUNTIME_URL=$$TENANT_RUNTIME_URL"
+        fi
+
+        BACKFILL_CMD="const {runBackfill}=require('./dist/cost-attribution/ingestion/backfill-runner');runBackfill().then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1);})"
+
+        if gcloud run jobs describe cost-attribution-backfill --region ${_REGION} --project YOUR_GCP_PROJECT 2>/dev/null; then
+          gcloud run jobs update cost-attribution-backfill \
+            --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+            --region ${_REGION} --project YOUR_GCP_PROJECT \
+            --command node \
+            --args "-e,$$BACKFILL_CMD" \
+            --set-env-vars "$$ENV_VARS" \
+            --set-secrets "DB_PASSWORD=control-plane-db-password:latest,GOVERNANCE_SERVICE_TOKEN=governance-engine-token:latest,TENANT_RUNTIME_SERVICE_TOKEN=tenant-runtime-service-token:latest,GCP_BILLING_SHARED_BQ_DATASET=gcp-billing-shared-bq-dataset:latest,DEVELOPER_PROXY_SERVICE_TOKEN=developer-proxy-service-token:latest"
+        else
+          gcloud run jobs create cost-attribution-backfill \
+            --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+            --region ${_REGION} --project YOUR_GCP_PROJECT \
+            --service-account platform-backend-${_ENVIRONMENT}@YOUR_GCP_PROJECT.iam.gserviceaccount.com \
+            --set-cloudsql-instances YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT} \
+            --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT} \
+            --vpc-egress private-ranges-only \
+            --command node \
+            --args "-e,$$BACKFILL_CMD" \
+            --set-env-vars "$$ENV_VARS" \
+            --set-secrets "DB_PASSWORD=control-plane-db-password:latest,GOVERNANCE_SERVICE_TOKEN=governance-engine-token:latest,TENANT_RUNTIME_SERVICE_TOKEN=tenant-runtime-service-token:latest,GCP_BILLING_SHARED_BQ_DATASET=gcp-billing-shared-bq-dataset:latest,DEVELOPER_PROXY_SERVICE_TOKEN=developer-proxy-service-token:latest" \
+            --memory 2Gi --cpu 2 --task-timeout 3600 --max-retries 0
+        fi
+    waitFor: ['docker-push-app']
+
+  # Step 10: Run database migrations (BEFORE deploy so schema is ready for new code)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'migrate'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        echo "Running database migrations for ${_ENVIRONMENT}..."
+        gcloud run jobs execute ${_SERVICE_NAME}-migrate \
+          --region ${_REGION} \
+          --project YOUR_GCP_PROJECT \
+          --wait
+        echo "Migrations completed successfully"
+    waitFor: ['create-migrate-job', 'verify-migrations']
+
+  # Step 11: Deploy to Cloud Run (AFTER migrations so new code has correct schema)
+  #
+  # CONNECTOR_SERVICE_URL and GOVERNANCE_SERVICE_URL are resolved dynamically
+  # from the same control-plane project so platform-backend's Phase 2a/3
+  # proxies can reach each service. Hardcoding would risk cross-environment
+  # leaks (see tenant-runtime commit 4403906); `--update-env-vars` patches
+  # only these two vars so the rest of the service's existing env (DB config,
+  # OAuth client IDs, secrets, etc.) is preserved.
+  #
+  # GOVERNANCE_SERVICE_URL resolution is tolerant (warns + continues) until
+  # governance-engine is enabled in the platform-control env — before then
+  # the service doesn't exist yet and the /api/governance/* proxy will 503
+  # until the resolver succeeds on the next deploy.
+  # Image-only deploy. Env vars + secrets are owned by terraform
+  # (modules/platform-backend → terraform/projects/platform-control/main.tf,
+  # module "platform_backend" env_vars and cloud_run_all_secrets). Cloud Run
+  # carries forward env vars / secrets / IAM / VPC / CloudSQL from the prior
+  # revision when nothing is passed. Terraform's lifecycle.ignore_changes
+  # excludes `containers[0].image` so the two systems don't collide.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy'
+    entrypoint: 'gcloud'
+    args:
+      - run
+      - deploy
+      - ${_SERVICE_NAME}
+      - --image=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}
+      - --region=${_REGION}
+      - --project=YOUR_GCP_PROJECT
+      - --quiet
+    waitFor: ['docker-push-app', 'migrate']
+
+  # Step 11: Update the slack-token-rotator Cloud Run Job to use the new image.
+  # This Job is invoked by the slack-config-token-rotation-${env} Cloud Scheduler
+  # every 6 hours. It uses the same image as the service but runs as a Job (not
+  # serving traffic), so it's not killed by service deploys mid-rotation.
+  # The Job resource itself is managed by Terraform; we only update the image
+  # reference here, which is the only field that changes per deploy.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'update-slack-rotator-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Only update if the job exists (Terraform must create it first).
+        if gcloud run jobs describe slack-token-rotator-${_ENVIRONMENT} \
+            --region=${_REGION} \
+            --project=YOUR_GCP_PROJECT >/dev/null 2>&1; then
+          gcloud run jobs update slack-token-rotator-${_ENVIRONMENT} \
+            --region=${_REGION} \
+            --project=YOUR_GCP_PROJECT \
+            --image=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}
+        else
+          echo "slack-token-rotator-${_ENVIRONMENT} job not found — skipping image update (Terraform creates it on first apply)"
+        fi
+    waitFor: ['docker-push-app']
+
+  # Step 11b: Update the enterprise-orphan-scan Cloud Run Job to use the new image.
+  # Terraform (platform-control/main.tf) creates the Job with a placeholder image
+  # tag; this step patches it to the deploy SHA on every push so ops invocations
+  # run the same code as the live service. Terraform ignores image drift on this
+  # resource, mirroring the slack-token-rotator pattern above.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'update-orphan-scan-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        if gcloud run jobs describe platform-backend-enterprise-orphan-scan \
+            --region=${_REGION} \
+            --project=YOUR_GCP_PROJECT >/dev/null 2>&1; then
+          gcloud run jobs update platform-backend-enterprise-orphan-scan \
+            --region=${_REGION} \
+            --project=YOUR_GCP_PROJECT \
+            --image=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}
+        else
+          echo "platform-backend-enterprise-orphan-scan job not found — skipping image update (Terraform creates it on first apply)"
+        fi
+    waitFor: ['docker-push-app']
+
+  # Step 11b2: Update the model-pricing-sync Cloud Run Job to the new image.
+  # Invoked daily by the model-pricing-sync-${env} Cloud Scheduler; runs
+  # dist/scripts/sync-model-pricing.js to refresh the model_pricing table from the
+  # OpenRouter models API. Terraform manages the Job (image ignored for drift);
+  # this patches it to the deploy SHA so the sync always runs current code.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'update-model-pricing-sync-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        if gcloud run jobs describe model-pricing-sync-${_ENVIRONMENT} \
+            --region=${_REGION} \
+            --project=YOUR_GCP_PROJECT >/dev/null 2>&1; then
+          gcloud run jobs update model-pricing-sync-${_ENVIRONMENT} \
+            --region=${_REGION} \
+            --project=YOUR_GCP_PROJECT \
+            --image=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}
+        else
+          echo "model-pricing-sync-${_ENVIRONMENT} job not found — skipping image update (Terraform creates it on first apply)"
+        fi
+    waitFor: ['docker-push-app']
+
+  # Step 11b3: Update the apify-cost-reconcile Cloud Run Job to the new image.
+  # Invoked hourly by the apify-cost-reconcile-${env} Cloud Scheduler; runs
+  # dist/scripts/apify-cost-trueup.js --apply so every platform-funded actor run
+  # is booked at what Apify charged once its per-result charges have settled.
+  # Terraform manages the Job (image ignored for drift); this patches it to the
+  # deploy SHA so the reconciler always runs current code.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'update-apify-cost-reconcile-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        if gcloud run jobs describe apify-cost-reconcile-${_ENVIRONMENT} \
+            --region=${_REGION} \
+            --project=YOUR_GCP_PROJECT >/dev/null 2>&1; then
+          gcloud run jobs update apify-cost-reconcile-${_ENVIRONMENT} \
+            --region=${_REGION} \
+            --project=YOUR_GCP_PROJECT \
+            --image=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}
+        else
+          echo "apify-cost-reconcile-${_ENVIRONMENT} job not found — skipping image update (Terraform creates it on first apply)"
+        fi
+    waitFor: ['docker-push-app']
+
+  # Step 11c: Update the backfill-pinned-knowledge Cloud Run Job to the new image.
+  # Terraform creates the Job with the us-docker.pkg.dev/cloudrun/container/hello
+  # placeholder (cloudbuild only publishes SHA tags, not :latest, so a fresh
+  # creation can't reference the platform-backend image). This step patches the
+  # job to the just-pushed SHA on every main push so manual `gcloud run jobs
+  # execute` invocations run the same code as the live service. Terraform
+  # ignores image drift on this resource, mirroring slack-token-rotator and
+  # enterprise-orphan-scan above.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'update-backfill-pinned-knowledge-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        if gcloud run jobs describe backfill-pinned-knowledge-${_ENVIRONMENT} \
+            --region=${_REGION} \
+            --project=YOUR_GCP_PROJECT >/dev/null 2>&1; then
+          gcloud run jobs update backfill-pinned-knowledge-${_ENVIRONMENT} \
+            --region=${_REGION} \
+            --project=YOUR_GCP_PROJECT \
+            --image=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}
+        else
+          echo "backfill-pinned-knowledge-${_ENVIRONMENT} job not found — skipping image update (Terraform creates it on first apply)"
+        fi
+    waitFor: ['docker-push-app']
+
+  # Update the embed-sweep-chat-turns Cloud Run Job (semantic recall v2) to
+  # the new image. Terraform declares the job with a placeholder image and a
+  # PAUSED scheduler; this step patches the image on every main push. The
+  # activation order (patch image → manual backfill run → resume scheduler)
+  # is documented in docs/runbooks/embed-sweep-chat-turns.md.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'update-embed-sweep-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        if gcloud run jobs describe embed-sweep-chat-turns-${_ENVIRONMENT} \
+            --region=${_REGION} \
+            --project=YOUR_GCP_PROJECT >/dev/null 2>&1; then
+          gcloud run jobs update embed-sweep-chat-turns-${_ENVIRONMENT} \
+            --region=${_REGION} \
+            --project=YOUR_GCP_PROJECT \
+            --image=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}
+        else
+          echo "embed-sweep-chat-turns-${_ENVIRONMENT} job not found — skipping image update (Terraform creates it on first apply)"
+        fi
+    waitFor: ['docker-push-app']
+
+  # Step 11d: Update the validate-tenant-runtime-urls + outbox-ack-reconciler
+  # Cloud Run Jobs to the new image (ADR-018). Same pattern as 11c — Terraform
+  # creates these with the cloudrun/container/hello placeholder; cloudbuild
+  # patches the image on every main push.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'update-pubsub-bulletproof-jobs'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        IMG=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}
+        for JOB in validate-tenant-runtime-urls-${_ENVIRONMENT} outbox-ack-reconciler-${_ENVIRONMENT} drain-invocation-completed-dlq-${_ENVIRONMENT}; do
+          if gcloud run jobs describe "$$JOB" \
+               --region=${_REGION} \
+               --project=YOUR_GCP_PROJECT >/dev/null 2>&1; then
+            echo "Updating $$JOB → $$IMG"
+            gcloud run jobs update "$$JOB" \
+              --region=${_REGION} \
+              --project=YOUR_GCP_PROJECT \
+              --image=$$IMG
+          else
+            echo "$$JOB not found — skipping (Terraform creates it on first apply)"
+          fi
+        done
+    waitFor: ['docker-push-app']
+
+
+  # C.0 — Sweep the Workspace AI policy onto tenants that already exist.
+  #
+  # WHY THIS IS A DEPLOY STEP AND NOT A LEVER. The vendor map and the background
+  # task assignments are MATERIALIZED into every tenant's
+  # model_configs.routing_policy at write time, so changing a tier in code — or
+  # registering a new model per tier in the `models` registry — reaches new
+  # workspaces only. Existing ones keep the model id stamped on the day they
+  # were last touched. The script has always existed
+  # (src/scripts/restamp-workspace-ai-policies.ts) and its header has always
+  # said to run it after a tier change; nothing ran it, and nothing could — it
+  # had no Cloud Run job anywhere in this pipeline, so the documented lever had
+  # no handle. When the OpenAI ladder moved to the GPT-6 line every existing
+  # workspace was still stamped a generation behind, and the default-vendor
+  # workspaces were two Anthropic generations behind that.
+  #
+  # An upgrade at the LLM client has to be sweeping, so the sweep runs on every
+  # deploy rather than when somebody remembers.
+  #
+  # AFTER 'deploy', deliberately. Running it before would stamp GPT-6 ids while
+  # the PREVIOUS revision is still serving — and that revision's MODEL_PRICING
+  # does not carry the new rates, so every call in the gap bills at the
+  # conservative default. Running it after means tenants briefly keep their old
+  # policy, which still resolves, is still priced and is still branded, because
+  # a superseded model keeps its registry row. That is the fail-safe direction:
+  # the worst case is a tenant on last release's model for a minute, not a
+  # tenant billed at another model's rate.
+  #
+  # Idempotent, and that is load-bearing rather than incidental:
+  # setWorkspaceVendor upserts and publishes unconditionally, so the script
+  # skips any tenant whose rebuilt policy equals the stored one
+  # (routingPolicyEquals). Without that skip this step would bump every
+  # tenant's config version and wake every runtime on EVERY release.
+  #
+  # RUNS AS THE SERVICE'S OWN IDENTITY, which is not optional and is not
+  # tidiness. The script calls initSecrets() and then publishes a
+  # tenant.model_config.updated event per moved tenant, so it needs the same
+  # Secret Manager and Pub/Sub access the service has. Created without
+  # --service-account a Cloud Run job gets the DEFAULT COMPUTE account, which
+  # has neither, and the job dies at startup on the required secrets it
+  # cannot read, having reached no tenant. The flag is on the update branch
+  # too — a job already created on the default account keeps it otherwise, and
+  # re-running would fail identically forever.
+  #
+  # Failure blocks the build. A sweep that half-applied is exactly the drift
+  # this step exists to remove, and the script exits 1 when any tenant failed.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'restamp-workspace-ai-policies'
+    entrypoint: 'bash'
+    waitFor: ['deploy']
+    args:
+      - '-c'
+      - |
+        set -e
+        IMAGE=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}
+        # DB_ADMIN_USER is load-bearing. The script enumerates model_configs
+        # ACROSS tenants through withAdminScope, and that helper falls back to
+        # DB_USER when DB_ADMIN_USER is unset. liftoff_app is not BYPASSRLS, so
+        # the row-level policy applies and evaluates
+        # current_setting('app.current_tenant_id')::uuid against the empty
+        # string an admin scope leaves it at — which is not a filtered-to-zero
+        # read but a hard 22P02, 'invalid input syntax for type uuid'. The
+        # service gets this from Terraform; a Job has to be told. Same
+        # control-plane-db-password secret serves both roles.
+        ENV_VARS="NODE_ENV=production,ENVIRONMENT=${_ENVIRONMENT},GCP_PROJECT_ID=YOUR_GCP_PROJECT,CLOUD_SQL_CONNECTION_NAME=YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT},DB_USER=liftoff_app,DB_ADMIN_USER=liftoff_admin,DB_NAME=liftoff_control"
+
+        if gcloud run jobs describe ${_SERVICE_NAME}-restamp-policies \
+            --region ${_REGION} --project YOUR_GCP_PROJECT >/dev/null 2>&1; then
+          gcloud run jobs update ${_SERVICE_NAME}-restamp-policies \
+            --image "$$IMAGE" \
+            --region ${_REGION} --project YOUR_GCP_PROJECT \
+            --service-account platform-backend-${_ENVIRONMENT}@YOUR_GCP_PROJECT.iam.gserviceaccount.com \
+            --command node \
+            --args "dist/scripts/restamp-workspace-ai-policies.js" \
+            --set-env-vars "$$ENV_VARS" \
+            --set-secrets "DB_PASSWORD=control-plane-db-password:latest"
+        else
+          gcloud run jobs create ${_SERVICE_NAME}-restamp-policies \
+            --image "$$IMAGE" \
+            --region ${_REGION} --project YOUR_GCP_PROJECT \
+            --service-account platform-backend-${_ENVIRONMENT}@YOUR_GCP_PROJECT.iam.gserviceaccount.com \
+            --set-cloudsql-instances YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT} \
+            --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT} \
+            --vpc-egress private-ranges-only \
+            --command node \
+            --args "dist/scripts/restamp-workspace-ai-policies.js" \
+            --set-env-vars "$$ENV_VARS" \
+            --set-secrets "DB_PASSWORD=control-plane-db-password:latest" \
+            --memory 512Mi \
+            --cpu 1 \
+            --task-timeout 900 \
+            --max-retries 1
+        fi
+
+        gcloud run jobs execute ${_SERVICE_NAME}-restamp-policies \
+          --region ${_REGION} --project YOUR_GCP_PROJECT \
+          --wait
+
+  # C.1 — Post-deploy smoke against a canary tenant. Drives PB's chat
+  # endpoint end-to-end through StartChatTurn (which forwards to TR via
+  # Connect-RPC), so we catch regressions the TR-side smoke would miss
+  # (chat-service routing, auth wiring, streaming pass-through). If any
+  # scenario fails, the auto-rollback step shifts traffic back to the
+  # previous revision and the build is marked failed.
+  #
+  # Substitutions required:
+  #   _CANARY_TENANT_ID — UUID of the prod tenant we run smoke against
+  #   _CANARY_AGENT_ID  — UUID of the agent within that tenant
+  #   _SMOKE_IMAGE      — Artifact Registry URL of the pre-built smoke image
+  #                       (built from Liftoff-Tenant-Runtime/Dockerfile.smoke;
+  #                       contains both TR and PB harness CLIs).
+  # See TR cloudbuild.yaml for the rationale on the workspace/smoke.exit
+  # pattern. Same shape here for the PB-mode probe.
+  - name: '${_SMOKE_IMAGE}'
+    id: 'post-deploy-smoke'
+    # AFTER the sweep, not beside it. Both could waitFor 'deploy' and run
+    # concurrently, but then the canary turn would race a rewrite of the canary
+    # tenant's own routing policy — and it would be validating the pre-sweep
+    # configuration, which is not the one the release leaves behind.
+    waitFor: ['restamp-workspace-ai-policies']
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        if [[ -z "${_CANARY_TENANT_ID}" || -z "${_CANARY_AGENT_ID}" ]]; then
+          echo "post-deploy-smoke: canary tenant/agent not configured; skipping."
+          echo "0" > /workspace/smoke.exit
+          exit 0
+        fi
+        set +e
+        /smoke/tools/agent-test-harness/smoke-entrypoint.sh \
+          --mode=pb \
+          --base=https://${_SERVICE_NAME}-${_REGION}.run.app \
+          --tenant=${_CANARY_TENANT_ID} \
+          --agent=${_CANARY_AGENT_ID} \
+          --tag=memory,web,delegation,failure-mode \
+          --secret-project=YOUR_GCP_PROJECT
+        echo "$?" > /workspace/smoke.exit
+    allowFailure: true
+
+  - name: '${_SMOKE_IMAGE}'
+    id: 'auto-rollback-on-smoke-fail'
+    waitFor: ['post-deploy-smoke']
+    entrypoint: 'bash'
+    env:
+      - 'PROJECT_ID=YOUR_GCP_PROJECT'
+      - 'REGION=${_REGION}'
+      - 'SERVICE_NAME=${_SERVICE_NAME}'
+    args:
+      - '-c'
+      - |
+        SMOKE_EXIT="$(cat /workspace/smoke.exit 2>/dev/null || echo unknown)"
+        if [[ "$$SMOKE_EXIT" == "0" ]]; then
+          echo "post-deploy-smoke passed (exit=$$SMOKE_EXIT); no rollback needed."
+          exit 0
+        fi
+        echo "post-deploy-smoke failed (exit=$$SMOKE_EXIT); rolling back to prior revision."
+        /smoke/tools/smoke-rollback.sh
+    # see TR cloudbuild for the allowFailure rationale on this step.
+    allowFailure: true
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'smoke-exit-gate'
+    waitFor: ['auto-rollback-on-smoke-fail']
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        SMOKE_EXIT="$(cat /workspace/smoke.exit 2>/dev/null || echo 99)"
+        echo "smoke step exit code: $$SMOKE_EXIT"
+        exit "$$SMOKE_EXIT"
+
+# Kaniko pushes images directly, no separate push step needed
+images: []
+
+timeout: '4800s'

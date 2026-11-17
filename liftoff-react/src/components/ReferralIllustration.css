@@ -1,0 +1,92 @@
+/* Referral orbit visual — the orbit from the /dashboard/agents hero,
+   namespaced to refer-orbit* so the two stay decoupled.
+   Geometry and timings are kept the same so the page reads as part of the set. */
+
+.refer-orbit {
+  position: relative;
+  width: 116px;
+  height: 116px;
+  /* Centred under the copy, which is centred too, so the rail reads as one
+     block. Sized down from the 140px the full-page empty states use: this one
+     sits in a 300px rail beside a card, not alone in the middle of a screen,
+     and at 140px the rail stood a head taller than the card next to it. */
+  margin: var(--space-5) auto 0;
+}
+
+.refer-orbit__center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  background: var(--color-white);
+  border: 2px solid var(--border-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent);
+  z-index: 2;
+}
+
+.refer-orbit__center svg {
+  width: 24px;
+  height: 24px;
+}
+
+.refer-orbit__ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 2px dashed var(--border-light);
+  border-radius: 50%;
+  animation: refer-orbit-rotate 20s linear infinite;
+}
+
+@keyframes refer-orbit-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* The node turns the other way at the same rate, so an icon riding the ring
+   never ends up upside down. */
+.refer-orbit__node {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent);
+  animation: refer-orbit-counter 20s linear infinite;
+}
+
+@keyframes refer-orbit-counter {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+.refer-orbit__node svg {
+  width: 18px;
+  height: 18px;
+}
+
+.refer-orbit__node:nth-child(1) {
+  top: -16px;
+  left: 50%;
+  margin-left: -16px;
+}
+
+.refer-orbit__node:nth-child(2) {
+  bottom: 8px;
+  right: -8px;
+}
+
+.refer-orbit__node:nth-child(3) {
+  bottom: 8px;
+  left: -8px;
+}

@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/workforce-draft-plan-sse-lifecycle.fixture.json",
+  "title": "WorkforceDraftPlanSseLifecycleFixture",
+  "description": "Canonical SSE event sequence for a successful CAIO DraftPlan session: session_started → message_delta* → tool_call → agent_proposed → plan_ready_for_approval → session_ended. Tests replay this array through a proxy and assert order + content deltas per plan 0c.",
+  "plan_id": "plan-fixture-00000000",
+  "session_id": "sess-fixture-00000000",
+  "events": [
+    {
+      "kind": "session_started",
+      "eventId": "00000000-0000-0000-0000-000000000001",
+      "planId": "plan-fixture-00000000",
+      "occurredAt": "2026-04-20T12:00:00.000Z",
+      "sessionId": "sess-fixture-00000000"
+    },
+    {
+      "kind": "message_delta",
+      "eventId": "00000000-0000-0000-0000-000000000002",
+      "planId": "plan-fixture-00000000",
+      "occurredAt": "2026-04-20T12:00:00.500Z",
+      "role": "assistant",
+      "textDelta": "Let me look at how your workspace is set up."
+    },
+    {
+      "kind": "tool_call",
+      "eventId": "00000000-0000-0000-0000-000000000003",
+      "planId": "plan-fixture-00000000",
+      "occurredAt": "2026-04-20T12:00:01.000Z",
+      "toolName": "org__get_existing_structure",
+      "toolInput": { "tenantId": "ten-1" },
+      "toolOutput": { "agents": 2, "departments": ["engineering", "sales"] }
+    },
+    {
+      "kind": "message_delta",
+      "eventId": "00000000-0000-0000-0000-000000000004",
+      "planId": "plan-fixture-00000000",
+      "occurredAt": "2026-04-20T12:00:02.000Z",
+      "role": "assistant",
+      "textDelta": " I'll propose a small agent workforce."
+    },
+    {
+      "kind": "agent_proposed",
+      "eventId": "00000000-0000-0000-0000-000000000005",
+      "planId": "plan-fixture-00000000",
+      "occurredAt": "2026-04-20T12:00:03.000Z",
+      "proposedAgentIndex": 0,
+      "name": "Revenue Analyst",
+      "role": "Pulls weekly sales reports into a summary dashboard"
+    },
+    {
+      "kind": "agent_proposed",
+      "eventId": "00000000-0000-0000-0000-000000000006",
+      "planId": "plan-fixture-00000000",
+      "occurredAt": "2026-04-20T12:00:03.500Z",
+      "proposedAgentIndex": 1,
+      "name": "CRM Janitor",
+      "role": "Keeps HubSpot contacts deduplicated"
+    },
+    {
+      "kind": "plan_ready_for_approval",
+      "eventId": "00000000-0000-0000-0000-000000000007",
+      "planId": "plan-fixture-00000000",
+      "occurredAt": "2026-04-20T12:00:04.000Z",
+      "proposedAgentCount": 2
+    },
+    {
+      "kind": "session_ended",
+      "eventId": "00000000-0000-0000-0000-000000000008",
+      "planId": "plan-fixture-00000000",
+      "occurredAt": "2026-04-20T12:00:04.500Z",
+      "reason": "plan_finalized"
+    }
+  ],
+  "expected_assertions": [
+    "events[0].kind === 'session_started'",
+    "last(events).kind === 'session_ended'",
+    "countBy(events, 'kind').agent_proposed === events[6].proposedAgentCount",
+    "every(events, e => e.planId === 'plan-fixture-00000000')",
+    "every(events, e => isUuid(e.eventId))"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "set": {
+    "id": "classifier",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "tool": {
+      "name": "create_channel",
+      "description": "Create a new channel in the workspace."
+    }
+  },
+  "expect": {
+    "customerCommunication": {
+      "choice": "no"
+    },
+    "financialActions": {
+      "choice": "no"
+    },
+    "dataChanges": {
+      "choice": "yes"
+    },
+    "externalPublishing": {
+      "choice": "no"
+    },
+    "hiringDecisions": {
+      "choice": "no"
+    },
+    "effect": {
+      "choice": "write"
+    }
+  },
+  "note": "Guideline sentence from the classification prompt, in the direction it states. Creating a channel is structural: dataChanges only, not externalPublishing."
+}

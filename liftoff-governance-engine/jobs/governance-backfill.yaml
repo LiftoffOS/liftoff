@@ -1,0 +1,71 @@
+# Cloud Run Job: governance-backfill
+#
+# Deployed to YOUR_GCP_PROJECT<env>. Backfills governance rows from
+# a single tenant's Cloud SQL instance into governance-pg. Designed to be
+# invoked per-tenant by overriding the BACKFILL_TENANT_* env vars at
+# execute-time:
+#
+#   gcloud run jobs execute governance-backfill \
+#     --region us-west1 \
+#     --project YOUR_CONTROL_PROJECT_STAGING \
+#     --update-env-vars \
+#       "BACKFILL_TENANT_ID=liftoffos,BACKFILL_TENANT_DB_HOST=10.x.y.z,BACKFILL_DRY_RUN=true" \
+#     --wait
+#
+# For real (non-dry-run) cutover, drop the BACKFILL_DRY_RUN=true override.
+#
+# Secret values are pinned to Secret Manager entries in the platform-control
+# project. Tenant-specific secrets are referenced by resource path at runtime
+# so the job doesn't have to be redeployed per tenant.
+
+apiVersion: run.googleapis.com/v1
+kind: Job
+metadata:
+  name: governance-backfill
+  labels:
+    cloud.googleapis.com/location: us-west1
+    component: governance-engine
+    phase: "3d"
+  annotations:
+    run.googleapis.com/launch-stage: BETA
+spec:
+  template:
+    spec:
+      taskCount: 1
+      parallelism: 1
+      template:
+        spec:
+          timeoutSeconds: 3600
+          maxRetries: 0
+          serviceAccountName: YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com
+          containers:
+            - image: us-west1-docker.pkg.dev/YOUR_CONTROL_PROJECT_STAGING/YOUR_ARTIFACT_REPO_STAGING/governance-engine-backfill:latest
+              command: ["node"]
+              args: ["/app/scripts/backfill/backfill-from-tenant.js"]
+              resources:
+                limits:
+                  cpu: "1"
+                  memory: "1Gi"
+              env:
+                # Destination: governance-pg in the same control project.
+                - name: BACKFILL_GOVERNANCE_DB_HOST
+                  value: "10.0.0.10"  # replace with actual private IP
+                - name: BACKFILL_GOVERNANCE_DB_PASSWORD_SECRET
+                  value: "projects/YOUR_CONTROL_PROJECT_STAGING/secrets/governance-pg-password/versions/latest"
+                # Source: tenant-specific, supplied at execute-time via
+                # --update-env-vars. Defaults here are placeholders.
+                - name: BACKFILL_TENANT_ID
+                  value: "liftoffos"
+                - name: BACKFILL_TENANT_DB_HOST
+                  value: "10.0.0.20"  # overridden per execute
+                - name: BACKFILL_TENANT_DB_PASSWORD_SECRET
+                  value: "projects/YOUR_PROJECT/secrets/tenant-pg-password/versions/latest"
+                - name: BACKFILL_BATCH_SIZE
+                  value: "500"
+                - name: BACKFILL_DRY_RUN
+                  value: "true"  # default-safe: real runs set this to "false"
+                - name: NODE_ENV
+                  value: "production"
+          vpcAccess:
+            connector: projects/YOUR_CONTROL_PROJECT_STAGING/locations/us-west1/connectors/serverless-connector
+            egress: PRIVATE_RANGES_ONLY

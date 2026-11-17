@@ -1,0 +1,8 @@
+# CODEOWNERS — requires review from listed teams before merging
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Agent template shared types — any change requires platform + security review
+/packages/shared-types/src/agent-template.ts  @LiftoffOS/platform @LiftoffOS/security
+
+# Agent template catalog and runtime — any change requires platform + security review
+/src/agent-templates/                          @LiftoffOS/platform @LiftoffOS/security

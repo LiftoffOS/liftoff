@@ -1,0 +1,33 @@
+{
+  "displayName": "Runtime Extensions — Count Tokens",
+  "_note": "Cloud Monitoring dashboard for Part 2 metrics. Calls per provider, latency, accuracy drift.",
+  "mosaicLayout": {
+    "columns": 12,
+    "tiles": [
+      {
+        "width": 6, "height": 4, "xPos": 0, "yPos": 0,
+        "widget": {
+          "title": "Calls per provider",
+          "xyChart": {
+            "dataSets": [{ "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "metric.type=\"logging.googleapis.com/user/count_tokens_calls_total\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_RATE", "crossSeriesReducer": "REDUCE_SUM", "groupByFields": ["metric.label.provider"] }
+            }}}]
+          }
+        }
+      },
+      {
+        "width": 6, "height": 4, "xPos": 6, "yPos": 0,
+        "widget": {
+          "title": "Latency p50 / p95 / p99",
+          "xyChart": {
+            "dataSets": [{ "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "metric.type=\"logging.googleapis.com/user/count_tokens_latency_ms\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_PERCENTILE_99" }
+            }}}]
+          }
+        }
+      }
+    ]
+  }
+}

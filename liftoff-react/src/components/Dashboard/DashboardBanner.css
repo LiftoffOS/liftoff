@@ -1,0 +1,118 @@
+/* Dashboard banner — one sentence and one action, above the route outlet.
+ *
+ * Moved here from DashboardLayout.css when PaymentBlockedBanner stopped being
+ * the only caller. The critical rules below are that file's originals, byte for
+ * byte; everything under --quiet is new. */
+
+.dashboard-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: 16px 20px 0;
+  padding: 10px 14px;
+  background: var(--color-black);
+  border-radius: var(--radius-lg);
+  flex-wrap: wrap;
+}
+
+/* Inline placement, for a banner rendered inside page content rather than in
+ * the layout's slot above the outlet. */
+.dashboard-banner--inline {
+  margin: 0 0 16px;
+}
+
+.dashboard-banner__message {
+  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  font-variation-settings: "opsz" 32, "wght" 320;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.75);
+  flex: 1;
+  min-width: 0;
+}
+
+/* Keeps the close button tight to the CTA instead of inheriting the banner's
+ * 12px space-between gap. */
+.dashboard-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: none;
+}
+
+.dashboard-banner__cta {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-variation-settings: "opsz" 32, "wght" 320;
+  letter-spacing: -0.01em;
+  color: var(--color-black);
+  background: var(--color-white);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-out);
+}
+
+.dashboard-banner__cta:hover {
+  background: var(--color-gray-100);
+}
+
+/* ── Quiet variant ──────────────────────────────────────────────────────────
+ * Grey ground for a notice that is not blocking. Black is reserved for a
+ * stopped workspace, so the fill now carries severity: black means only money
+ * restarts it, grey means something optional is available.
+ *
+ * Fill alone, no border. .settings-passkey__item is the grey block already used
+ * inside Settings and it carries none, and the black banner this shares a shell
+ * with carries none either. */
+.dashboard-banner--quiet {
+  background: var(--color-gray-50);
+}
+
+.dashboard-banner--quiet .dashboard-banner__message {
+  color: var(--color-black);
+}
+
+/* Outline, matching Button variant="outline" — the same treatment the chat
+ * surfaces' notice uses for this action.
+ *
+ * The accent was wrong on two counts. It is reserved for the primary action on
+ * a screen, and this notice is an aside: the person came to the dashboard or
+ * the review queue to do something else. It also disagreed with the chat bar,
+ * which offers the identical thing in outline, so one feature asked the same
+ * question in two visual weights depending on where you met it. */
+.dashboard-banner--quiet .dashboard-banner__cta {
+  background: transparent;
+  border-color: var(--border-medium);
+  color: var(--color-black);
+}
+
+.dashboard-banner--quiet .dashboard-banner__cta:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-300);
+}
+
+/* Mirrors .modal-close in components/ModalOverlay.css, which is global CSS and
+ * not scoped to modals. */
+.dashboard-banner__close {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--color-gray-400);
+  transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+
+.dashboard-banner__close:hover {
+  background: var(--color-gray-100);
+  color: var(--color-black);
+}

@@ -1,0 +1,41 @@
+-- 367: drop stripe_usage_reports.
+--
+-- WHY THIS EXISTS. The table was created by migration 140 to hold "one row per
+-- successful stripe.subscriptionItems.createUsageRecord() call" -- a call this
+-- estate no longer makes: OU metering uses Stripe's meter events API and
+-- real-time firing lives in spend-subscriber.ts. Its only remaining writer
+-- was the daily ou-report job, whose role was audit snapshots
+-- rather than a record of usage records sent.
+--
+-- That job could not write a row. It ordered by `created_at` on a table whose
+-- timestamp column is `reported_at`, and the failing SELECT sat before the
+-- INSERT, so the write was unreachable on every path. The table is therefore
+-- expected to be empty -- so nothing is lost here.
+--
+-- The job is removed in the same change. It was redundant independently of the
+-- bug: getOperatingUnitsForPeriod computes the same figure for any window from
+-- billing_spend_events, which is append-only and never purged (no retention
+-- job, no partition drop, no purge path), and already serves two live
+-- endpoints. A daily snapshot of a derivable quantity is not a second source of
+-- truth, and `reported_ous INTEGER` made it a lossy one against a
+-- NUMERIC(18,3) ledger.
+--
+-- What the snapshot was meant to enable -- reconciling our ledger against
+-- Stripe's meter -- needs no local snapshot at all: both sides already exist,
+-- and the comparison is being built separately. It matters: without a working
+-- reconciliation, a hole in billing_spend_events can go unnoticed until an
+-- unrelated investigation happens to surface it.
+--
+-- ORDERING. The Cloud Scheduler job `ou-report-${environment}` is removed from
+-- Terraform and applied BEFORE this ships, and the route is deleted in this
+-- same release. So by the time this runs, nothing reads or writes the table.
+-- The route's existence pre-check (SELECT id FROM stripe_usage_reports ...) sat
+-- outside its try block and would have 500'd against a dropped table; with no
+-- caller left, that path is unreachable.
+--
+-- Its index (idx_stripe_usage_reports_account) drops with the table.
+--
+-- Idempotent: IF EXISTS, so this applies to a database that has the table and
+-- to a from-scratch rebuild alike.
+
+DROP TABLE IF EXISTS stripe_usage_reports;

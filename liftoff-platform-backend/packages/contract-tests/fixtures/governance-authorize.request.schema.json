@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/governance-authorize.request.schema.json",
+  "title": "GovernanceAuthorizeRequest",
+  "description": "Request body for POST /api/governance/authorize — synchronous per-tool-call check. Target p99 < 5ms.",
+  "type": "object",
+  "required": ["preflightToken", "idempotencyKey", "connector", "entityType", "actionType"],
+  "additionalProperties": false,
+  "properties": {
+    "preflightToken": { "type": "string", "minLength": 1 },
+    "idempotencyKey": { "type": "string", "minLength": 1 },
+    "connector": { "type": "string", "minLength": 1 },
+    "entityType": { "type": "string", "minLength": 1 },
+    "actionType": { "type": "string", "minLength": 1 },
+    "targetRef": { "type": "string" },
+    "payload": {}
+  }
+}

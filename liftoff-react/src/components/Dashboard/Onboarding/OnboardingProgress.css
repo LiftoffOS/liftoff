@@ -1,0 +1,123 @@
+.onboarding-progress-bar {
+  display: flex;
+  gap: 0;
+  margin-bottom: 32px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.onboarding-progress-bar__item {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.progress-step-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: all var(--duration-fast) var(--ease-out);
+  min-width: 120px;
+}
+
+.progress-step-link:hover:not(.progress-step-link--disabled) {
+  border-color: var(--border-medium);
+  background: var(--color-gray-50);
+}
+
+.progress-step-link--active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+}
+
+.progress-step-link--active:hover {
+  background: var(--color-accent-light);
+}
+
+.progress-step-link--completed {
+  border-color: #22c55e;
+}
+
+.progress-step-link--completed .progress-step-link__number {
+  background: #22c55e;
+  color: white;
+}
+
+.progress-step-link--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.progress-step-link__number {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  background: var(--color-gray-100);
+  color: var(--color-gray-400);
+  flex-shrink: 0;
+}
+
+.progress-step-link--active .progress-step-link__number {
+  background: var(--color-accent);
+  color: white;
+}
+
+.progress-step-link__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.progress-step-link__title {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-black);
+}
+
+.progress-step-link__description {
+  font-size: 10px;
+  color: var(--color-gray-400);
+}
+
+.progress-step-link__connector {
+  width: 24px;
+  height: 1px;
+  background: var(--border-light);
+  margin: 0 2px;
+}
+
+@media (max-width: 1200px) {
+  .progress-step-link {
+    min-width: 100px;
+    padding: 8px 10px;
+  }
+
+  .progress-step-link__description {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .progress-step-link__content {
+    display: none;
+  }
+
+  .progress-step-link {
+    min-width: auto;
+    padding: 8px;
+  }
+
+  .progress-step-link__connector {
+    width: 12px;
+  }
+}

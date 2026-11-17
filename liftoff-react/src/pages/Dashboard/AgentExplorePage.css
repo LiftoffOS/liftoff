@@ -1,0 +1,682 @@
+/* ═══════════════════════════════════════════════════════════════
+   STEP 1 — GALLERY
+   ═══════════════════════════════════════════════════════════════ */
+
+.explore-gallery__title {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--color-black);
+  letter-spacing: -0.03em;
+  margin: 0 0 var(--space-2);
+}
+
+.explore-gallery__subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin: 0;
+}
+
+/* Department section headers */
+.explore-gallery__section {
+  margin-bottom: var(--space-10);
+}
+
+.explore-gallery__section-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.explore-gallery__section-title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+}
+
+.explore-gallery__section-count {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+}
+
+/* Template grid — single scrollable row per department, full-bleed within page padding */
+.explore-gallery__grid {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-4);
+  overflow-x: auto;
+  /*
+   * Break out of the 640px content column to fill the full page width.
+   * 50% = half the containing section width (≤640px).
+   * When viewport > 640px + 2*space-6 the section is 640px, so:
+   *   margin-left pushes the grid left to the page padding edge.
+   *   padding-left re-indents the first card back to the content column.
+   * When viewport is small (section fills available width) both resolve to 0.
+   */
+  width: calc(100vw - 2 * var(--space-6));
+  margin-left: calc(50% - 50vw + var(--space-6));
+  padding-left: calc(50vw - 50% - var(--space-6));
+  padding-right: var(--space-6);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.explore-gallery__grid::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .explore-gallery__grid {
+    /* Page padding shrinks to space-4 at this breakpoint */
+    width: calc(100vw - 2 * var(--space-4));
+    margin-left: calc(50% - 50vw + var(--space-4));
+    padding-left: calc(50vw - 50% - var(--space-4));
+    padding-right: var(--space-4);
+  }
+}
+
+/* ── Template card ──────────────────────────────────────────── */
+
+.template-card {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 260px;
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    box-shadow var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.template-card:hover {
+  border-color: var(--color-gray-300);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.template-card:active {
+  transform: translateY(0);
+}
+
+/* Inline builder — replaces gallery content, fades in */
+.explore-gallery__inline-builder {
+  animation: explore-builder-in 0.2s ease-out both;
+}
+
+@keyframes explore-builder-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero zone — colored top with icon */
+.template-card__hero {
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.template-card__hero-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+}
+
+.template-card__hero-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Per-department hero background */
+.template-card__hero--customer_support { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; }
+.template-card__hero--sales             { background: linear-gradient(135deg, #10b981 0%, #047857 100%); color: white; }
+.template-card__hero--marketing         { background: linear-gradient(135deg, #8b5cf6 0%, #5b21b6 100%); color: white; }
+.template-card__hero--finance           { background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); color: white; }
+.template-card__hero--hr                { background: linear-gradient(135deg, #f97316 0%, #c2410c 100%); color: white; }
+.template-card__hero--legal             { background: linear-gradient(135deg, #6366f1 0%, #3730a3 100%); color: white; }
+.template-card__hero--operations        { background: linear-gradient(135deg, #64748b 0%, #334155 100%); color: white; }
+.template-card__hero--engineering       { background: linear-gradient(135deg, #ec4899 0%, #9d174d 100%); color: white; }
+.template-card__hero--other             { background: linear-gradient(135deg, #6b7280 0%, #374151 100%); color: white; }
+
+/* Card body */
+.template-card__body {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.template-card__name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.template-card__desc {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Card footer */
+.template-card__footer {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.template-card__connector-icons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  /* Reserve the icon row height so the footer divider stays aligned across
+     cards even when a template has zero required connectors. */
+  min-height: 20px;
+}
+
+.template-card__connector-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid var(--border-light);
+  background: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.template-card__connector-icon svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.template-card__connector-more {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-gray-400);
+  padding: 0 4px;
+}
+
+.template-card__setup-time {
+  font-size: 11px;
+  color: var(--color-gray-400);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+
+/* ── Skeleton cards ──────────────────────────────────────────── */
+
+.template-card--skeleton {
+  cursor: default;
+}
+
+.template-card--skeleton:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--border-light);
+}
+
+/* .skeleton-pulse / .skeleton-block are global primitives in index.css. */
+
+/* Empty state */
+.explore-gallery__empty {
+  padding: var(--space-16) var(--space-8);
+  text-align: center;
+}
+
+.explore-gallery__empty-title {
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--color-black);
+  margin: 0 0 var(--space-2);
+}
+
+.explore-gallery__empty-body {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STEP 2 — DETAIL VIEW
+   ═══════════════════════════════════════════════════════════════ */
+
+.explore-detail__title {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--color-black);
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--space-2);
+}
+
+.explore-detail__description {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Shown only if someone opens a folded section before its body has arrived.
+   The header and connector chips come from the gallery card, so this is the
+   one part of the detail step that can be waiting on anything. */
+.explore-detail__prose-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.explore-detail__prose-skeleton .skeleton-block {
+  height: 12px;
+}
+
+.explore-detail__prose-skeleton .skeleton-block:last-child {
+  width: 60%;
+}
+
+.explore-detail__load-error {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Integration chips in the detail step — display only, no interaction */
+.explore-detail__chip {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Guidance prose. The template's own text, unboxed: the read-only field this
+   replaced framed it in a grey input, which read as a form the reader could
+   not fill in and made a long section look longer than it is. */
+.explore-detail__prose {
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-black);
+}
+
+/* Part picker above its panel. Tighter than the collapsible's own gap, which
+   spaces unrelated blocks; these two are one control and its output. */
+.explore-detail__parts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+/* Centred over its panel. The picker scrolls when the part names outrun the
+   640px column, so it must also be allowed to be narrower than its content. */
+.explore-detail__parts > .segmented-control {
+  align-self: center;
+  max-width: 100%;
+}
+
+.explore-detail__parts > .markdown {
+  align-self: stretch;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STEP 3 — CONNECTOR SETUP
+   ═══════════════════════════════════════════════════════════════ */
+
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .explore-gallery__title {
+    font-size: var(--text-xl);
+  }
+}
+
+/* ─── Capability group (existing connection-cards wrapped in a rounded rectangle) ── */
+
+.capability-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+}
+
+.capability-group__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-1) var(--space-2);
+}
+
+/* ─── Capability icon stack (overlapping brand icons, workspace-members style) ── */
+
+.capability-icon-stack {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.capability-icon-stack__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  background: var(--color-white);
+  outline: 2px solid var(--color-white);
+  margin-left: -2px;
+}
+
+/* Border + rounded corners only in gallery card footer to match template-card__connector-icon */
+.template-card__footer .capability-icon-stack__icon {
+  border-radius: 4px;
+  border: 1px solid var(--border-light);
+}
+
+.capability-icon-stack__icon:first-child {
+  margin-left: 0;
+}
+
+.capability-icon-stack__icon svg,
+.capability-icon-stack__icon img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* In the gallery card footer, match the 12px size of template-card__connector-icon svg */
+.template-card__footer .capability-icon-stack__icon svg,
+.template-card__footer .capability-icon-stack__icon img {
+  width: 12px;
+  height: 12px;
+}
+
+/* The connector list a capability chip reveals on hover. A chip names a
+   capability ("CRM"); the tooltip names the apps that satisfy it, in the same
+   catalog order as the stacked icons on the chip itself. Type size comes from
+   .tooltip-portal so it matches every other tooltip; the logos are held to the
+   12px used in the card footer so eleven rows stay compact. Lives here rather
+   than in Tooltip.css because only this page builds this content, even though
+   the tooltip portals to document.body. */
+.connector-tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.connector-tooltip__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.connector-tooltip__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.connector-tooltip__icon svg,
+.connector-tooltip__icon img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Import Local Setup, beside Custom Agent. Mirrors the Teams header icon
+   buttons (.agents-page__icon-btn) rather than importing AgentsPage.css for
+   one rule, which is the precedent CompanyPage set. */
+.explore-gallery__icon-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--color-gray-400);
+  transition: all var(--duration-base) var(--ease-out);
+}
+
+.explore-gallery__icon-btn:hover {
+  color: var(--color-black);
+  background: var(--color-gray-100);
+}
+
+.explore-gallery__icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Facts a template declared it needs, asked on the connectors step. Sits
+   above the connectors because these are facts about the work itself, which
+   the tools are only the means to.
+
+   Rendered from the template's own list, so a template needing a target
+   market or a price floor gets a field here without this stylesheet or the
+   step that renders it changing.
+
+   Never inferred from the workspace name, the sign-in domain or a connected
+   account. Each of those is plausible and wrong often enough to point a year of
+   competitive research at the wrong company, and a wrong answer here is
+   invisible: every output still looks well-formed. */
+.template-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+}
+
+.template-inputs__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.template-inputs__label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-black);
+}
+
+
+@media (min-width: 640px) {
+  .template-inputs {
+    flex-direction: row;
+    gap: var(--space-5);
+  }
+
+  .template-inputs__field {
+    flex: 1;
+  }
+}
+
+
+/* The other tools in a capability group, once one of them is connected.
+   Centred and quiet: the requirement is already met, so this is an offer to
+   look rather than something asking to be done. Collapsing them is what pulls
+   the capabilities below back up the page. */
+.capability-group__more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  /* Half the height of a row it sits under. This is not a row: it is a way to
+     get the rows back, and giving it row-sized presence made the group look
+     like it still had one more tool in it. */
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  /* This scale runs backwards: gray-400 is 0.6 alpha and gray-500 is 0.48, so
+     500 is the quieter one and 400 the more present. Resting quiet, hover
+     darker — the reverse would have dimmed it on approach. */
+  color: var(--color-gray-500);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: color var(--duration-base) var(--ease-out),
+              background var(--duration-base) var(--ease-out);
+}
+
+.capability-group__more:hover {
+  color: var(--color-gray-400);
+  background: var(--color-gray-100);
+}
+
+.capability-group__more:focus-visible {
+  outline: 2px solid var(--color-gray-400);
+  outline-offset: -2px;
+}
+
+.capability-group__more svg {
+  display: block;
+}
+
+.capability-group__more[aria-expanded="true"] {
+  color: var(--color-gray-400);
+}
+
+/* Same chevron and same 180deg flip the Collapsible uses, so expanding a
+   capability group behaves like expanding anything else in the product. */
+.capability-group__more-icon {
+  display: block;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.capability-group__more[aria-expanded="true"] .capability-group__more-icon {
+  transform: rotate(180deg);
+}
+
+/* "Optional" beside the label rather than in the hint: a person scanning the
+   form needs to know what they can skip before they read the explanation. */
+.template-inputs__optional {
+  margin-left: var(--space-2);
+  color: var(--color-gray-500);
+  font-weight: 400;
+  font-size: var(--text-xs);
+}
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+   INLINE TEMPLATE EDITING — the detail step's fork markers
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Dev-only preview panel (/dev/template-detail). Shows the source text a hire
+   would actually be distilled from, so the placeholder round trip is visible
+   without opening a network tab. Never rendered in production: its only caller
+   is constructed behind import.meta.env.DEV. */
+.dev-preview__payload {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  width: min(520px, calc(100vw - var(--space-8)));
+  max-height: 46vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-white);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 60;
+}
+
+.dev-preview__payload-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-light);
+  font-size: var(--text-xs);
+}
+
+.dev-preview__payload-head button {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  background: var(--color-gray-100);
+  color: var(--color-gray-400);
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+}
+
+.dev-preview__payload pre {
+  margin: 0;
+  padding: var(--space-4);
+  overflow: auto;
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* The description could not be rewritten. Lighter than the description it
+   stands in for, because it is a note about the page rather than a sentence
+   about the team, and it occupies the same slot so nothing below it moves. */
+.explore-detail__description--failed {
+  color: var(--color-gray-500);
+  font-style: italic;
+}
+
+/* The description while a new one is being written. Holds the two-line shape a
+   real description occupies, so replacing it never shifts the sections below.
+   .skeleton-pulse / .skeleton-text are the global primitives from index.css. */
+.explore-detail__description--pending {
+  display: block;
+}
+
+.explore-detail__summary-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 3px 0;
+}
+
+.explore-detail__summary-skeleton .skeleton-text {
+  display: block;
+  width: 100%;
+  height: 11px;
+}
+
+.explore-detail__summary-skeleton .skeleton-text:last-child {
+  width: 62%;
+}

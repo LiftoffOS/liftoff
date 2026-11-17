@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`generateReport snapshot: block types with data 1`] = `
+[
+  "metric_card",
+  "metric_card",
+  "metric_card",
+  "metric_card",
+  "bar_chart",
+  "bar_chart",
+  "trend_chart",
+  "table",
+]
+`;

@@ -1,0 +1,34 @@
+{
+  "set": {
+    "id": "classifier",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "tool": {
+      "name": "get_invoice",
+      "description": "Retrieve an invoice with the customer billing details and the amounts charged."
+    }
+  },
+  "expect": {
+    "customerCommunication": {
+      "choice": "no"
+    },
+    "financialActions": {
+      "choice": "no"
+    },
+    "dataChanges": {
+      "choice": "no"
+    },
+    "externalPublishing": {
+      "choice": "no"
+    },
+    "hiringDecisions": {
+      "choice": "no"
+    },
+    "effect": {
+      "choice": "read"
+    }
+  },
+  "note": "1b: a read. The band rule stores read only when every category is excluded; this fixture pins the read probability, and the classifier test pins the rule."
+}

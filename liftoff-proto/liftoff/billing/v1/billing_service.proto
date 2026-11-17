@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+// liftoff-billing RPC surface. Stripe webhook is NOT an RPC: it is served as
+// a public HTTPS POST endpoint so raw-body signature verification works.
+package liftoff.billing.v1;
+
+import "google/protobuf/timestamp.proto";
+import "liftoff/billing/v1/types.proto";
+import "liftoff/event/v1/common.proto";
+
+service BillingService {
+  // Synchronous read. Callers may cache with tenant-scoped invalidation on
+  // `billing.subscription.updated` Pub/Sub events.
+  rpc GetSubscription(GetSubscriptionRequest) returns (GetSubscriptionResponse);
+
+  // Idempotent on (tenant_id, user_id, vendor, request_id). Duplicate
+  // calls are no-ops and return the original response.
+  rpc ReportUsage(ReportUsageRequest) returns (ReportUsageResponse);
+
+  // Reconcile a batch of meter events against Stripe. Scheduled daily;
+  // RPC exposed for operator-driven re-runs.
+  rpc ReconcileMeters(ReconcileMetersRequest) returns (ReconcileMetersResponse);
+
+  rpc ListInvoices(ListInvoicesRequest) returns (ListInvoicesResponse);
+
+  rpc CreateCheckoutSession(CreateCheckoutSessionRequest) returns (CreateCheckoutSessionResponse);
+
+  // Streams historical events to consumers rebuilding local caches (e.g.
+  // governance-engine rebuilding credit-balance state after a restore).
+  rpc ReplayEvents(ReplayEventsRequest) returns (stream ReplayEventsResponse);
+
+  // GDPR / CCPA data-subject access. Orchestrated by the platform-backend
+  // data-export-orchestrator job.
+  rpc ExportTenantData(ExportTenantDataRequest) returns (stream ExportTenantDataResponse);
+  rpc DeleteTenantUserData(DeleteTenantUserDataRequest) returns (DeleteTenantUserDataResponse);
+}
+
+// ── GetSubscription ───────────────────────────────────────────────────
+
+message GetSubscriptionRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+}
+
+message GetSubscriptionResponse {
+  Subscription subscription = 1;
+  repeated SubscriptionItem items = 2;
+  Plan plan = 3;
+  CreditBalance credit_balance = 4;
+}
+
+// ── ReportUsage ───────────────────────────────────────────────────────
+
+message ReportUsageRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  BillingVendor vendor = 2;
+  // Vendor-assigned request ID. Combined with (tenant, user, vendor) is
+  // the idempotency key.
+  string request_id = 3;
+  string event_type = 4;
+  int64 quantity = 5;
+  google.protobuf.Timestamp occurred_at = 6;
+  // Optional cost already computed by caller (byok-proxy). Server stores
+  // verbatim; reconciliation catches drift against Stripe.
+  int64 cost_micros = 7;
+  // Agent attribution for COGS tracking.
+  string agent_id = 8;
+  string action_id = 9;
+}
+
+message ReportUsageResponse {
+  MeterEvent meter_event = 1;
+  // True when this call created a new row; false on idempotent replay.
+  bool created = 2;
+}
+
+// ── ReconcileMeters ───────────────────────────────────────────────────
+
+message ReconcileMetersRequest {
+  // Inclusive window. Server clamps to 48 h max.
+  google.protobuf.Timestamp window_start = 1;
+  google.protobuf.Timestamp window_end = 2;
+  // Optional — limit to a single tenant for targeted re-runs.
+  string tenant_id = 3;
+}
+
+message ReconcileMetersResponse {
+  int64 events_scanned = 1;
+  int64 events_reported = 2;
+  int64 drift_count = 3;
+  // Micros units — signed. Positive = billing under-reported to Stripe.
+  int64 net_drift_micros = 4;
+}
+
+// ── ListInvoices ──────────────────────────────────────────────────────
+
+message ListInvoicesRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  liftoff.event.v1.Pagination pagination = 2;
+  InvoiceStatus status_filter = 3;
+  google.protobuf.Timestamp issued_after = 4;
+  google.protobuf.Timestamp issued_before = 5;
+}
+
+message ListInvoicesResponse {
+  repeated Invoice invoices = 1;
+  string next_page_token = 2;
+}
+
+// ── CreateCheckoutSession ─────────────────────────────────────────────
+
+message CreateCheckoutSessionRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string plan_id = 2;
+  string success_url = 3;
+  string cancel_url = 4;
+  // Optional promo code entered by user at checkout.
+  string promo_code = 5;
+}
+
+message CreateCheckoutSessionResponse {
+  string stripe_session_id = 1;
+  string checkout_url = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+// ── ReplayEvents ──────────────────────────────────────────────────────
+
+message ReplayEventsRequest {
+  string consumer_id = 1;
+  google.protobuf.Timestamp since = 2;
+  // Optional — filter to specific event_type values.
+  repeated string event_types = 3;
+}

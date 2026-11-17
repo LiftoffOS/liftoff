@@ -1,0 +1,2 @@
+ALTER TABLE llm_usage_log
+  ADD COLUMN IF NOT EXISTS web_fetch_requests INTEGER NOT NULL DEFAULT 0;

@@ -1,0 +1,20 @@
+# No trailing slash. A pattern ending in "/" matches directories only, so a
+# SYMLINK named node_modules is not ignored by it — which is how one got
+# committed here (8457886): a worktree symlinked node_modules at the parent
+# checkout, and `git add -A` swept it in past this rule. Every clone since has
+# materialised a dangling link and then reported "D node_modules" the moment
+# anyone ran npm.
+node_modules
+dist/
+coverage/
+*.log
+.DS_Store
+.env
+.env.local
+.env.*.local
+src/_source-ports/
+
+*.tgz
+
+# Large vendor specs (fetched, not committed — see specs/*SOURCE.md)
+specs/.large/

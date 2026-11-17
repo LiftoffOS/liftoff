@@ -1,0 +1,33 @@
+{
+  "set": {
+    "id": "memory_save",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "content": "The Sales tracking sheet has a hidden Archive tab that the append must not write to.",
+    "layer": "individual",
+    "requestedTags": [
+      "agent-initiated"
+    ],
+    "contract": {
+      "kind": "instructions",
+      "instructions": "Every Monday, read the CRM for last week's closed deals, append one summary row to the Sales tracking sheet, and notify #sales-ops when done. Route billing questions to the finance team.",
+      "role": "You are the Sales Ops assistant for Acme."
+    },
+    "neighbours": [
+      {
+        "neighbour": 0,
+        "id": "n-hours",
+        "content": "Priya works 9am to 5pm CET."
+      }
+    ]
+  },
+  "expect": {
+    "relation_0": {
+      "choice": "unrelated",
+      "min": 0.5
+    }
+  },
+  "note": "Different things."
+}

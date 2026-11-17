@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/connector-execute.response.schema.json",
+  "title": "ConnectorExecuteResponse",
+  "description": "Response from POST /api/connectors/execute.",
+  "type": "object",
+  "required": ["success"],
+  "additionalProperties": false,
+  "properties": {
+    "success": { "type": "boolean" },
+    "result": {},
+    "error": { "type": "string" },
+    "vendorLatencyMs": { "type": "integer", "minimum": 0 },
+    "costUsd": { "type": "number", "minimum": 0 }
+  }
+}

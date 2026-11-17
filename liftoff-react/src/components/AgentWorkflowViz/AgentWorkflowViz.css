@@ -1,0 +1,174 @@
+.awv { width: 100%; }
+
+.awv__canvas { width: 100%; }
+
+/* Invisible handles */
+.awv__handle {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 1px !important;
+  height: 1px !important;
+  min-width: unset !important;
+  min-height: unset !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+/* ─── Step node ─────────────────────────────────────────── */
+
+.awv__step-node {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-light);
+  background: var(--color-white);
+  font-size: 12px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  color: var(--color-black);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Fork node ─────────────────────────────────────────── */
+
+.awv__fork-node {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-sans);
+}
+
+.awv__fork-node--collapsed {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: 1px dashed var(--color-gray-200);
+  font-size: 11px;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out);
+}
+
+.awv__fork-node--collapsed:hover {
+  color: var(--color-black);
+  border-color: var(--color-gray-300);
+}
+
+.awv__fork-conditions {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.awv__fork-node--expanded {
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: var(--color-gray-50);
+  overflow: hidden;
+}
+
+.awv__fork-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--color-white);
+}
+
+.awv__fork-tab {
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 11px;
+  font-family: var(--font-sans);
+  color: var(--color-gray-400);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.awv__fork-tab:not(.awv__fork-tab--active):hover {
+  background: var(--color-gray-50);
+  color: var(--color-black);
+  border-color: var(--color-gray-200);
+}
+
+.awv__fork-tab--active {
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
+.awv__fork-tab--active:hover {
+  background: #2a2a2a;
+  color: var(--color-white);
+}
+
+.awv__fork-close {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-gray-300);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.awv__fork-close:hover { color: var(--color-black); }
+
+.awv__fork-steps {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 14px 12px;
+}
+
+.awv__fork-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.awv__fork-connector {
+  width: 1px;
+  height: 22px;
+  background: var(--color-gray-200);
+}
+
+.awv__fork-pill {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-light);
+  background: var(--color-white);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-black);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.awv__fork-chevron {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.awv__fork-chevron--right { transform: rotate(-90deg); }
+.awv__fork-chevron--up    { transform: rotate(180deg); }

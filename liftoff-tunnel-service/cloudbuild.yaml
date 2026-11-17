@@ -1,0 +1,58 @@
+# Cloud Build pipeline for liftoff-tunnel-service.
+#
+# Builds + deploys the Go terminator (Cloud Run target) only.
+# The customer-side tunnel-client image is published separately by
+# .github/workflows/publish-tunnel-client.yml to ghcr.io/liftoffos/tunnel-client
+# using the auto-provisioned GITHUB_TOKEN (zero GCP-side credentials).
+#
+# Substitutions (passed by the platform-ci `tunnel-service-{env}` trigger):
+#   _ENVIRONMENT       — dev | prod
+#   _REGION            — us-west1
+#   _PROJECT_ID        — YOUR_GCP_PROJECT
+#   _ARTIFACT_REGISTRY — full GAR URL, e.g. us-west1-docker.pkg.dev/YOUR_CONTROL_PROJECT_STAGING/YOUR_ARTIFACT_REPO_STAGING
+#
+# Terraform owns the Cloud Run service's infra (env, scaling, ingress) with
+# lifecycle ignore_changes on the image; this pipeline only refreshes the
+# running image SHA per push.
+
+steps:
+  - id: build-terminator
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_ARTIFACT_REGISTRY}/tunnel-service:${SHORT_SHA}
+      - -t
+      - ${_ARTIFACT_REGISTRY}/tunnel-service:${_ENVIRONMENT}
+      - .
+
+  - id: push-terminator
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - --all-tags
+      - ${_ARTIFACT_REGISTRY}/tunnel-service
+
+  # Refresh the running revision's image. Terraform owns service creation
+  # (lifecycle ignore_changes on image keeps it from fighting this step).
+  # If terraform hasn't created the service yet — e.g. on the very first build
+  # before phase 2 apply — `services update --image` would *create* a default
+  # service (gcloud's auto-create-on-update behavior), which would then
+  # conflict with terraform's create. Guard with a describe check.
+  - id: deploy-terminator
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        if gcloud run services describe tunnel-service --region=${_REGION} --project=${_PROJECT_ID} >/dev/null 2>&1; then
+          gcloud run services update tunnel-service \
+            --image=${_ARTIFACT_REGISTRY}/tunnel-service:${SHORT_SHA} \
+            --region=${_REGION} \
+            --project=${_PROJECT_ID}
+        else
+          echo "tunnel-service Cloud Run does not exist yet — skipping image refresh (terraform will create the service on next apply)"
+        fi
+
+options:
+  logging: CLOUD_LOGGING_ONLY

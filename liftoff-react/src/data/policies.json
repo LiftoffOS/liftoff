@@ -1,0 +1,181 @@
+{
+  "automationBoundaries": [
+    {
+      "id": "auto-001",
+      "action": "Standard lead qualification",
+      "type": "autonomous",
+      "conditions": "Confidence > 80%, standard criteria met",
+      "workflow": "Qualification"
+    },
+    {
+      "id": "auto-002",
+      "action": "Basic data enrichment",
+      "type": "autonomous",
+      "conditions": "Always allowed",
+      "workflow": "Intake"
+    },
+    {
+      "id": "auto-003",
+      "action": "Simple routing (SMB/Mid-market)",
+      "type": "autonomous",
+      "conditions": "Clear segment match, confidence > 85%",
+      "workflow": "Routing"
+    },
+    {
+      "id": "auto-004",
+      "action": "Automated email follow-ups",
+      "type": "autonomous",
+      "conditions": "Standard sequence, no custom content",
+      "workflow": "Follow-through"
+    },
+    {
+      "id": "auto-005",
+      "action": "Meeting scheduling",
+      "type": "autonomous",
+      "conditions": "Calendar available, standard slots",
+      "workflow": "Scheduling"
+    },
+    {
+      "id": "auto-006",
+      "action": "Quote preparation",
+      "type": "requires_approval",
+      "conditions": "Standard pricing only",
+      "workflow": "Scheduling"
+    },
+    {
+      "id": "auto-007",
+      "action": "Enterprise tier assignment",
+      "type": "requires_approval",
+      "conditions": "Always requires manager approval",
+      "workflow": "Qualification"
+    },
+    {
+      "id": "auto-008",
+      "action": "Custom pricing",
+      "type": "requires_approval",
+      "conditions": "Any deviation from standard pricing",
+      "workflow": "Handoff"
+    }
+  ],
+  "approvalRules": [
+    {
+      "id": "apr-001",
+      "actionType": "Discount > 10%",
+      "approverRole": "Sales Manager",
+      "threshold": "10%",
+      "fallback": "VP Sales",
+      "autoExpiry": "24 hours"
+    },
+    {
+      "id": "apr-002",
+      "actionType": "Enterprise tier change",
+      "approverRole": "Account Executive",
+      "threshold": null,
+      "fallback": "Sales Manager",
+      "autoExpiry": "48 hours"
+    },
+    {
+      "id": "apr-003",
+      "actionType": "Compliance waiver",
+      "approverRole": "Legal/Compliance",
+      "threshold": null,
+      "fallback": "General Counsel",
+      "autoExpiry": "72 hours"
+    },
+    {
+      "id": "apr-004",
+      "actionType": "Custom contract terms",
+      "approverRole": "Legal",
+      "threshold": null,
+      "fallback": "CEO",
+      "autoExpiry": "48 hours"
+    }
+  ],
+  "escalationRules": [
+    {
+      "id": "esc-001",
+      "trigger": "Confidence < 60%",
+      "action": "Auto-escalate to reviewer",
+      "sla": "2 hours"
+    },
+    {
+      "id": "esc-002",
+      "trigger": "SLA at 80%",
+      "action": "Alert assigned owner",
+      "sla": "Immediate"
+    },
+    {
+      "id": "esc-003",
+      "trigger": "SLA breach",
+      "action": "Escalate to manager",
+      "sla": "Immediate"
+    },
+    {
+      "id": "esc-004",
+      "trigger": "Enterprise account issue",
+      "action": "Priority review queue",
+      "sla": "1 hour"
+    },
+    {
+      "id": "esc-005",
+      "trigger": "Multiple exceptions on account",
+      "action": "Human review required",
+      "sla": "4 hours"
+    }
+  ],
+  "sensitiveActions": [
+    {
+      "id": "sens-001",
+      "action": "Customer commitment/promise",
+      "category": "irreversible",
+      "alwaysReview": true
+    },
+    {
+      "id": "sens-002",
+      "action": "Contract signature request",
+      "category": "irreversible",
+      "alwaysReview": true
+    },
+    {
+      "id": "sens-003",
+      "action": "Financial guarantee",
+      "category": "high-risk",
+      "alwaysReview": true
+    },
+    {
+      "id": "sens-004",
+      "action": "External communication with legal implications",
+      "category": "high-risk",
+      "alwaysReview": true
+    }
+  ],
+  "changeHistory": [
+    {
+      "id": "chg-001",
+      "timestamp": "2024-01-14T16:30:00Z",
+      "user": "Sarah Chen",
+      "change": "Updated qualification confidence threshold",
+      "oldValue": "75%",
+      "newValue": "80%",
+      "reason": "Reduce false positives"
+    },
+    {
+      "id": "chg-002",
+      "timestamp": "2024-01-13T14:00:00Z",
+      "user": "Michael Park",
+      "change": "Added new escalation rule for enterprise accounts",
+      "oldValue": null,
+      "newValue": "1-hour SLA for enterprise issues",
+      "reason": "Improve enterprise response time"
+    },
+    {
+      "id": "chg-003",
+      "timestamp": "2024-01-12T10:00:00Z",
+      "user": "Jennifer Liu",
+      "change": "Modified discount approval threshold",
+      "oldValue": "15%",
+      "newValue": "10%",
+      "reason": "Tighter margin control"
+    }
+  ]
+}

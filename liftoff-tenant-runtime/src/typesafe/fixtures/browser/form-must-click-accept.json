@@ -1,0 +1,99 @@
+{
+  "set": {
+    "id": "browser_step",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "page": {
+    "url": "https://fixture.test/form",
+    "title": "Fixture",
+    "w": 756,
+    "h": 413,
+    "text": "We use cookies\nAccept\nCategory\nBook",
+    "scroll": {
+      "y": 0,
+      "height": 413
+    },
+    "actions": [
+      {
+        "node": 1,
+        "role": "button",
+        "label": "Accept",
+        "rect": {
+          "x": 113.140625,
+          "y": 382,
+          "w": 56.765625,
+          "h": 21
+        },
+        "kind": "click",
+        "value": "",
+        "id": "e1"
+      },
+      {
+        "node": 2,
+        "role": "combobox",
+        "label": "Category → Design",
+        "rect": {
+          "x": 92.65625,
+          "y": 31,
+          "w": 68,
+          "h": 19
+        },
+        "kind": "select",
+        "value": "Design",
+        "current_value": "All",
+        "id": "e2"
+      },
+      {
+        "node": 2,
+        "role": "combobox",
+        "label": "Category → Coastal",
+        "rect": {
+          "x": 92.65625,
+          "y": 31,
+          "w": 68,
+          "h": 19
+        },
+        "kind": "select",
+        "value": "Coastal",
+        "current_value": "All",
+        "id": "e3"
+      },
+      {
+        "node": 3,
+        "role": "button",
+        "label": "Book",
+        "rect": {
+          "x": 160.65625,
+          "y": 30,
+          "w": 46.390625,
+          "h": 21
+        },
+        "kind": "click",
+        "value": "",
+        "id": "e4"
+      },
+      {
+        "id": "wait",
+        "kind": "wait",
+        "label": "Wait for the page to update"
+      }
+    ],
+    "marker": null,
+    "page_key": null,
+    "guards": {},
+    "omitted_actions": 0,
+    "fingerprint": "9d153055706fe5e6777a2d51a530a2ea0a336ffb09df8e2657a8a222c9c96f8f"
+  },
+  "goal": "Accept cookies, choose the Coastal category and book",
+  "history": [],
+  "expect": {
+    "operation": {
+      "choice": "CLICK"
+    },
+    "click_target": {
+      "label": "Accept"
+    }
+  },
+  "note": "The cookie banner first."
+}

@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/event-custom-received.event.schema.json",
+  "title": "EventCustomReceivedEvent",
+  "description": "Pub/Sub envelope for event.custom_received — one event per matched trigger rule for an inbound webhook delivered to POST /api/events/custom/:token. Published by platform-backend's event-sources inbound router; consumed by tenant-runtime's subscriber to invoke the agent executor under trustLevel='untrusted_inbound'. See inbound-webhook plan §4.",
+  "type": "object",
+  "required": [
+    "entityType",
+    "entityId",
+    "eventVersion",
+    "eventType",
+    "tenantId",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": { "type": "integer", "minimum": 1 },
+    "entityType": { "const": "event_trigger_rule" },
+    "entityId": {
+      "type": "string",
+      "description": "Composite key `<sourceId>:<ruleId>:<deliveryId>` — guarantees uniqueness per dispatch so the outbox-dedup UNIQUE (entity_type, entity_id, event_type) index doesn't collapse two rules into one row.",
+      "pattern": "^[0-9a-f-]+:[0-9a-f-]+:[0-9a-f-]+$"
+    },
+    "entityVersion": { "type": ["integer", "null"] },
+    "eventVersion": { "type": "integer", "minimum": 1 },
+    "eventType": { "const": "event.custom_received" },
+    "tenantId": { "type": "string", "format": "uuid" },
+    "payload": {
+      "type": "object",
+      "required": [
+        "tenantId",
+        "agentId",
+        "trustLevel",
+        "harvestEligible",
+        "sourceId",
+        "sourceName",
+        "triggerRuleId",
+        "deliveryId",
+        "event",
+        "receivedAt"
+      ],
+      "properties": {
+        "tenantId": { "type": "string", "format": "uuid" },
+        "agentId": { "type": "string", "format": "uuid" },
+        "trustLevel": {
+          "const": "untrusted_inbound",
+          "description": "Always 'untrusted_inbound' on this event type — inbound webhooks never confer trust. The executor uses this to coerce hitlLevel ≥ 1 and to gate SSRF-prone tool calls."
+        },
+        "harvestEligible": {
+          "const": false,
+          "description": "Hard-coded false. Webhook-derived events must never contribute to memory (plan §6.4 layer 4)."
+        },
+        "sourceId": { "type": "string", "format": "uuid" },
+        "sourceName": {
+          "type": "string",
+          "description": "User-facing source label, useful for audit-trail rendering."
+        },
+        "triggerRuleId": { "type": "string", "format": "uuid" },
+        "deliveryId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Foreign key into event_deliveries — links the dispatched event back to its inbound HTTP audit row."
+        },
+        "event": {
+          "type": "object",
+          "required": ["eventId", "eventType", "occurredAt", "contentRedacted"],
+          "properties": {
+            "eventId": { "type": "string", "maxLength": 256 },
+            "eventType": { "type": "string", "maxLength": 128 },
+            "occurredAt": { "type": "string", "format": "date-time" },
+            "subject": {
+              "description": "Sanitized envelope subject. Permission keys (approval_required, role, admin, bypass_*, etc.) are stripped at ingest.",
+              "anyOf": [{ "type": "object" }, { "type": "null" }]
+            },
+            "actor": {
+              "description": "Sanitized envelope actor. NEVER authoritative — UI prefixes actor.id with `untrusted:` when rendering.",
+              "anyOf": [{ "type": "object" }, { "type": "null" }]
+            },
+            "data": {
+              "description": "Sanitized envelope payload. Strings capped at 8 KB, role markers (system:, <|im_start|>, etc.) replaced with [redacted], hidden Unicode stripped, permission keys removed recursively.",
+              "anyOf": [{ "type": "object" }, { "type": "array" }, { "type": "null" }]
+            },
+            "contentRedacted": {
+              "type": "boolean",
+              "description": "True when envelope sanitization removed or replaced at least one field. Audit consumers can use this to decide whether to escalate."
+            }
+          }
+        },
+        "receivedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

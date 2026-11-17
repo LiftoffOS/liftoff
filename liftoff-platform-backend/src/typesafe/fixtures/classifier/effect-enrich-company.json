@@ -1,0 +1,34 @@
+{
+  "set": {
+    "id": "classifier",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "tool": {
+      "name": "enrich_company",
+      "description": "Enrich a company profile with firmographic data from public sources. Read-only."
+    }
+  },
+  "expect": {
+    "customerCommunication": {
+      "choice": "no"
+    },
+    "financialActions": {
+      "choice": "no"
+    },
+    "dataChanges": {
+      "choice": "no"
+    },
+    "externalPublishing": {
+      "choice": "no"
+    },
+    "hiringDecisions": {
+      "choice": "no"
+    },
+    "effect": {
+      "choice": "read"
+    }
+  },
+  "note": "1b: an enrichment tool; enrich_* is read."
+}

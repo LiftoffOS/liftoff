@@ -1,0 +1,8 @@
+{
+  "ok": true,
+  "channels": [
+    {"id": "C01ABCD2EFG", "name": "general", "is_channel": true, "is_archived": false, "is_member": true, "num_members": 42},
+    {"id": "C01ABCD2EFG", "name": "random", "is_channel": true, "is_archived": false, "is_member": true, "num_members": 30}
+  ],
+  "response_metadata": {"next_cursor": ""}
+}

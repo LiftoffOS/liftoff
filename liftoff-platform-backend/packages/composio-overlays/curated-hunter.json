@@ -1,0 +1,10 @@
+{
+  "HUNTER_DOMAIN_SEARCH": { "stableName": "domain_search", "categories": ["read", "sensitive"] },
+  "HUNTER_EMAIL_FINDER": { "stableName": "find_email", "categories": ["read", "sensitive"] },
+  "HUNTER_EMAIL_VERIFIER": { "stableName": "verify_email", "categories": ["read"] },
+  "HUNTER_COMPANY_ENRICHMENT": { "stableName": "enrich_company", "categories": ["read"] },
+  "HUNTER_CREATE_LEAD": { "stableName": "create_lead", "categories": ["write"] },
+  "HUNTER_GET_LEAD": { "stableName": "get_lead", "categories": ["read"] },
+  "HUNTER_LIST_LEADS": { "stableName": "list_leads", "categories": ["read"] },
+  "HUNTER_UPDATE_LEAD": { "stableName": "update_lead", "categories": ["write"] }
+}

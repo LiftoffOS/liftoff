@@ -1,0 +1,270 @@
+{
+  "connectorType": "snov",
+  "harvestedAt": "2026-09-15",
+  "source": "vendor_docs",
+  "sourceUrl": "https://docs.google.com/spreadsheets/d/EXAMPLE_DOC_ID/export?format=csv",
+  "tools": [
+    {
+      "name": "Search prospects or companies",
+      "description": "The core lead-finding tools — search Snov.io's prospect and company databases, plus domain-based lookups.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Look up a company's domain",
+      "description": "Finds a company's website domain from its name, plus basic company details tied to that domain.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "See available search filters",
+      "description": "Checks what filters the AI or manual search supports before running a large search.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Find an email address",
+      "description": "Looks up the email for a specific name at a specific company."
+    },
+    {
+      "name": "Turn LinkedIn results into prospects",
+      "description": "Turns profiles found in a LinkedIn search into saved Snov.io prospects."
+    },
+    {
+      "name": "Search LinkedIn by filters or by URL",
+      "description": "Runs a LinkedIn search directly, either by filters or against a saved search URL."
+    },
+    {
+      "name": "See your lists, folders & what's in them",
+      "description": "Lists your prospect lists, company lists, folders, and how full each list is.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Look up one prospect's full card",
+      "description": "Every field Snov.io has on a single prospect.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Check verified emails & export options",
+      "description": "Sees which emails are already verified, and what information is available when exporting a list.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Create or reorganize a list or folder",
+      "description": "Create, rename, move, reorder, restore, or delete a list or folder."
+    },
+    {
+      "name": "Add things to a list",
+      "description": "Adds prospects, companies, or saved search and finder results to an existing list."
+    },
+    {
+      "name": "Remove or update prospects",
+      "description": "Removes prospects from a list, or updates details on an existing prospect."
+    },
+    {
+      "name": "Export a list",
+      "description": "Exports a prospect list, then lets you check when the export is ready."
+    },
+    {
+      "name": "Check verification status & provider breakdown",
+      "description": "Checks whether a bulk verification task has finished, and how emails break down by provider.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Verify one or many emails",
+      "description": "Verifies one email address, or a large group at once. Verifying in bulk spends credits."
+    },
+    {
+      "name": "Save verified results to a list",
+      "description": "Saves the results of a single or bulk verification into an existing list."
+    },
+    {
+      "name": "See your team",
+      "description": "Lists team members and basic user info.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "See scheduled tasks",
+      "description": "Lists calendar tasks and the event types available for them.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Create, edit, or delete a calendar task",
+      "description": "Schedules a follow-up or reminder tied to your outreach."
+    },
+    {
+      "name": "See your deals, funnels & stages",
+      "description": "Lists deals, searches deals by name, and lists funnels, stages, lost reasons, stage colors, and currencies.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Look up one deal's details or timeline",
+      "description": "Full detail and activity history for a single deal.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Create or update a deal",
+      "description": "Creates a new deal from scratch or from a prospect list, or updates an existing one."
+    },
+    {
+      "name": "Move deals & manage notes",
+      "description": "Moves many deals between stages at once, and adds, edits, or deletes deal notes and participants."
+    },
+    {
+      "name": "Manage funnels",
+      "description": "Create, update, reorder, or delete funnels, funnel stages, and lost reasons."
+    },
+    {
+      "name": "See your LinkedIn accounts",
+      "description": "Lists every account you can access, and which ones are actively connected right now.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Check one account's details",
+      "description": "Full profile for an account — daily safety limits, timezone, status, SSI score, premium status.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Check connection setup status",
+      "description": "Confirms whether login and two-factor verification finished after connecting a new account.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Look up timezones, countries & proxies",
+      "description": "Reference lists you need before setting a timezone, server location, or checking a proxy.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Check slot & trial info",
+      "description": "See open account slots, pending slot requests, and trial eligibility.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Connect a LinkedIn account",
+      "description": "Logs a LinkedIn account into a free slot. Login and two-factor verification finish in the background."
+    },
+    {
+      "name": "Update credentials, proxy, or location",
+      "description": "Change login details, set a custom proxy, or move the account's server location."
+    },
+    {
+      "name": "Set safety limits & warm-up ramp",
+      "description": "Daily action caps per action type, plus the invite warm-up ramp for new accounts."
+    },
+    {
+      "name": "Set timezone & Unibox visibility",
+      "description": "Match the account's timezone to its real location, and choose whether teammates see its inbox."
+    },
+    {
+      "name": "Refresh account stats",
+      "description": "Pulls a fresh premium status, SSI score, activity stats, or unread count from LinkedIn."
+    },
+    {
+      "name": "Manage slots & team access",
+      "description": "Assign a slot to a teammate, or accept, reject, request, or withdraw a slot request."
+    },
+    {
+      "name": "Disconnect an account",
+      "description": "Removes a LinkedIn account connection from Snov.io entirely.",
+      "annotations": {
+        "destructiveHint": true
+      }
+    },
+    {
+      "name": "Check unread replies",
+      "description": "Shows who's replied and hasn't been read yet, with the message text.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Read a conversation",
+      "description": "Pulls the message history with one specific contact.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Check your network & pending invites",
+      "description": "Lists current connections, and invites you've sent that are still awaiting a response.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Check a task's progress",
+      "description": "Checks the status of a scheduled send, withdrawal, disconnect, or network export.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Check connection degree to someone",
+      "description": "Shows how closely you're connected to a target profile — 1st, 2nd, or 3rd degree.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "Send an invite",
+      "description": "Sends a connection request, with or without a short note, to a specific profile."
+    },
+    {
+      "name": "Send a message or InMail",
+      "description": "Sends right away, or saves it to send later. Works for existing connections and, via InMail, for non-connections too."
+    },
+    {
+      "name": "Visit, follow, or like",
+      "description": "Lower-key touches that don't need a connection — useful for warming a lead before outreach."
+    },
+    {
+      "name": "Endorse skills",
+      "description": "Endorses a connection's listed skills."
+    },
+    {
+      "name": "Withdraw an invite or disconnect someone",
+      "description": "Cancels a pending invite, or removes an existing connection."
+    },
+    {
+      "name": "Sync a conversation's history",
+      "description": "Pulls in older messages with one contact — worth doing before drafting a reply in a long thread."
+    },
+    {
+      "name": "Export your network",
+      "description": "Starts a spreadsheet export of your connections."
+    },
+    {
+      "name": "Turn on auto-withdraw for stale invites",
+      "description": "Automatically cancels invites that go unanswered past a set limit."
+    }
+  ]
+}

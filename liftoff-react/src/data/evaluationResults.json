@@ -1,0 +1,260 @@
+{
+  "accountId": "acct-001",
+  "lastRun": "2024-01-15T10:00:00Z",
+  "runDuration": "3m 24s",
+  "status": "completed",
+  "summary": {
+    "total": 25,
+    "passed": 21,
+    "failed": 3,
+    "skipped": 1,
+    "coverage": 88,
+    "averageConfidence": 82
+  },
+  "testSuites": [
+    {
+      "id": "suite-intake",
+      "name": "Intake Processing",
+      "description": "Tests for inbound lead capture and initial processing",
+      "status": "passed",
+      "tests": {
+        "total": 8,
+        "passed": 8,
+        "failed": 0
+      }
+    },
+    {
+      "id": "suite-qualification",
+      "name": "Lead Qualification",
+      "description": "Tests for lead scoring and qualification logic",
+      "status": "passed",
+      "tests": {
+        "total": 6,
+        "passed": 5,
+        "failed": 1
+      }
+    },
+    {
+      "id": "suite-routing",
+      "name": "Routing Rules",
+      "description": "Tests for lead routing to appropriate queues",
+      "status": "failed",
+      "tests": {
+        "total": 7,
+        "passed": 5,
+        "failed": 2
+      }
+    },
+    {
+      "id": "suite-exceptions",
+      "name": "Exception Handling",
+      "description": "Tests for exception detection and escalation",
+      "status": "passed",
+      "tests": {
+        "total": 4,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 1
+      }
+    }
+  ],
+  "testCases": [
+    {
+      "id": "tc-001",
+      "suite": "suite-intake",
+      "name": "Standard Web Form Intake",
+      "description": "Web form submission with all required fields",
+      "scenario": {
+        "source": "web-form",
+        "data": {
+          "firstName": "John",
+          "lastName": "Smith",
+          "email": "john@example.com",
+          "company": "Example Corp",
+          "serviceLine": "Consulting"
+        }
+      },
+      "expectedOutcome": "Create work item, assign to intake queue",
+      "actualOutcome": "Create work item, assign to intake queue",
+      "status": "pass",
+      "confidence": 95,
+      "executionTime": "245ms"
+    },
+    {
+      "id": "tc-002",
+      "suite": "suite-intake",
+      "name": "Email Thread Intake",
+      "description": "Email inquiry creates work item with thread context",
+      "scenario": {
+        "source": "email",
+        "data": {
+          "from": "prospect@company.com",
+          "subject": "Service Inquiry",
+          "threadLength": 3
+        }
+      },
+      "expectedOutcome": "Create work item with conversation history",
+      "actualOutcome": "Create work item with conversation history",
+      "status": "pass",
+      "confidence": 88,
+      "executionTime": "312ms"
+    },
+    {
+      "id": "tc-003",
+      "suite": "suite-qualification",
+      "name": "Enterprise Lead Scoring",
+      "description": "Enterprise lead receives high priority score",
+      "scenario": {
+        "segment": "Enterprise",
+        "employeeCount": 5000,
+        "serviceLine": "Managed Services"
+      },
+      "expectedOutcome": "Score 85+, priority: high",
+      "actualOutcome": "Score 92, priority: high",
+      "status": "pass",
+      "confidence": 94,
+      "executionTime": "156ms"
+    },
+    {
+      "id": "tc-004",
+      "suite": "suite-qualification",
+      "name": "SMB Lead Scoring",
+      "description": "SMB lead receives appropriate priority",
+      "scenario": {
+        "segment": "SMB",
+        "employeeCount": 50,
+        "serviceLine": "Training"
+      },
+      "expectedOutcome": "Score 50-70, priority: medium",
+      "actualOutcome": "Score 62, priority: medium",
+      "status": "pass",
+      "confidence": 89,
+      "executionTime": "142ms"
+    },
+    {
+      "id": "tc-005",
+      "suite": "suite-qualification",
+      "name": "Missing Data Handling",
+      "description": "Lead with missing company size triggers review",
+      "scenario": {
+        "segment": "Unknown",
+        "employeeCount": null,
+        "serviceLine": "Consulting"
+      },
+      "expectedOutcome": "Flag for review, request enrichment",
+      "actualOutcome": "Auto-qualified as SMB",
+      "status": "fail",
+      "confidence": 45,
+      "executionTime": "198ms",
+      "failureReason": "System assumed SMB instead of flagging for review"
+    },
+    {
+      "id": "tc-006",
+      "suite": "suite-routing",
+      "name": "Geographic Routing - West",
+      "description": "West coast lead routes to NA-West team",
+      "scenario": {
+        "region": "California",
+        "segment": "Mid-Market"
+      },
+      "expectedOutcome": "Route to na-west-midmarket queue",
+      "actualOutcome": "Route to na-west-midmarket queue",
+      "status": "pass",
+      "confidence": 96,
+      "executionTime": "89ms"
+    },
+    {
+      "id": "tc-007",
+      "suite": "suite-routing",
+      "name": "VIP Account Routing",
+      "description": "VIP account triggers priority handling",
+      "scenario": {
+        "accountTier": "VIP",
+        "segment": "Enterprise"
+      },
+      "expectedOutcome": "Route to priority queue, notify manager",
+      "actualOutcome": "Route to standard enterprise queue",
+      "status": "fail",
+      "confidence": 52,
+      "executionTime": "134ms",
+      "failureReason": "VIP flag not detected in routing rules"
+    },
+    {
+      "id": "tc-008",
+      "suite": "suite-routing",
+      "name": "Service Line Routing",
+      "description": "Implementation request routes to implementation team",
+      "scenario": {
+        "serviceLine": "Implementation",
+        "segment": "Mid-Market"
+      },
+      "expectedOutcome": "Route to implementation-midmarket queue",
+      "actualOutcome": "Route to general-midmarket queue",
+      "status": "fail",
+      "confidence": 68,
+      "executionTime": "112ms",
+      "failureReason": "Service line routing rule not applied"
+    },
+    {
+      "id": "tc-009",
+      "suite": "suite-exceptions",
+      "name": "Competitor Detection",
+      "description": "Competitor company triggers review flag",
+      "scenario": {
+        "company": "Competitor Inc",
+        "isCompetitor": true
+      },
+      "expectedOutcome": "Flag for review, competitor warning",
+      "actualOutcome": "Flag for review, competitor warning",
+      "status": "pass",
+      "confidence": 91,
+      "executionTime": "167ms"
+    },
+    {
+      "id": "tc-010",
+      "suite": "suite-exceptions",
+      "name": "Large Deal Escalation",
+      "description": "Large deal value triggers executive notification",
+      "scenario": {
+        "estimatedValue": 250000,
+        "segment": "Enterprise"
+      },
+      "expectedOutcome": "Escalate to executive, high priority",
+      "actualOutcome": "Escalate to executive, high priority",
+      "status": "pass",
+      "confidence": 94,
+      "executionTime": "203ms"
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "rec-001",
+      "priority": "high",
+      "category": "routing",
+      "title": "Fix VIP Account Detection",
+      "description": "VIP flag is not being read from CRM account tier field. Update routing rules to check account.tier = 'VIP'.",
+      "relatedTests": ["tc-007"]
+    },
+    {
+      "id": "rec-002",
+      "priority": "high",
+      "category": "routing",
+      "title": "Enable Service Line Routing",
+      "description": "Service line routing rule exists but is not being applied. Check rule priority and enable flag.",
+      "relatedTests": ["tc-008"]
+    },
+    {
+      "id": "rec-003",
+      "priority": "medium",
+      "category": "qualification",
+      "title": "Add Missing Data Review Rule",
+      "description": "When employee count is missing, system should flag for review rather than assuming SMB segment.",
+      "relatedTests": ["tc-005"]
+    }
+  ],
+  "nextSteps": [
+    "Address high-priority routing issues before launch",
+    "Re-run test suite after fixes",
+    "Consider adding more edge case tests for exception handling"
+  ]
+}

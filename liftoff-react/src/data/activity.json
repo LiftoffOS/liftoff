@@ -1,0 +1,123 @@
+{
+  "needsAttention": [
+    {
+      "id": "attn-001",
+      "type": "sla",
+      "severity": "high",
+      "title": "17 quote-readiness cases exceeding SLA",
+      "description": "Cases in scheduling queue past 4-hour target",
+      "action": "Review queue",
+      "link": "/dashboard/operations?filter=sla-risk"
+    },
+    {
+      "id": "attn-002",
+      "type": "exception",
+      "severity": "medium",
+      "title": "Exception spike in enterprise inbound",
+      "description": "Web form submissions showing 3x normal exception rate",
+      "action": "Investigate",
+      "link": "/dashboard/audit?filter=exceptions"
+    },
+    {
+      "id": "attn-003",
+      "type": "backlog",
+      "severity": "medium",
+      "title": "Review backlog doubled in West region",
+      "description": "32 items awaiting review vs 16 last week",
+      "action": "Assign reviewers",
+      "link": "/dashboard/review?region=west"
+    },
+    {
+      "id": "attn-004",
+      "type": "integration",
+      "severity": "low",
+      "title": "CRM sync errors affecting routing",
+      "description": "12 records failed to sync in last hour",
+      "action": "Check integration",
+      "link": "/dashboard/integrations/crm"
+    },
+    {
+      "id": "attn-005",
+      "type": "policy",
+      "severity": "info",
+      "title": "Policy change needed for billing exceptions",
+      "description": "Current rule causing 15% false positive rate",
+      "action": "Review policy",
+      "link": "/dashboard/policies"
+    }
+  ],
+  "recentEvents": [
+    {
+      "id": "evt-001",
+      "type": "integration",
+      "title": "HubSpot integration connected",
+      "timestamp": "2024-01-15T08:00:00Z",
+      "user": "Admin"
+    },
+    {
+      "id": "evt-002",
+      "type": "policy",
+      "title": "Qualification threshold updated",
+      "timestamp": "2024-01-14T16:30:00Z",
+      "user": "Sarah Chen"
+    },
+    {
+      "id": "evt-003",
+      "type": "workflow",
+      "title": "Follow-through workflow expanded",
+      "timestamp": "2024-01-14T14:00:00Z",
+      "user": "System"
+    },
+    {
+      "id": "evt-004",
+      "type": "escalation",
+      "title": "Escalation spike resolved",
+      "timestamp": "2024-01-14T11:00:00Z",
+      "user": "Michael Park"
+    },
+    {
+      "id": "evt-005",
+      "type": "approval",
+      "title": "New approval threshold set",
+      "timestamp": "2024-01-13T15:00:00Z",
+      "user": "Jennifer Liu"
+    }
+  ],
+  "activityFeed": [
+    {
+      "id": "act-001",
+      "type": "ai",
+      "title": "Auto-qualified 23 leads",
+      "timestamp": "2024-01-15T09:30:00Z",
+      "details": "Batch processing completed"
+    },
+    {
+      "id": "act-002",
+      "type": "human",
+      "title": "Sarah Chen approved routing decision",
+      "timestamp": "2024-01-15T09:28:00Z",
+      "details": "TechStart Inc → Enterprise Sales"
+    },
+    {
+      "id": "act-003",
+      "type": "ai",
+      "title": "Sent 12 follow-up emails",
+      "timestamp": "2024-01-15T09:15:00Z",
+      "details": "Automated follow-through sequence"
+    },
+    {
+      "id": "act-004",
+      "type": "system",
+      "title": "SLA warning triggered",
+      "timestamp": "2024-01-15T09:00:00Z",
+      "details": "3 cases approaching deadline"
+    },
+    {
+      "id": "act-005",
+      "type": "human",
+      "title": "Michael Park escalated case",
+      "timestamp": "2024-01-15T08:45:00Z",
+      "details": "GlobalFinance Ltd - compliance issue"
+    }
+  ]
+}

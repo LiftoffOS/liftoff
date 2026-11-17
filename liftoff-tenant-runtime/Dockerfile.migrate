@@ -1,0 +1,110 @@
+# Liftoff Tenant Runtime - Migration Runner
+# Runs database migrations via node-pg-migrate
+
+FROM node:20-slim
+
+# Install postgresql-client for psql command (used by schema reset).
+# Also install python3 + g++ for node-gyp — re2 (used by the runtime predicate
+# evaluator) ships a native binding that builds at install time. The migrate
+# image doesn't use re2 directly but it shares package-lock.json with the main
+# app and `npm ci` builds every native module in the lockfile.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+       postgresql-client python3 make g++ \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy package files and install dependencies (includes pg driver)
+COPY package*.json ./
+COPY .npmrc ./
+
+# ARTIFACT_REGISTRY_TOKEN authorises pulling @liftoffos/* from us-west1-npm.pkg.dev.
+# Cloud Build populates via `gcloud auth print-access-token`.
+# ENV re-export is required: .npmrc reads ${ARTIFACT_REGISTRY_TOKEN} from
+# process.env, and Docker ARG values aren't on env by default. Previous
+# builds happened to hit the npm-ci layer cache; any package-lock.json
+# change exposes the missing ENV with a 403 from the GAR npm proxy.
+ARG ARTIFACT_REGISTRY_TOKEN=""
+ENV ARTIFACT_REGISTRY_TOKEN=$ARTIFACT_REGISTRY_TOKEN
+
+RUN npm ci --only=production
+
+# Install node-pg-migrate
+RUN npm install node-pg-migrate
+
+# Copy migrations
+COPY migrations ./migrations
+
+# Create the schema reset script for dev environment
+# This drops all tables and recreates from scratch
+# We use multiple separate psql calls to ensure each command completes
+RUN echo '#!/bin/bash' > /app/reset-schema.sh && \
+    echo 'set -e' >> /app/reset-schema.sh && \
+    echo 'echo "Resetting database schema (dropping all tables)..."' >> /app/reset-schema.sh && \
+    echo 'echo "Step 1: Dropping public schema..."' >> /app/reset-schema.sh && \
+    echo 'PGPASSWORD="${DB_PASSWORD}" psql -h "${DB_HOST}" -U "${DB_USER}" -d "${DB_NAME}" -c "DROP SCHEMA public CASCADE;" || true' >> /app/reset-schema.sh && \
+    echo 'echo "Step 2: Creating public schema..."' >> /app/reset-schema.sh && \
+    echo 'PGPASSWORD="${DB_PASSWORD}" psql -h "${DB_HOST}" -U "${DB_USER}" -d "${DB_NAME}" -c "CREATE SCHEMA public;"' >> /app/reset-schema.sh && \
+    echo 'echo "Step 3: Granting permissions..."' >> /app/reset-schema.sh && \
+    echo 'PGPASSWORD="${DB_PASSWORD}" psql -h "${DB_HOST}" -U "${DB_USER}" -d "${DB_NAME}" -c "GRANT ALL ON SCHEMA public TO ${DB_USER};"' >> /app/reset-schema.sh && \
+    echo 'echo "Step 4: Verifying schema is empty..."' >> /app/reset-schema.sh && \
+    echo 'TABLE_COUNT=$(PGPASSWORD="${DB_PASSWORD}" psql -h "${DB_HOST}" -U "${DB_USER}" -d "${DB_NAME}" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '"'"'public'"'"';" | tr -d " ")' >> /app/reset-schema.sh && \
+    echo 'echo "Tables in public schema: ${TABLE_COUNT}"' >> /app/reset-schema.sh && \
+    echo 'if [ "${TABLE_COUNT}" != "0" ]; then echo "ERROR: Schema not empty after reset!"; exit 1; fi' >> /app/reset-schema.sh && \
+    echo 'echo "Schema reset complete - schema is empty"' >> /app/reset-schema.sh && \
+    chmod +x /app/reset-schema.sh
+
+# Create the migration entrypoint script
+# node-pg-migrate expects DATABASE_URL environment variable
+# Support both direct IP (DB_HOST) and Unix socket (CLOUD_SQL_CONNECTION_NAME)
+RUN echo '#!/bin/bash' > /app/run-migrations.sh && \
+    echo 'set -e' >> /app/run-migrations.sh && \
+    echo 'if [ -n "${DB_HOST}" ]; then' >> /app/run-migrations.sh && \
+    echo '  echo "Using direct IP connection: ${DB_HOST}"' >> /app/run-migrations.sh && \
+    echo '  export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME}"' >> /app/run-migrations.sh && \
+    echo '  PSQL_HOST_FLAG="-h ${DB_HOST}"' >> /app/run-migrations.sh && \
+    echo 'else' >> /app/run-migrations.sh && \
+    echo '  echo "Using Unix socket connection: ${CLOUD_SQL_CONNECTION_NAME}"' >> /app/run-migrations.sh && \
+    echo '  export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@localhost/${DB_NAME}?host=/cloudsql/${CLOUD_SQL_CONNECTION_NAME}"' >> /app/run-migrations.sh && \
+    echo '  PSQL_HOST_FLAG="-h /cloudsql/${CLOUD_SQL_CONNECTION_NAME}"' >> /app/run-migrations.sh && \
+    echo 'fi' >> /app/run-migrations.sh && \
+    echo '' >> /app/run-migrations.sh && \
+    echo '# Wait for database to be reachable' >> /app/run-migrations.sh && \
+    echo 'echo "Waiting for database to be ready..."' >> /app/run-migrations.sh && \
+    echo 'DB_READY=false' >> /app/run-migrations.sh && \
+    echo 'for i in $(seq 1 30); do' >> /app/run-migrations.sh && \
+    echo '  if PGPASSWORD="${DB_PASSWORD}" psql ${PSQL_HOST_FLAG} -U ${DB_USER} -d ${DB_NAME} -c "SELECT 1" >/dev/null 2>&1; then' >> /app/run-migrations.sh && \
+    echo '    echo "Database is ready (attempt ${i}/30)"' >> /app/run-migrations.sh && \
+    echo '    DB_READY=true' >> /app/run-migrations.sh && \
+    echo '    break' >> /app/run-migrations.sh && \
+    echo '  fi' >> /app/run-migrations.sh && \
+    echo '  echo "Waiting for database... attempt ${i}/30"' >> /app/run-migrations.sh && \
+    echo '  sleep 2' >> /app/run-migrations.sh && \
+    echo 'done' >> /app/run-migrations.sh && \
+    echo '' >> /app/run-migrations.sh && \
+    echo 'if [ "${DB_READY}" != "true" ]; then' >> /app/run-migrations.sh && \
+    echo '  echo "ERROR: Database failed to become ready after 60 seconds"' >> /app/run-migrations.sh && \
+    echo '  exit 1' >> /app/run-migrations.sh && \
+    echo 'fi' >> /app/run-migrations.sh && \
+    echo '' >> /app/run-migrations.sh && \
+    echo '# Reset schema if RESET_SCHEMA is set (for dev only)' >> /app/run-migrations.sh && \
+    echo 'if [ "${RESET_SCHEMA}" = "true" ]; then' >> /app/run-migrations.sh && \
+    echo '  /app/reset-schema.sh' >> /app/run-migrations.sh && \
+    echo 'fi' >> /app/run-migrations.sh && \
+    echo '' >> /app/run-migrations.sh && \
+    echo 'echo "Running migrations..."' >> /app/run-migrations.sh && \
+    echo 'npx node-pg-migrate up --migrations-dir=migrations --no-check-order --ignore-pattern ".*\\.md"' >> /app/run-migrations.sh && \
+    echo '' >> /app/run-migrations.sh && \
+    echo '# Verify migrations actually applied by checking pgmigrations table' >> /app/run-migrations.sh && \
+    echo 'MIGRATION_COUNT=$(PGPASSWORD="${DB_PASSWORD}" psql ${PSQL_HOST_FLAG} -U ${DB_USER} -d ${DB_NAME} -t -c "SELECT COUNT(*) FROM pgmigrations;" | tr -d " ")' >> /app/run-migrations.sh && \
+    echo 'echo "Verified: ${MIGRATION_COUNT} migrations recorded in pgmigrations table"' >> /app/run-migrations.sh && \
+    echo 'if [ "${MIGRATION_COUNT}" -eq 0 ]; then' >> /app/run-migrations.sh && \
+    echo '  echo "ERROR: No migrations recorded - migrations may not have applied"' >> /app/run-migrations.sh && \
+    echo '  exit 1' >> /app/run-migrations.sh && \
+    echo 'fi' >> /app/run-migrations.sh && \
+    echo '' >> /app/run-migrations.sh && \
+    echo 'echo "Migrations completed and verified successfully"' >> /app/run-migrations.sh && \
+    chmod +x /app/run-migrations.sh
+
+CMD ["/app/run-migrations.sh"]

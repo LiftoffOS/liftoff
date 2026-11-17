@@ -1,0 +1,188 @@
+syntax = "proto3";
+
+// Shared message shapes for liftoff-billing.
+package liftoff.billing.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// Monetary values are always int64 cents. Never floats.
+// Fractional currency (percent, tax rate) uses basis points — int32
+// hundredths of a percent — to avoid rounding drift.
+
+enum BillingVendor {
+  BILLING_VENDOR_UNSPECIFIED = 0;
+  BILLING_VENDOR_ANTHROPIC = 1;
+  BILLING_VENDOR_OPENAI = 2;
+  BILLING_VENDOR_INTERNAL = 3;
+}
+
+enum SubscriptionStatus {
+  SUBSCRIPTION_STATUS_UNSPECIFIED = 0;
+  SUBSCRIPTION_STATUS_TRIALING = 1;
+  SUBSCRIPTION_STATUS_ACTIVE = 2;
+  SUBSCRIPTION_STATUS_PAST_DUE = 3;
+  SUBSCRIPTION_STATUS_CANCELED = 4;
+  SUBSCRIPTION_STATUS_UNPAID = 5;
+  SUBSCRIPTION_STATUS_INCOMPLETE = 6;
+}
+
+enum InvoiceStatus {
+  INVOICE_STATUS_UNSPECIFIED = 0;
+  INVOICE_STATUS_DRAFT = 1;
+  INVOICE_STATUS_OPEN = 2;
+  INVOICE_STATUS_PAID = 3;
+  INVOICE_STATUS_VOID = 4;
+  INVOICE_STATUS_UNCOLLECTIBLE = 5;
+}
+
+message Subscription {
+  string id = 1;
+  string tenant_id = 2;
+  string stripe_subscription_id = 3;
+  SubscriptionStatus status = 4;
+  string plan_id = 5;
+  google.protobuf.Timestamp current_period_start = 6;
+  google.protobuf.Timestamp current_period_end = 7;
+  bool cancel_at_period_end = 8;
+  google.protobuf.Timestamp canceled_at = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message SubscriptionItem {
+  string id = 1;
+  string subscription_id = 2;
+  string stripe_item_id = 3;
+  string plan_feature_id = 4;
+  int64 quantity = 5;
+}
+
+message Plan {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  int64 base_amount_cents = 4;
+  string currency = 5;
+  string stripe_product_id = 6;
+  string stripe_price_id = 7;
+  bool active = 8;
+}
+
+message Invoice {
+  string id = 1;
+  string tenant_id = 2;
+  string stripe_invoice_id = 3;
+  InvoiceStatus status = 4;
+  int64 amount_due_cents = 5;
+  int64 amount_paid_cents = 6;
+  int64 tax_cents = 7;
+  string currency = 8;
+  google.protobuf.Timestamp period_start = 9;
+  google.protobuf.Timestamp period_end = 10;
+  google.protobuf.Timestamp issued_at = 11;
+  google.protobuf.Timestamp paid_at = 12;
+  repeated InvoiceLineItem line_items = 13;
+}
+
+message InvoiceLineItem {
+  string id = 1;
+  string invoice_id = 2;
+  string description = 3;
+  int64 amount_cents = 4;
+  // Basis points — 10_000 = 100 %.
+  int32 tax_rate_bps = 5;
+  int64 quantity = 6;
+  string meter_event_group = 7;
+}
+
+message MeterEvent {
+  string id = 1;
+  string tenant_id = 2;
+  string user_id = 3;
+  BillingVendor vendor = 4;
+  string request_id = 5;
+  // Value depends on event_type (tokens, seconds, calls).
+  int64 quantity = 6;
+  string event_type = 7;
+  google.protobuf.Timestamp occurred_at = 8;
+  // Null until reconciled with Stripe.
+  google.protobuf.Timestamp reported_at = 9;
+  // Agent attribution for COGS tracking.
+  string agent_id = 10;
+  string action_id = 11;
+}
+
+message PaymentMethod {
+  string id = 1;
+  string tenant_id = 2;
+  string stripe_payment_method_id = 3;
+  string brand = 4;
+  string last4 = 5;
+  int32 exp_month = 6;
+  int32 exp_year = 7;
+  bool is_default = 8;
+}
+
+message CreditBalance {
+  string tenant_id = 1;
+  int64 available_cents = 2;
+  int64 reserved_cents = 3;
+  google.protobuf.Timestamp as_of = 4;
+}
+
+// Envelope for ReplayEvents — mirrors @liftoffos/outbox EventEnvelope.
+// Named `ReplayEventsResponse` to satisfy buf's RPC response naming
+// convention; each streamed element is one envelope.
+message ReplayEventsResponse {
+  string event_id = 1;
+  string event_type = 2;
+  int32 schema_version = 3;
+  string tenant_id = 4;
+  google.protobuf.Timestamp occurred_at = 5;
+  string source_service = 6;
+  string trace_id = 7;
+  bytes payload = 8;
+}
+
+// Data-subject export/erasure — shared across every service in the plan.
+// Each service defines its own copy (kept local to avoid cross-service
+// proto imports in Phase 0a).
+
+enum DataScope {
+  DATA_SCOPE_UNSPECIFIED = 0;
+  DATA_SCOPE_TENANT = 1;
+  DATA_SCOPE_USER = 2;
+}
+
+message ExportTenantDataRequest {
+  string tenant_id = 1;
+  string subject_user_id = 2;
+  DataScope scope = 3;
+  string requested_by = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  // HMAC over (tenant_id, subject_user_id, scope, requested_by, expires_at)
+  // signed by the orchestrator's service key. Verified by each callee.
+  bytes authorization_hmac = 6;
+}
+
+message ExportTenantDataResponse {
+  // One newline-delimited JSON record per chunk. Callee streams many.
+  bytes record = 1;
+  string record_type = 2;
+  int64 sequence = 3;
+}
+
+message DeleteTenantUserDataRequest {
+  string tenant_id = 1;
+  string subject_user_id = 2;
+  DataScope scope = 3;
+  string requested_by = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  bytes authorization_hmac = 6;
+}
+
+message DeleteTenantUserDataResponse {
+  int64 records_deleted = 1;
+  int64 records_pseudonymized = 2;
+  string audit_receipt_id = 3;
+}

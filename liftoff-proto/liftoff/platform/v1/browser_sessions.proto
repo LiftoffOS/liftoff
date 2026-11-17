@@ -1,0 +1,1075 @@
+syntax = "proto3";
+
+// Dashboard → TenantRuntime RPC surface for Anchor virtual-browser sessions.
+// Lets the chat UI list/observe sessions tied to a thread, embed the live view,
+// drive Anchor's pause/resume APIs, and stream change events. HITL routing for
+// Anchor's intervention queue goes through TenantRuntimeService.RespondToClarification,
+// not here — keeps governance UI traffic on one surface.
+package liftoff.platform.v1;
+
+import "google/protobuf/timestamp.proto";
+import "liftoff/event/v1/common.proto";
+
+service BrowserSessionsService {
+  // List sessions for a chat thread, most-recent first. Closed sessions
+  // included so the UI can offer "resume previous" alongside "start new".
+  rpc ListSessionsForThread(ListSessionsForThreadRequest) returns (ListSessionsForThreadResponse);
+
+  // Single most-recent open session for the thread, or NOT_FOUND.
+  rpc GetActiveSessionForThread(GetActiveSessionForThreadRequest) returns (GetActiveSessionForThreadResponse);
+
+  // Create a fresh Anchor session bound to the thread. Does NOT issue a
+  // browser action; the live_view_url is immediately usable for human takeover.
+  rpc CreateSessionForThread(CreateSessionForThreadRequest) returns (CreateSessionForThreadResponse);
+
+  // User-initiated takeover: pauses Anchor's in-session agent (no-op if no
+  // web_task in flight) AND sets our own takeover_state so our agent loop
+  // won't issue further browser actions on this session until release.
+  rpc PauseSession(PauseSessionRequest) returns (PauseSessionResponse);
+
+  // Releases user takeover: clears takeover_state and resumes Anchor's
+  // in-session agent.
+  rpc ResumeSession(ResumeSessionRequest) returns (ResumeSessionResponse);
+
+  // Server-streaming change events. The platform-backend SSE bridge opens
+  // one stream per (tenant, thread) and forwards frames over SSE.
+  rpc StreamSessionEvents(StreamSessionEventsRequest) returns (stream StreamSessionEventsResponse);
+
+  // Idempotent "open pane" entry point: reuse the thread's live session if any,
+  // otherwise mint a fresh one under the owner's profile.
+  rpc EnsureSessionForThread(EnsureSessionForThreadRequest) returns (EnsureSessionForThreadResponse);
+
+  // Owner-only explicit teardown of a session.
+  rpc EndSession(EndSessionRequest) returns (EndSessionResponse);
+
+  // Navigate the session's browser to a URL.
+  rpc Goto(GotoRequest) returns (GotoResponse);
+
+  // Return the session's current URL + a signed-URL screenshot.
+  rpc GetPageState(GetPageStateRequest) returns (GetPageStateResponse);
+
+  // Run a natural-language task in the thread's browser using the session
+  // vendor's in-session agent, spawning a session first when the thread has
+  // none.
+  //
+  // This is the same capability the runtime's own `run_browser_task` tool
+  // exposes to team agents, and both are served by ONE implementation inside
+  // the runtime. It exists as an RPC because the platform assistants (Liftoff,
+  // the Insights Manager, the Chief AI Officer) run in other services and have
+  // no tool context to reach it through, so without this they had no browser
+  // at all.
+  rpc RunBrowserTask(RunBrowserTaskRequest) returns (RunBrowserTaskResponse);
+
+  // The person's own takeover segments on a thread's browser: every hold a
+  // person took (pause to release, or to the session closing), newest first,
+  // each with the pages and named controls they used while driving, in order.
+  //
+  // This is the runtime's observation of a takeover, recorded by a recorder
+  // installed in an isolated world of the session's pages. It reads bounded
+  // descriptions of the page and the control (a safe URL that keeps resource
+  // ids, ordinary query parameters and fragments, tag, role, accessible name)
+  // and, since 0.25.0, the value the person entered into a control unless the
+  // control is classified as authentication, payment, high-risk identity or
+  // file input, in which case only the omitted class is reported. A
+  // page-authored label or path can still echo something the person typed, so
+  // the consumer treats every string as observed, untrusted data. Serves the
+  // source-conversation read the Chief AI Officer makes through
+  // platform-backend.
+  rpc ListTakeoverActivity(ListTakeoverActivityRequest) returns (ListTakeoverActivityResponse);
+
+  // Every recorded pane work call on a thread's browser, newest first: a
+  // navigation, a browser task, a page read, a save or a download, whoever
+  // made it (a team's own tool path or a platform assistant over this RPC
+  // surface), each with the safe instruction, the safe outcome and, for a
+  // browser task, the loop's own steps. The runtime is the ONE recorder of
+  // pane browser activity for every surface, since it is the only side that
+  // has a team's trail and it already owns the takeover holds. Same
+  // conventions as ListTakeoverActivity: newest first, a (created_at, id)
+  // cursor, limit clamped to [1, 50] with zero read as 1.
+  rpc ListBrowserActivity(ListBrowserActivityRequest) returns (ListBrowserActivityResponse);
+
+  // The controls on the page the person is watching, each with a reference
+  // the caller can act on, plus the page address and title and, when asked,
+  // the page text as markdown. Enumerated and classified in the recorder's
+  // isolated world before any value is read: a protected control (a
+  // password, a payment detail, an identity number, a file) contributes its
+  // role, name and kind and nothing else. Controls in the viewport come
+  // first, then the rest in document order; a long page is read a page at a
+  // time through start_at. The reading is a snapshot the ActOnPage call
+  // names, so a stale reading is refused rather than acted on. Since 0.26.0.
+  rpc SnapshotPage(SnapshotPageRequest) returns (SnapshotPageResponse);
+
+  // One action on one control of the page the person is watching, named by
+  // the reference a SnapshotPage reading gave: click, hover, type, select,
+  // press one of a few navigation keys, or scroll. Refused, with a kind,
+  // while the person holds the wheel, when the reading is stale, when the
+  // control is gone or now protected, for text that looks like a credential,
+  // and when something covers the control (the covering element is
+  // described). While a request for the person to take over is pending the
+  // call fails FailedPrecondition with the request's sentence, as Goto does;
+  // an action outside the six is InvalidArgument. Since 0.26.0.
+  rpc ActOnPage(ActOnPageRequest) returns (ActOnPageResponse);
+
+  // Ask the person to do one step in the browser themselves and hand it
+  // back: a sign-in, a code, a payment detail, a check only a person can do.
+  // While the request is pending the assistant may read the browser and not
+  // act in it; the person's next takeover answers it, and the reason is
+  // model-only on the wire. Withdraw with `withdraw`. Since 0.26.0.
+  rpc RequestIntervention(RequestInterventionRequest) returns (RequestInterventionResponse);
+
+  // The person pointed at something in the live view without taking over:
+  // the runtime resolves the point to the control under it, records a
+  // zero-length hold of kind "point" with one action, and answers the
+  // action and the hold id. No takeover state changes. Since 0.26.0.
+  rpc PointAt(PointAtRequest) returns (PointAtResponse);
+
+  // Size the session's viewport to the pane that shows it, so the page
+  // relays out to what the person sees and a point maps onto it. Stored on
+  // the session so a later screenshot restores it. Since 0.26.0.
+  rpc SetViewport(SetViewportRequest) returns (SetViewportResponse);
+
+  // The files this session downloaded, oldest first. Recorded from the
+  // session's own browser connection, so every vendor is covered rather
+  // than the one with a download API; a vendor that keeps a download store
+  // of its own is merged in. Since 0.28.0.
+  rpc ListSessionDownloads(ListSessionDownloadsRequest) returns (ListSessionDownloadsResponse);
+
+  // The result of a task that outlived the call that started it.
+  //
+  // A browser task used to hold the caller's turn open for as long as it ran,
+  // so it needed a bound a person would tolerate and anything genuinely slow
+  // failed. A long one now carries on and is collected here. While it is
+  // still running this says so, which is the answer that must not be confused
+  // with a task that finished quietly. Since 0.29.0.
+  rpc CheckBrowserTask(CheckBrowserTaskRequest) returns (CheckBrowserTaskResponse);
+
+  // Bring one file out of the session: a recorded download named by `id`,
+  // or any address the page points at named by `url`, such as a generated
+  // video or an image the page shows. The runtime fetches it from inside
+  // the page, so the session's own sign-in applies, and answers the bytes
+  // for the caller to put in front of the person. A file it cannot fetch
+  // answers `refusal` with the reason and no bytes. Since 0.28.0.
+  rpc FetchSessionFile(FetchSessionFileRequest) returns (FetchSessionFileResponse);
+}
+
+message BrowserSession {
+  string id = 1;                                  // web_sessions.id
+  string tenant_id = 2;
+  string agent_id = 3;
+  string thread_id = 4;
+  string vendor = 5;                              // "anchor"
+  string vendor_session_id = 6;                   // Anchor session id
+  string live_view_url = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp last_used_at = 9;
+  google.protobuf.Timestamp expires_at = 10;
+  google.protobuf.Timestamp closed_at = 11;       // unset if open
+  string takeover_state = 12;                     // "none" | "taken_over"
+  google.protobuf.Timestamp taken_over_at = 13;   // unset if not taken over
+  string owner_account_id = 14;                   // Liftoff accounts.id of whoever
+                                                  // spawned this session. Empty
+                                                  // string for legacy/web_task
+                                                  // rows. Drives the End-session
+                                                  // affordance gate on the frontend.
+  string current_url = 15;                        // Last-known URL the browser is on,
+                                                  // captured on goto / run_browser_task /
+                                                  // read_active_browser_session / page-state.
+                                                  // Empty until first navigation. The
+                                                  // frontend mirrors it to localStorage so a
+                                                  // freshly-minted session restores to it.
+  string closed_reason = 16;                      // Populated when closed_at is set.
+                                                  // Values: "completed" | "failed" |
+                                                  // "idle_timeout" | "user_ended" |
+                                                  // "migration_cleanup". Empty for open
+                                                  // sessions. Drives the paused-frame UX:
+                                                  // closed_reason="idle_timeout" means the
+                                                  // session reaped on its own and the cached
+                                                  // last frame is meaningful to show.
+  string last_screenshot_signed_url = 17;         // Re-signed every read (10 min TTL) from
+                                                  // the GCS object stashed on each
+                                                  // read_active_browser_session call (and
+                                                  // best-effort once more on Anchor
+                                                  // session.completed/failed webhooks).
+                                                  // Empty if no screenshot was ever captured.
+  google.protobuf.Timestamp last_screenshot_at = 18; // When the cached frame was captured.
+                                                  // Unset if no screenshot was ever captured.
+  // The open request for the person to take over, when one is pending
+  // (RequestIntervention). Unset otherwise. The reason is model-only: a
+  // consumer that shows a person the session shows that a request is open
+  // and when it was made, never the reason text.
+  PendingIntervention intervention = 19;
+  // When current_url was last read from the page, so a reader ordering the
+  // page line against the takeover record compares like with like
+  // (last_used_at is restamped by every touch). Unset until the first read.
+  google.protobuf.Timestamp current_url_at = 20;
+  // The page's title as last read beside current_url, through the browser
+  // text sanitizer. Empty until a read carried one.
+  string current_title = 21;
+}
+
+// A pending request for the person to take the browser over
+// (browser_interventions in the runtime). One per session at a time.
+message PendingIntervention {
+  string id = 1;
+  // What the person needs to do and where, in the assistant's words. Model
+  // facing only: it reaches the person through the assistant's own guarded
+  // reply, never through this field.
+  string reason = 2;
+  google.protobuf.Timestamp requested_at = 3;
+  // The invocation that asked, when the runtime's own tool path did.
+  string requested_by_invocation_id = 4;
+}
+
+// A viewport size in CSS pixels.
+message Viewport {
+  int32 width = 1;
+  int32 height = 2;
+}
+
+message ListSessionsForThreadRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string thread_id = 2;
+  bool include_closed = 3;                        // default false
+}
+message ListSessionsForThreadResponse {
+  repeated BrowserSession sessions = 1;
+}
+
+message GetActiveSessionForThreadRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string thread_id = 2;
+}
+message GetActiveSessionForThreadResponse {
+  // The thread's currently open session, if any. Unset when no session is open.
+  // Unlike the old contract this response no longer returns NOT_FOUND when there
+  // is no open session — the frontend needs last_closed_session to render the
+  // "session paused" UX, so we always return success and let the consumer
+  // null-check.
+  BrowserSession session = 1;
+  // Most recently closed session for this thread, if any. Set independently of
+  // session — both, one, or neither may be populated. When session is unset and
+  // last_closed_session.closed_reason == "idle_timeout" and the closed session
+  // carries a last_screenshot_signed_url, the UI renders the cached frame with a
+  // "Session paused — click to resume" overlay instead of a blank empty state.
+  BrowserSession last_closed_session = 2;
+}
+
+message CreateSessionForThreadRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string thread_id = 2;
+  string agent_id = 3;
+}
+message CreateSessionForThreadResponse {
+  BrowserSession session = 1;
+}
+
+message PauseSessionRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string session_id = 2;
+}
+message PauseSessionResponse { BrowserSession session = 1; }
+
+message ResumeSessionRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string session_id = 2;
+  // Why the takeover is ending, recorded on the hold this release closes.
+  // "released" when the person gave control back themselves (the default:
+  // empty reads as released, so an older caller is unchanged);
+  // "absent_driver" when the control plane's stale-driver sweep released it
+  // because the driver's tab went away. Any other value is refused with
+  // InvalidArgument rather than recorded, so a hold never carries a reason
+  // nobody defined. The runtime records "expired" and "session_closed"
+  // itself, from its own gate and close paths.
+  string end_reason = 3;
+}
+message ResumeSessionResponse {
+  BrowserSession session = 1;
+  // The hold this release ended; empty when none was open. A caller that
+  // sends the person's hand-back into the conversation names this hold, and
+  // the runtime verifies the claim against its record.
+  string hold_id = 2;
+}
+
+message StreamSessionEventsRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string thread_id = 2;                           // empty = all threads for tenant
+}
+
+message StreamSessionEventsResponse {
+  enum Type {
+    TYPE_UNSPECIFIED = 0;
+    TYPE_SESSION_CREATED = 1;
+    TYPE_SESSION_UPDATED = 2;
+    TYPE_SESSION_CLOSED = 3;
+  }
+  Type type = 1;
+  BrowserSession session = 2;
+  google.protobuf.Timestamp emitted_at = 3;
+}
+
+message EnsureSessionForThreadRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string thread_id = 2;
+  string agent_id = 3;
+  string owner_account_id = 4;  // Liftoff account UUID — used for profile scoping
+                                 // AND recorded as the session owner. Server-side
+                                 // resolved from auth context; never trusted from
+                                 // a client header / body.
+  // Which chat surface opened this session, when it was a PLATFORM ASSISTANT
+  // rather than an agent: "liftoff", "insights" or "team_plan". Empty for a
+  // team agent, which is identified by agent_id instead.
+  //
+  // It exists because those three share one identity everywhere else. A
+  // platform assistant has no agent row, so its session is stored under the
+  // no-agent sentinel and its cost would otherwise land in reporting as a
+  // single phantom agent holding all three assistants' browser spend — an
+  // agent the customer does not have, in a per-agent cost report. This is the
+  // dimension that tells them apart, and it is recorded at spawn because the
+  // caller is the only party that knows.
+  string assistant = 5;
+  // The pane's size when it opened, so a fresh session is created at the
+  // size the person sees rather than the runtime's constant. Optional; the
+  // runtime falls back to its default viewport.
+  Viewport viewport = 6;
+}
+
+message EnsureSessionForThreadResponse {
+  // Set on success. Unset when error is set.
+  BrowserSession session = 1;
+  // Set on success. False when error is set.
+  bool was_newly_created = 2;
+  // Set on a classified failure (Anchor unavailable, quota exhausted, invalid
+  // BYOK key, etc). Unset on success. Unclassified server errors still surface
+  // as Connect/HTTP-level errors, NOT this field — the envelope only exists for
+  // failures the frontend can show a meaningful copy for.
+  EnsureSessionError error = 3;
+  // Most recently closed session for the thread, if any. Carried on both success
+  // and failure responses so the consumer can decide whether to render the
+  // paused-frame UX (set + closed_reason == "idle_timeout" + frame URL non-empty)
+  // even when the ensure attempt itself failed.
+  BrowserSession last_closed_session = 4;
+}
+
+// Typed envelope for ensure-RPC failures that have a meaningful user-facing copy
+// branch. The frontend switches on Kind to pick the message; message carries the
+// raw vendor error for operator/log visibility.
+//
+// These names date from when Anchor Browser was the only vendor that could own a
+// thread's browser. They now describe ANY session vendor (Anchor, Browser Use),
+// and the numbers are what travel on the wire, so the Anchor-flavoured spellings
+// are cosmetic. They are deliberately NOT renamed here: `breaking: use: [FILE]`
+// in buf.yaml rejects an enum-value rename, so it would take a coordinated
+// four-repo landing, and no user ever sees these — the pane renders "Unable to
+// start the browser" for every branch. Rename them in the next release that is
+// breaking for another reason.
+message EnsureSessionError {
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    // The session vendor's API is unreachable, timed out, or returned 5xx.
+    // Retryable. Name says Anchor for historical reasons; applies to any vendor.
+    KIND_ANCHOR_UNAVAILABLE = 1;
+    // The tenant's BYOK account for the session vendor is out of credit or hit a
+    // hard quota. Not retryable without operator intervention. For Browser Use
+    // this is the 402 "you need at least $0.01 in credits" response.
+    KIND_QUOTA_EXCEEDED = 2;
+    // BYOK key was rejected (401/403). Surfaces a "reconnect your key" CTA
+    // upstream, naming whichever vendor the tenant connected.
+    KIND_INVALID_KEY = 3;
+    // Catch-all for failures that are classified-but-not-known. Frontend renders
+    // a generic "Could not start the browser" with a Try Again button. Distinct
+    // from KIND_UNSPECIFIED, which only appears on protobuf default-init bugs.
+    KIND_UNKNOWN = 4;
+  }
+  Kind kind = 1;
+  // Raw upstream message — included for log visibility, NOT shown verbatim to end
+  // users (the copy is keyed off kind on the frontend).
+  string message = 2;
+}
+
+message EndSessionRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string session_id = 2;        // web_sessions.id
+  string caller_account_id = 3; // Must match the session's owner_account_id —
+                                 // server rejects with PermissionDenied otherwise.
+}
+
+message EndSessionResponse {
+  BrowserSession session = 1;
+}
+
+message GotoRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string session_id = 2;  // web_sessions.id (NOT vendor_session_id)
+  string url = 3;
+  // The activity id is the caller's: a UUID minted per call. The runtime
+  // records the navigation under it with `INSERT ... ON CONFLICT (id) DO
+  // NOTHING`, so a retried or replayed call writes once. Empty from an older
+  // caller: the runtime then mints its own.
+  string activity_id = 4;
+}
+
+message GotoResponse {
+  BrowserSession session = 1;
+  // The page's ACTUAL final URL after navigation, redirects included, as the
+  // safe projection: origin, path, resource ids, ordinary query parameters
+  // and fragments kept; URL credentials and protected parameters replaced.
+  string final_url = 2;
+  // The page's title after navigation, bounded and redacted.
+  string title = 3;
+  // Echo of the request's activity_id: a receipt, not the id's source. A
+  // nonempty echo says the runtime wrote the activity row; an empty echo says
+  // an older runtime that does not record answered. A navigation that fails
+  // after session resolution is recorded under the caller's id BEFORE the
+  // error is thrown, so this response needs no success/error envelope.
+  string activity_id = 4;
+  // A component of final_url was replaced by the protected data policy.
+  bool final_url_protected_data_omitted = 5;
+  // final_url was cut at the runtime's cap.
+  bool final_url_truncated = 6;
+  // title was cut at the runtime's cap.
+  bool title_truncated = 7;
+  // Part of title was removed by the redactor.
+  bool title_protected_data_omitted = 8;
+}
+
+message GetPageStateRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string session_id = 2;  // web_sessions.id
+  // True when an assistant or tool is READING the page as work, which the
+  // runtime records as browser activity. Pane polling leaves it false and
+  // creates no activity row.
+  bool record_activity = 3;
+  // The caller's activity id for the recorded read (see GotoRequest.activity_id).
+  // Ignored when record_activity is false.
+  string activity_id = 4;
+  // Capture the ENTIRE scrollable height of the page rather than what is in
+  // view. For "screenshot the whole article" asks, where the viewport frame
+  // answers a different question than the one put. The runtime stitches the
+  // full height through the vendor's own capture; a vendor that cannot returns
+  // the viewport frame rather than failing the read.
+  bool full_page = 5;
+}
+
+message GetPageStateResponse {
+  // The live pane URL, raw, for the active pane only. No database row, event
+  // payload, activity record or model-facing browser result retains it:
+  // assistant code uses recorded_url.
+  string url = 1;
+  string screenshot_signed_url = 2;
+  google.protobuf.Timestamp signed_url_expires_at = 3;
+  // Echo of the request's activity_id when record_activity was set and the
+  // runtime recorded the read; empty otherwise (see GotoResponse.activity_id).
+  string activity_id = 4;
+  // The safe projection of url (see GotoResponse.final_url).
+  string recorded_url = 5;
+  bool recorded_url_protected_data_omitted = 6;
+  // The page's title, bounded and redacted.
+  string recorded_title = 7;
+  bool recorded_url_truncated = 8;
+  bool recorded_title_truncated = 9;
+  bool recorded_title_protected_data_omitted = 10;
+}
+
+message RunBrowserTaskRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string thread_id = 2;
+  // What the browser should be asked to do, in natural language.
+  string prompt = 3;
+  // Liftoff account UUID of the person whose message triggered this. Owns any
+  // session spawned to serve the task, and is REQUIRED: an interactive browser
+  // that a person can be asked to take over needs a person behind it, so a
+  // caller with no human context is refused rather than given an unowned
+  // session.
+  string owner_account_id = 4;
+  // OPTIONAL. Present for a team agent, empty for a platform assistant, which
+  // has no agent row to name.
+  //
+  // Empty is meaningful rather than missing: vendor selection reads an absent
+  // agent as "no opinion about connectors" and resolves to the workspace's own
+  // session vendor when it has one, or the platform's browser when it does
+  // not. It must NOT be read as "bound to nothing", which would skip the
+  // workspace's own key and bill it twice for a browser it already funds.
+  string agent_id = 5;
+  // Which chat surface opened this session, when it was a PLATFORM ASSISTANT
+  // rather than an agent: "liftoff", "insights" or "team_plan". Empty for a
+  // team agent, which is identified by agent_id instead.
+  //
+  // It exists because those three share one identity everywhere else. A
+  // platform assistant has no agent row, so its session is stored under the
+  // no-agent sentinel and its cost would otherwise land in reporting as a
+  // single phantom agent holding all three assistants' browser spend — an
+  // agent the customer does not have, in a per-agent cost report. This is the
+  // dimension that tells them apart, and it is recorded at spawn because the
+  // caller is the only party that knows.
+  string assistant = 6;
+  // The activity id is the caller's: a UUID minted per call, under which the
+  // runtime records the task with `INSERT ... ON CONFLICT (id) DO NOTHING`
+  // once the outcome is known, so a retried or replayed call writes once.
+  // Empty from an older caller: the runtime then mints its own.
+  string activity_id = 7;
+  // How the task can tell it worked, in the caller's words. An objective says
+  // what to DO, which is a different sentence and not the one a completion
+  // check needs: the runtime judges DONE against this when it is given, and
+  // offers it to the step decision so choosing DONE and confirming it read
+  // the same sentence. Since 0.29.0.
+  string success = 8;
+  // What the task may not do, whatever the objective says. The workspace's own
+  // oversight settings are added to these by the runtime, so a caller never
+  // restates them and cannot leave them out. A task whose next step would
+  // break one stops and says so, and does not hand off. Since 0.29.0.
+  repeated string constraints = 9;
+  // Whether this caller can come back for a result it was not given now.
+  //
+  // A long task hands the turn back and carries on, which is only an
+  // improvement for a caller that HAS a way to collect it (CheckBrowserTask).
+  // A caller that cannot must wait instead, or it is told work is coming and
+  // has no means of ever reporting it. False from an older caller, which
+  // waits, as it always did. Since 0.29.0.
+  bool can_collect = 10;
+}
+
+message RunBrowserTaskResponse {
+  // False when the task could not run. Carries the same refusals the runtime's
+  // tool returns — no active session and no human to spawn one under, the
+  // session having idled out mid-task, a vendor error — so a caller cannot
+  // mistake a failure for an empty result.
+  bool success = 1;
+  // Set when success is false.
+  string error = 2;
+  // The vendor's own task result, JSON-encoded. Deliberately opaque: the three
+  // session vendors report a completed task in three different shapes, and the
+  // consumer feeds this to a model rather than reading fields off it. Matches
+  // the `bytes *_json` convention already used in this package.
+  bytes result_json = 3;
+  // The session the task ran in — the one that already existed on the thread,
+  // or the one spawned to serve it.
+  BrowserSession session = 4;
+  // The loop's own steps, when the vendor loop reported any: what the runtime's
+  // agent loop did, projected to a bounded type, action phrase and page URL per
+  // step. PRESENCE is the signal, not emptiness: unset means the vendor loop
+  // reported no steps at all (Anchor's in-session agent, which keeps its own
+  // trail), set with an empty list means the loop ran and took none.
+  //
+  // Separate from result_json on purpose. result_json is the vendor's report
+  // after the runtime's protected-data pass (an exact protected literal the
+  // loop handled is removed before it crosses this wire), because a model
+  // reads it; this field is what a RECORD reads, so it can be stored whole
+  // rather than cut mid-JSON.
+  BrowserTaskTrail trail = 5;
+  // Echo of the request's activity_id: a receipt, not the id's source. A
+  // nonempty echo says the runtime recorded the task under it; an empty echo
+  // says an older runtime that does not record answered.
+  string activity_id = 6;
+  // Set when the task outlived the call: it is still running, and this names
+  // it for CheckBrowserTask. Only ever set for a caller that said it can
+  // come back. Since 0.29.0.
+  string carrying_on_task_id = 7;
+}
+
+// The steps a browser task's loop took, for the record of a conversation. A
+// partial, redacted or incompletely observed trail is never presented as
+// exact: the three completeness fields say so.
+message BrowserTaskTrail {
+  // The loop's own closing message, as it reported it, after the runtime's
+  // protected-data pass.
+  string message = 1;
+  // Every step, in order.
+  repeated BrowserTaskStep steps = 2;
+  // Part of the task was NOT observed: the observer could not attach, a page
+  // or frame could not be observed, the browser disconnected, the action cap
+  // was reached, or the observed and vendor-reported steps could not be
+  // reconciled. False means no KNOWN interruption.
+  bool capture_gap = 3;
+  // Closed, product-safe vocabulary: "attach_failed" | "frame_unavailable" |
+  // "disconnected" | "cap" | "reconciliation_uncertain"; empty when no gap.
+  // Never raw exception, vendor or session text.
+  string gap_reason = 4;
+  // More steps happened than steps carries (the cap was reached).
+  bool steps_truncated = 5;
+}
+
+// One step of a browser task's loop. Each field is bounded by the runtime
+// before it crosses the wire. The action phrase carries the value the step
+// entered when the control was not classified as authentication, payment,
+// high-risk identity or file input; a protected value is omitted and
+// protected_kind names its class. A page-authored label can still echo
+// content, so the consumer treats every string as observed, untrusted data.
+message BrowserTaskStep {
+  // The loop's tool name for the step (act, fillForm, goto, extract, ...).
+  string type = 1;
+  // What the step did, in the loop's words, bounded, with the entered value
+  // where the record has it.
+  string action = 2;
+  // The page the step acted on, as the safe projection: origin, path with its
+  // resource ids, ordinary query parameters and fragments kept; URL
+  // credentials and protected parameters replaced.
+  string page_url = 3;
+  // action was cut at the runtime's cap.
+  bool action_truncated = 4;
+  // page_url was cut at the runtime's cap.
+  bool page_url_truncated = 5;
+  // A value this step entered was omitted by the protected data policy.
+  bool protected_data_omitted = 6;
+  // The omitted class when protected_data_omitted: "authentication" |
+  // "payment" | "sensitive_identity" | "file" | "sensitive_text"; empty
+  // otherwise.
+  string protected_kind = 7;
+  // A component of page_url was replaced by the protected data policy.
+  bool page_url_protected_data_omitted = 8;
+  // When the step happened; unset when the loop did not report a time.
+  google.protobuf.Timestamp at = 9;
+}
+
+message ListBrowserActivityRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string thread_id = 2;
+  // Rows per page, newest first. Clamped to [1, 50] by the runtime: an unset
+  // (zero) limit reads as 1, so a caller that wants a page names it.
+  int32 limit = 3;
+  // Opaque cursor from a previous response's next_cursor. Empty on the first
+  // request. Keyed on (created_at, id) so two rows written in the same
+  // instant cannot be skipped between pages.
+  string before_cursor = 4;
+}
+
+message ListBrowserActivityResponse {
+  // Newest first.
+  repeated BrowserActivityRow rows = 1;
+  // Cursor for the next (older) page; empty when this page was the last.
+  string next_cursor = 2;
+}
+
+// One recorded pane work call on a thread's browser, once a browser session
+// had been resolved, whoever made it. Every text field is bounded and has
+// passed the protected data policy; the flags say what that pass changed.
+message BrowserActivityRow {
+  // The caller's activity id (or the runtime's own, for its tool path).
+  string id = 1;
+  // The runtime's tool name: "run_browser_task" | "navigate_browser_session"
+  // | "read_active_browser_session" | "save_active_browser_page_as_pdf" |
+  // "screenshot_browser_session" | "list_browser_downloads" |
+  // "fetch_browser_download".
+  string tool = 2;
+  // The safe instruction: the task prompt, or the requested URL.
+  string instruction = 3;
+  // The safe outcome: the loop's closing message, the actual destination and
+  // title, or a bounded semantic result; never page body, screenshot bytes or
+  // a signed URL.
+  string outcome = 4;
+  // The person took the browser over during this call (the takeover gate
+  // answered, or the vendor reported a human intervention).
+  bool person_took_over = 5;
+  // steps carries a value: PRESENCE is the signal, since an empty list is a
+  // real value (the loop ran and took no step). False means this tool has no
+  // step sequence.
+  bool has_steps = 6;
+  // The loop's own steps, for a browser task (the 0.23.0 message).
+  repeated BrowserTaskStep steps = 7;
+  google.protobuf.Timestamp created_at = 8;
+  bool instruction_truncated = 9;
+  bool outcome_truncated = 10;
+  // Part of this call was NOT observed; see BrowserTaskTrail.capture_gap.
+  bool capture_gap = 11;
+  // See BrowserTaskTrail.gap_reason; also "not_answered" when the caller's
+  // own fallback row stood in for an answer that never arrived.
+  string gap_reason = 12;
+  bool steps_truncated = 13;
+  bool instruction_protected_data_omitted = 14;
+  bool outcome_protected_data_omitted = 15;
+}
+
+message ListTakeoverActivityRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string thread_id = 2;
+  // Holds per page, newest first. Clamped to [1, 5] by the runtime: an
+  // unset (zero) limit reads as 1, so a caller that wants a page names it.
+  int32 limit = 3;
+  // Opaque cursor from a previous response's next_cursor. Empty on the first
+  // request. Keyed on (started_at, id) so two holds that started in the same
+  // instant cannot be skipped between pages.
+  string before_cursor = 4;
+  // Exactly that hold, or nothing: a caller verifying a client's claim about
+  // a hand-back or a point names the hold it was told about. Empty lists the
+  // thread's holds as before.
+  string hold_id = 5;
+  // Each hold carries its newest N actions, with actions_omitted saying how
+  // many older ones were left out. Zero means all.
+  int32 newest_actions = 6;
+}
+
+message ListTakeoverActivityResponse {
+  // Newest first, each with its actions oldest first.
+  repeated TakeoverHold holds = 1;
+  // Cursor for the next (older) page; empty when this page was the last.
+  string next_cursor = 2;
+}
+
+// One takeover: from the person taking control to their giving it back, the
+// control plane's sweep releasing it, the runtime's gate expiring it, or the
+// session closing.
+message TakeoverHold {
+  google.protobuf.Timestamp started_at = 1;
+  // Unset while the hold is live, and unset for an orphaned hold whose end
+  // the runtime does not know (see live).
+  google.protobuf.Timestamp ended_at = 2;
+  // "released" | "absent_driver" | "expired" | "session_closed"; empty while
+  // live or when unknown.
+  string end_reason = 3;
+  // The person is still driving: the hold has no end AND the session is open
+  // AND still taken over, computed by the runtime from the session row. A hold
+  // with no end that is NOT live is an orphan (an older instance, or a state
+  // change that bypassed the hold); the runtime reports it with capture_gap
+  // set and ended_at as the session's close time when there is one.
+  bool live = 4;
+  // Part of this hold was NOT observed: the recorder was never attached, its
+  // owner lost the session, the action cap was reached, capture was switched
+  // off, or a page or frame the person used could not be observed. False
+  // means no KNOWN interruption, not proof that every action was seen.
+  bool capture_gap = 5;
+  // "lost_owner" | "cap" | "disabled" | "never_attached" |
+  // "frame_unavailable"; empty when no gap.
+  string gap_reason = 6;
+  // What the person did, oldest first.
+  repeated TakeoverAction actions = 7;
+  // The hold's id, so a caller can name it back (ListTakeoverActivityRequest
+  // hold_id). Empty from an older runtime.
+  string id = 8;
+  // "takeover" for a hold the person drove, "point" for a zero-length hold
+  // that records one pointed-at control without taking over. Empty reads as
+  // takeover.
+  string kind = 9;
+  // Older actions left out of this response by newest_actions.
+  int32 actions_omitted = 10;
+  // When this hold answered a request for the person to take over: the
+  // assistant's reason, and when it asked. Empty and unset otherwise.
+  string intervention_reason = 11;
+  google.protobuf.Timestamp intervention_requested_at = 12;
+}
+
+// One thing the person did while driving: a navigation, an interaction with
+// a control, or a non-textual interaction with the page. Every text field is
+// bounded by the runtime. Since 0.25.0 the value the person entered into a
+// control is carried unless the control is classified as authentication,
+// payment, high-risk identity or file input (see value_disposition); any
+// field may still echo content through a page-authored label or path, so the
+// consumer treats every string as observed, untrusted data.
+message TakeoverAction {
+  // How an entered value was handled. The zero value only appears on
+  // protobuf default-init bugs or from an older runtime; a consumer
+  // normalizes it from the action kind.
+  enum ValueDisposition {
+    VALUE_DISPOSITION_UNSPECIFIED = 0;
+    // The action carries no value (a navigation, a click, a scroll).
+    VALUE_DISPOSITION_NONE = 1;
+    // value holds what was entered.
+    VALUE_DISPOSITION_RECORDED = 2;
+    // The control is authentication input, or sits in an authentication
+    // form or on a sign-in route; the value was never read.
+    VALUE_DISPOSITION_AUTHENTICATION_OMITTED = 3;
+    // The control is payment input (card, bank); the value was never read.
+    VALUE_DISPOSITION_PAYMENT_OMITTED = 4;
+    // The control is high-risk identity input (government id, date of birth,
+    // medical, security answer); the value was never read.
+    VALUE_DISPOSITION_SENSITIVE_IDENTITY_OMITTED = 5;
+    // The control is a file input; no file name or content was read.
+    VALUE_DISPOSITION_FILE_OMITTED = 6;
+    // The control was not classified as protected but the entered text
+    // itself matched the credential redactor, so it was dropped.
+    VALUE_DISPOSITION_SENSITIVE_TEXT_OMITTED = 7;
+    // A change or enter action recorded before values were carried; the
+    // value was never observed and its absence is a capture gap, not an
+    // empty entry.
+    VALUE_DISPOSITION_LEGACY_UNAVAILABLE = 8;
+  }
+  // "navigate" | "click" | "submit" | "change" | "enter" | "key" | "scroll"
+  // | "drag" | "contextmenu" | "hover".
+  string kind = 1;
+  // The page, as the safe projection: origin, path with its resource ids,
+  // ordinary query parameters and fragments kept; URL credentials and
+  // protected parameters replaced.
+  string url = 2;
+  // The interactive control's tag name, lowercase. Empty for a navigation.
+  string tag = 3;
+  // Its explicit ARIA role, else the implicit role for its tag and type.
+  string role = 4;
+  // Its accessible name: aria-label, associated label text, placeholder,
+  // title, alt, name attribute, or its caption, in that order of preference.
+  string name = 5;
+  // An input's type attribute, when the control is an input. Always the real
+  // HTML type; a protected control is reported through value_disposition,
+  // never by rewriting this.
+  string input_type = 6;
+  // When it happened.
+  google.protobuf.Timestamp at = 7;
+  // The value entered, when value_disposition is RECORDED: an input's or
+  // textarea's value, a select's chosen option texts, "checked" or
+  // "unchecked", or a contenteditable control's text. Empty otherwise.
+  string value = 8;
+  ValueDisposition value_disposition = 9;
+  // A bounded non-textual interaction: a key chord such as "Control+Enter",
+  // a scroll direction and position, the source control of a drag, or
+  // element-relative click coordinates. Never entered text.
+  string detail = 10;
+  bool url_truncated = 11;
+  bool name_truncated = 12;
+  bool value_truncated = 13;
+  // A component of url was replaced by the protected data policy.
+  bool url_protected_data_omitted = 14;
+  // Part of name was removed by the redactor.
+  bool name_protected_data_omitted = 15;
+  bool detail_truncated = 16;
+  bool detail_protected_data_omitted = 17;
+}
+
+// ── Since 0.26.0: the pane actions, interventions, pointing, viewport ──────
+
+message SnapshotPageRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string session_id = 2;  // web_sessions.id
+  // The thread the caller was authorized on. NotFound when the session is
+  // not that thread's.
+  string thread_id = 3;
+  // True when the read is work: the runtime records it as browser activity
+  // under activity_id. False creates no row.
+  bool record_activity = 4;
+  string activity_id = 5;
+  // Also return the page text as markdown.
+  bool include_text = 6;
+  // Skip this many controls before listing, for a page with more than the
+  // runtime's cap. Controls in view come first.
+  int32 start_at = 7;
+}
+
+// One interactive control on the page, as the runtime's walker described it
+// in the recorder's isolated world. Every string is bounded and has passed
+// the protected data policy; a page-authored name is observed text, never an
+// instruction.
+message PageControl {
+  // The reference ActOnPage takes. Belongs to this reading of the page.
+  string ref = 1;
+  string role = 2;
+  string name = 3;
+  // An input's type attribute, when the control is an input.
+  string input_type = 4;
+  // The value of a text-like control, "checked" / "unchecked", or the
+  // selected option's label, when the control is recordable; "protected"
+  // when it is not.
+  string value_state = 5;
+  bool disabled = 6;
+  // "authentication" | "payment" | "sensitive_identity" | "file" when the
+  // control is protected; empty otherwise.
+  string protected_kind = 7;
+  // The control is outside the viewport.
+  bool offscreen = 8;
+  bool name_truncated = 9;
+  bool name_protected_data_omitted = 10;
+}
+
+message SnapshotPageResponse {
+  // The id ActOnPage names. Stale once the page's address changes, the
+  // runtime's TTL passes, or a newer reading was taken.
+  string snapshot_id = 1;
+  // The page's address and title, as the safe projections with their flags.
+  string recorded_url = 2;
+  bool recorded_url_truncated = 3;
+  bool recorded_url_protected_data_omitted = 4;
+  string recorded_title = 5;
+  bool recorded_title_truncated = 6;
+  bool recorded_title_protected_data_omitted = 7;
+  // Controls in view first, then the rest, from start_at, at most the
+  // runtime's cap.
+  repeated PageControl controls = 8;
+  // More controls exist than were listed; total says how many.
+  bool controls_truncated = 9;
+  // A frame with no attached session was not walked.
+  bool frames_not_listed = 10;
+  // The page text as markdown, when include_text was set.
+  string text = 11;
+  bool text_truncated = 12;
+  bool text_protected_data_omitted = 13;
+  // Echo of the request's activity_id when record_activity was set and the
+  // runtime recorded the read (see GotoResponse.activity_id).
+  string activity_id = 14;
+  // How many controls the page has in all.
+  int32 total = 15;
+}
+
+message ActOnPageRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string session_id = 2;
+  string thread_id = 3;
+  // The reading the ref belongs to.
+  string snapshot_id = 4;
+  // "click" | "hover" | "type" | "select" | "press" | "scroll".
+  string action = 5;
+  // The control, from the reading. The override: a caller that holds one is
+  // taken at its word and nothing is resolved. Since 0.29.0 `what` is the
+  // ordinary way to name a control and this is optional.
+  string ref = 6;
+  // For type: what to enter.
+  string text = 7;
+  // For type: press Enter afterwards.
+  bool submit = 8;
+  // For select: the option's label, else its value.
+  string value = 9;
+  // For press: one of the runtime's allowed keys.
+  string key = 10;
+  // For scroll: "up" | "down".
+  string direction = 11;
+  // For scroll: pixels; the runtime defaults and caps it.
+  int32 amount = 12;
+  // The caller's activity id (see GotoRequest.activity_id).
+  string activity_id = 13;
+  // The control in the caller's own words ("the Download JPG button"), for
+  // the runtime to pick out of the page's reading. How a control is named
+  // now: a single click used to cost the caller a reading and a second call,
+  // and the question is one a small model answers in milliseconds. `ref`
+  // overrides it. Below the runtime's threshold the act is refused rather
+  // than performed on a guess. Since 0.29.0.
+  string what = 14;
+}
+
+message ActOnPageResponse {
+  bool acted = 1;
+  // Empty when acted; otherwise "person_driving" | "stale_snapshot" |
+  // "control_not_found" | "option_not_found" | "protected_control" |
+  // "protected_text" | "key_not_allowed" | "focus_failed" | "obscured" |
+  // "busy". A pending request for the person to take over is not a refusal
+  // kind: the call fails FailedPrecondition with the request's own
+  // sentence, as Goto does.
+  string refusal_kind = 2;
+  // For obscured: the covering control, described.
+  string covered_by = 3;
+  // The person took the browser over while this action ran: stop acting.
+  bool person_took_over_during = 4;
+  // Where the page is after the action, as the safe projections.
+  string recorded_url = 5;
+  bool recorded_url_truncated = 6;
+  bool recorded_url_protected_data_omitted = 7;
+  string recorded_title = 8;
+  bool recorded_title_truncated = 9;
+  bool recorded_title_protected_data_omitted = 10;
+  // Echo of the request's activity_id: the runtime recorded the action.
+  string activity_id = 11;
+  // A refusal explained, model-facing, when refusal_kind is set.
+  string message = 12;
+}
+
+message RequestInterventionRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string session_id = 2;
+  string thread_id = 3;
+  // What the person needs to do and where, in the assistant's words.
+  string reason = 4;
+  // The invocation asking, when the runtime's own tool path is.
+  string requested_by_invocation_id = 5;
+  // Withdraw the pending request instead of making one.
+  bool withdraw = 6;
+}
+
+message RequestInterventionResponse {
+  BrowserSession session = 1;
+  // The request's id; empty on a withdraw that found none.
+  string intervention_id = 2;
+  // A request was already pending; nothing new was made.
+  bool already_pending = 3;
+  // A pending request was withdrawn.
+  bool withdrawn = 4;
+}
+
+message PointAtRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string session_id = 2;
+  string thread_id = 3;
+  // The point, as fractions of the overlay the person clicked in.
+  double x = 4;
+  double y = 5;
+  // The overlay's size, so the runtime can map the point onto its viewport.
+  int32 overlay_width = 6;
+  int32 overlay_height = 7;
+}
+
+message PointAtResponse {
+  // The control under the point, as a recorded action of kind "point".
+  TakeoverAction action = 1;
+  // The zero-length hold the point was recorded under.
+  string hold_id = 2;
+  // Empty on success; "outside_page" when the point misses the page,
+  // "person_driving" while the session is taken over.
+  string refusal_kind = 3;
+}
+
+message SetViewportRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string session_id = 2;
+  string thread_id = 3;
+  Viewport viewport = 4;
+}
+
+message SetViewportResponse {
+  // The size applied, after the runtime's clamp.
+  Viewport applied = 1;
+}
+
+message ListSessionDownloadsRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string session_id = 2;
+}
+
+// One file the browser session downloaded. No bytes: the record is the
+// browser's announcement, and the file is fetched when it is asked for.
+message SessionDownload {
+  string id = 1;
+  // The address the browser was fetching.
+  string url = 2;
+  // What the browser would have saved it as; may be empty.
+  string suggested_file_name = 3;
+  // The page the download started from; may be empty.
+  string origin_url = 4;
+  google.protobuf.Timestamp downloaded_at = 5;
+}
+
+message ListSessionDownloadsResponse {
+  repeated SessionDownload downloads = 1;
+}
+
+message FetchSessionFileRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string session_id = 2;
+  // A download's id, from ListSessionDownloads. One of this and `url`.
+  string download_id = 3;
+  // The address of a file the page points at. One of this and `download_id`.
+  string url = 4;
+}
+
+message FetchSessionFileResponse {
+  // The file's bytes; empty when `refusal` is set.
+  bytes content = 1;
+  // The type the server gave it, or one inferred from the name.
+  string content_type = 2;
+  // The name to give it, from the server, the download record or the
+  // address, in that order.
+  string filename = 3;
+  // Where it came from, for the caller to tell the person.
+  string source_url = 4;
+  // Empty on success. One sentence saying why the file did not come back:
+  // too large, refused by the site, no such download, not a web address.
+  string refusal = 5;
+}
+
+message CheckBrowserTaskRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string session_id = 2;
+  // The id the task reported when it said it was carrying on.
+  string task_id = 3;
+}
+
+message CheckBrowserTaskResponse {
+  // "running" while it is still going; otherwise the task's own status.
+  string status = 1;
+  // The task's closing words, as the model reads them. While it is running,
+  // what to tell the person and why not to start it again.
+  string message = 2;
+  // Why it stopped, when it stopped for a reason of its own.
+  string reason = 3;
+}

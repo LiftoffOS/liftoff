@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/governance-authorize.response.schema.json",
+  "title": "GovernanceAuthorizeResponse",
+  "description": "Response from POST /api/governance/authorize.",
+  "type": "object",
+  "required": ["decision"],
+  "additionalProperties": false,
+  "properties": {
+    "decision": {
+      "type": "string",
+      "enum": ["allowed", "hitl_required", "blocked", "conflict"]
+    },
+    "approvalRequestId": { "type": "string", "minLength": 1 },
+    "conflict": {
+      "type": "object",
+      "required": ["conflictingActionId", "resolution"],
+      "additionalProperties": false,
+      "properties": {
+        "conflictingActionId": { "type": "string", "minLength": 1 },
+        "resolution": { "type": "string", "enum": ["wait", "override", "cancel"] }
+      }
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "credits_exhausted",
+        "rate_limit",
+        "kill_switch_global",
+        "kill_switch_tenant",
+        "kill_switch_agent",
+        "kill_switch_connector",
+        "abuse_suspected",
+        "kill_switch_triggered",
+        "allowlist_miss"
+      ]
+    }
+  }
+}

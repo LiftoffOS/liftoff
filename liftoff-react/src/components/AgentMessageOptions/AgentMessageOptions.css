@@ -1,0 +1,61 @@
+/* AgentMessageOptions — the "ways to talk to this team" cards, rendered in the
+   chat page's More pane. */
+/* Icon treatment matches .getting-started-card__icon from HomePage.css */
+
+.agent-message-options__card {
+  width: 100%;
+  padding: var(--space-4);
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--duration-base) var(--ease-out);
+}
+
+.agent-message-options__card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.agent-message-options__card-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.agent-message-options__card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--color-gray-50);
+  border-radius: 10px;
+  flex-shrink: 0;
+  color: var(--color-gray-500);
+}
+
+.agent-message-options__card-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Brand marks that render via currentColor (OpenAI) show in black, not grey */
+.agent-message-options__card-icon--brand {
+  color: var(--color-black);
+}
+
+.agent-message-options__card-label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-black);
+}
+
+.agent-message-options__card-description {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin-top: var(--space-2);
+  line-height: 1.4;
+}

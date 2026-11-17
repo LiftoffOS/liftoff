@@ -1,0 +1,205 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/billing-service.schema.json",
+  "title": "BillingServiceContracts",
+  "description": "Request + response + event envelope schemas for liftoff-billing. One $def per RPC / event type. Validators reference these by $ref.",
+  "type": "object",
+  "$defs": {
+    "tenantContext": {
+      "type": "object",
+      "required": ["tenantId"],
+      "properties": {
+        "tenantId": { "type": "string", "minLength": 1 },
+        "userId": { "type": "string" },
+        "roles": { "type": "array", "items": { "type": "string" } },
+        "isolationTier": { "type": "string", "enum": ["standard", "enterprise"] }
+      }
+    },
+    "pagination": {
+      "type": "object",
+      "properties": {
+        "pageSize": { "type": "integer", "minimum": 1, "maximum": 200 },
+        "pageToken": { "type": "string" }
+      }
+    },
+    "billingVendor": { "type": "string", "enum": ["anthropic", "openai", "internal"] },
+    "subscriptionStatus": {
+      "type": "string",
+      "enum": ["trialing", "active", "past_due", "canceled", "unpaid", "incomplete"]
+    },
+    "invoiceStatus": {
+      "type": "string",
+      "enum": ["draft", "open", "paid", "void", "uncollectible"]
+    },
+    "GetSubscriptionRequest": {
+      "type": "object",
+      "required": ["tenantContext"],
+      "properties": { "tenantContext": { "$ref": "#/$defs/tenantContext" } }
+    },
+    "GetSubscriptionResponse": {
+      "type": "object",
+      "required": ["subscription"],
+      "properties": {
+        "subscription": { "type": "object" },
+        "items": { "type": "array" },
+        "plan": { "type": "object" },
+        "creditBalance": { "type": "object" }
+      }
+    },
+    "ReportUsageRequest": {
+      "type": "object",
+      "required": ["tenantContext", "vendor", "requestId", "eventType", "quantity", "occurredAt"],
+      "properties": {
+        "tenantContext": { "$ref": "#/$defs/tenantContext" },
+        "vendor": { "$ref": "#/$defs/billingVendor" },
+        "requestId": { "type": "string", "minLength": 1 },
+        "eventType": { "type": "string", "minLength": 1 },
+        "quantity": { "type": "string", "pattern": "^-?[0-9]+$" },
+        "occurredAt": { "type": "string", "format": "date-time" },
+        "costMicros": { "type": "string", "pattern": "^-?[0-9]+$" }
+      }
+    },
+    "ReportUsageResponse": {
+      "type": "object",
+      "required": ["meterEvent", "created"],
+      "properties": {
+        "meterEvent": { "type": "object" },
+        "created": { "type": "boolean" }
+      }
+    },
+    "ReconcileMetersRequest": {
+      "type": "object",
+      "required": ["windowStart", "windowEnd"],
+      "properties": {
+        "windowStart": { "type": "string", "format": "date-time" },
+        "windowEnd": { "type": "string", "format": "date-time" },
+        "tenantId": { "type": "string" }
+      }
+    },
+    "ReconcileMetersResponse": {
+      "type": "object",
+      "required": ["eventsScanned", "eventsReported", "driftCount", "netDriftMicros"],
+      "properties": {
+        "eventsScanned": { "type": "string", "pattern": "^-?[0-9]+$" },
+        "eventsReported": { "type": "string", "pattern": "^-?[0-9]+$" },
+        "driftCount": { "type": "string", "pattern": "^-?[0-9]+$" },
+        "netDriftMicros": { "type": "string", "pattern": "^-?[0-9]+$" }
+      }
+    },
+    "ListInvoicesRequest": {
+      "type": "object",
+      "required": ["tenantContext"],
+      "properties": {
+        "tenantContext": { "$ref": "#/$defs/tenantContext" },
+        "pagination": { "$ref": "#/$defs/pagination" },
+        "statusFilter": { "$ref": "#/$defs/invoiceStatus" },
+        "issuedAfter": { "type": "string", "format": "date-time" },
+        "issuedBefore": { "type": "string", "format": "date-time" }
+      }
+    },
+    "ListInvoicesResponse": {
+      "type": "object",
+      "required": ["invoices"],
+      "properties": {
+        "invoices": { "type": "array", "items": { "type": "object" } },
+        "nextPageToken": { "type": "string" }
+      }
+    },
+    "CreateCheckoutSessionRequest": {
+      "type": "object",
+      "required": ["tenantContext", "planId", "successUrl", "cancelUrl"],
+      "properties": {
+        "tenantContext": { "$ref": "#/$defs/tenantContext" },
+        "planId": { "type": "string", "minLength": 1 },
+        "successUrl": { "type": "string", "format": "uri" },
+        "cancelUrl": { "type": "string", "format": "uri" },
+        "promoCode": { "type": "string" }
+      }
+    },
+    "CreateCheckoutSessionResponse": {
+      "type": "object",
+      "required": ["stripeSessionId", "checkoutUrl", "expiresAt"],
+      "properties": {
+        "stripeSessionId": { "type": "string", "minLength": 1 },
+        "checkoutUrl": { "type": "string", "format": "uri" },
+        "expiresAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "ReplayEventsRequest": {
+      "type": "object",
+      "required": ["consumerId", "since"],
+      "properties": {
+        "consumerId": { "type": "string", "minLength": 1 },
+        "since": { "type": "string", "format": "date-time" },
+        "eventTypes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "ReplayEventsResponse": { "$ref": "#/$defs/EventEnvelope" },
+    "ExportTenantDataRequest": {
+      "type": "object",
+      "required": ["tenantId", "scope", "requestedBy", "expiresAt", "authorizationHmac"],
+      "properties": {
+        "tenantId": { "type": "string", "minLength": 1 },
+        "subjectUserId": { "type": "string" },
+        "scope": { "type": "string", "enum": ["tenant", "user"] },
+        "requestedBy": { "type": "string", "minLength": 1 },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "authorizationHmac": { "type": "string", "pattern": "^[A-Fa-f0-9]+$" }
+      }
+    },
+    "ExportTenantDataResponse": {
+      "type": "object",
+      "required": ["recordType", "sequence", "record"],
+      "properties": {
+        "recordType": { "type": "string" },
+        "sequence": { "type": "string", "pattern": "^[0-9]+$" },
+        "record": { "type": "string" }
+      }
+    },
+    "DeleteTenantUserDataRequest": { "$ref": "#/$defs/ExportTenantDataRequest" },
+    "DeleteTenantUserDataResponse": {
+      "type": "object",
+      "required": ["recordsDeleted", "recordsPseudonymized", "auditReceiptId"],
+      "properties": {
+        "recordsDeleted": { "type": "string", "pattern": "^[0-9]+$" },
+        "recordsPseudonymized": { "type": "string", "pattern": "^[0-9]+$" },
+        "auditReceiptId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "EventEnvelope": {
+      "type": "object",
+      "required": [
+        "eventId",
+        "eventType",
+        "schemaVersion",
+        "tenantId",
+        "occurredAt",
+        "sourceService",
+        "traceId",
+        "payload"
+      ],
+      "properties": {
+        "eventId": { "type": "string", "format": "uuid" },
+        "eventType": {
+          "type": "string",
+          "enum": [
+            "billing.invoice.created",
+            "billing.invoice.finalized",
+            "billing.subscription.updated",
+            "billing.subscription.canceled",
+            "billing.payment.succeeded",
+            "billing.payment.failed",
+            "billing.meter.usage_recorded",
+            "billing.credit_balance.changed"
+          ]
+        },
+        "schemaVersion": { "type": "integer", "minimum": 1 },
+        "tenantId": { "type": "string", "minLength": 1 },
+        "occurredAt": { "type": "string", "format": "date-time" },
+        "sourceService": { "type": "string", "const": "liftoff-billing" },
+        "traceId": { "type": "string" },
+        "payload": {}
+      }
+    }
+  }
+}

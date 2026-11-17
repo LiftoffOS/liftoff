@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" style="background-color: #ffffff;">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#FB411F" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- Per-page <title>, <meta name="description">, <link rel="canonical">, OG, and Twitter tags
+         are emitted at runtime by <PageHead> (react-helmet-async) and at build time by
+         @prerenderer/rollup-plugin. No static <title> here on purpose. -->
+
+    <!-- Favicon & PWA -->
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="apple-mobile-web-app-title" content="Liftoff" />
+
+    <!-- OG / Twitter / canonical / per-page title and description live in <PageHead>. -->
+
+    <!-- Preconnect for fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body style="background-color: #ffffff;">
+    <div id="root" style="background-color: #ffffff; min-height: 100vh;"></div>
+    <!-- Prerender safety net: fires render-event after 45s if the React app
+         hasn't fired it via PageHead. Lives here (not in App.tsx) so it runs
+         even if React fails to mount in Puppeteer's headless environment.
+         Normal browsers: PageHead fires the event in <1s, this timer is
+         cleared by the app or just fires harmlessly with no listener. -->
+    <script>setTimeout(function(){document.dispatchEvent(new Event('render-event'))},45000)</script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

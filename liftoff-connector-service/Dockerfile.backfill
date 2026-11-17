@@ -1,0 +1,44 @@
+# One-time backfill runner: copies connector + credential rows from
+# control-plane-pg into connector-pg and re-files OAuth secrets at
+# their canonical connector-{tenantId}-{connectorId} path.
+#
+# Identical build pipeline to the main image so it picks up the same
+# @liftoffos/* packages from Artifact Registry NPM. Entry point is
+# dist/scripts/backfill-from-control-plane.js (compiled from src/).
+
+FROM node:20-slim AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY .npmrc ./
+
+ARG ARTIFACT_REGISTRY_TOKEN=""
+RUN npm ci
+
+COPY tsconfig.json ./
+COPY src/ ./src/
+COPY scripts/ ./scripts/
+
+RUN npm run build
+
+# ── Runtime ──────────────────────────────────────────────────────────────────
+
+FROM node:20-slim
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY .npmrc ./
+
+ARG ARTIFACT_REGISTRY_TOKEN=""
+RUN npm ci --only=production
+
+COPY --from=builder /app/dist ./dist
+
+# Cloud Run mounts the Cloud SQL proxy socket at /cloudsql by default.
+# SOURCE_DB_HOST and DB_HOST should be set to
+#   /cloudsql/<project>:<region>:<instance>
+# in the Cloud Run Job env vars.
+
+CMD ["node", "dist/scripts/backfill-from-control-plane.js"]

@@ -1,0 +1,1161 @@
+[
+  {
+    "tool": "create_contract_adjustment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_contract_adjustment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_contract_adjustment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "add_note_to_an_application_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "associate_application_with_an_interview_plan_stage_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_ats_application_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_ats_candidate_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_ats_job",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_candidate_tags_v_2026_02_27",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "add_candidate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_consent_token",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_contract_amendment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_contract_document",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_contract_invitation",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "get_contract_invitations",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_contract_signature",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_ic_contract",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "approve_an_equity_exercise_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_ic_contract",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_a_request_to_exercise_equity_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "reject_contract",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "sign_amendment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "sign_worker_contract",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "get_employment_cost",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "assign_cost_centers_to_an_employment_contract_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "sync_cost_centers_for_legal_entity_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_contract_custom_field",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "put_contract_custom_field",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_person_custom_field",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "put_person_custom_field",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "patch_eor_bank_account",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "enroll_an_employee_in_a_401_k_plan_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "accept_contract_amendment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_contract_amendment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_contract_amendment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "confirm_contract_amendment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_contract_amendment_amendments",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "sign_eor_amendment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "validate_eor_amendments",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_eor_contract",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_eor_contract",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "cancel_contract",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delay_onboarding",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "sign_contract_document",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_contract_employee_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "validate_job_scope",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_eor_offboarding_client_sign_off",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "review_eor_offboarding_pto",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "review_eor_offboarding_employee_sign_offs",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "accept_project_assignment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "checkin_project_assignment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_offboarding_termination",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resignation",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_regular_termination",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_worker",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "sign_eor_contract_as_worker",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_compliance_document_acknowledgement",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "upload_eor_worker_compliance_document",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_gp_worker_additional_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_eor_worker_additional_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_eor_worker_bank_account",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "change_password",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_employee_resignation",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "sign_employee_resignation_letter",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "submit_eor_worker_resignation",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_equity_or_token_tax_event",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "fetch_multiple_eor_contract_forms",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_gp_contract",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_gp_worker_termination",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "clone_group",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_group",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_group",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_group",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_ic_invoicing_tax",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_ic_invoicing_tax",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "delete_ic_invoicing_tax",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_an_immigration_case",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_worker_case_required_document",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_invoice_adjustment",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_invoice_adjustment",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "delete_invoice_adjustment",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_invoice_adjustment_review",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_legal_entity",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_legal_entity",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_legal_entity",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_magic_link",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_manager",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "generate_magic_link_for_manager_login",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_contract_milestone",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_contract_milestone",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_contract_off_cycle_payment",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_organization_structure",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_an_existing_hris_org_structure_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_an_org_structure_from_the_organization_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_organization_structure_by_external_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_organization_structure_by_external_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_organization_structure",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_organization_structure",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_team_custom_fields",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_person_department",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_organization_child",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_organization_role",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_organization_role",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "add_edit_bank_details",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "change_the_auto_withdrawal_setting_v_2026_01_01",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_bank_transfer_method",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "delete_bank_details",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "dynamic_requirements",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "request_to_withdraw_funds",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_bank_transfer_method",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_auto_withdraw_setting",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_a_direct_employee",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_person_without_contract",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_person_working_location",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_person_personal_info",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_person_personal_info_external_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "activate_the_401_k_integration_for_the_legal_entity_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "clean_up_plan_for_a_given_legal_entity_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_401_k_plan_for_legal_entity_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_401_k_plan_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "apply_position_changes",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "profiles",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_timesheets_preset",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_root_timesheets_preset",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_timesheets_preset",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_timesheets_preset",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_manual_verification",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_veriff_session",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "submit_external_kyc",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_contract_task",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_contract_task",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_contract_task_review",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "review_multiple_tasks",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_task_by_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_contract_termination",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_contract_termination",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "review_time_off_request",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_time_off_request",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_time_off_request",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_time_off_request",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "sync_time_off_global_payroll",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "validate_time_off",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_time_tracking_shift_rate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_time_tracking_shift_rate_by_external_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_time_tracking_shift_rate_by_external_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "get_time_tracking_timesheets_upload_url",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "review_time_tracking_timesheet",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_time_tracking_shifts_raw",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_time_tracking_shifts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_time_tracking_shift_by_external_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_time_tracking_shift_by_external_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_multiple_shifts_by_external_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_timesheet",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_timesheet",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_timesheet_by_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_timesheet_review",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_vendor_bill_v_2026_01_01",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "upload_vendor_bill_attachment",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "search_users",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_webhook",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_webhook",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_webhook",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_gp_worker_bank",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_gp_worker_additional_information_additional_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "get_gp_worker_additional_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_gp_worker_bank",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_gp_worker_address",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_gp_worker_compensation",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_gp_worker_employee_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_gp_worker_pto_policy",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "add_worker_relation_child",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "add_worker_relation_parent_by_external_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "add_worker_relation_parent",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_a_parent_worker_relation_with_external_id_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_worker_relation_profile",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_child_worker_relation_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "add_worker_relation_child_by_external_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_worker_relation_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_worker_relation_profile_by_external_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_worker_relation_profile",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_worker_relation_profile_by_external_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_a_worker_relation_type_v_2026_01_01",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_worker_relation_type_by_external_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_worker_relation_type_by_external_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_worker_relation_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_worker_relation_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_worker_access_token",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_worker_access_token",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_worker_worker",
+    "categories": [
+      "dataChanges"
+    ]
+  }
+]

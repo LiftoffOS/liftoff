@@ -1,0 +1,65 @@
+{
+  "inboundSources": [
+    { "id": "web-form", "name": "Website Contact Form", "type": "digital", "enabled": true, "volume": "high" },
+    { "id": "email", "name": "Email Inbox", "type": "digital", "enabled": true, "volume": "high" },
+    { "id": "phone", "name": "Phone/Voicemail", "type": "voice", "enabled": false, "volume": "medium" },
+    { "id": "chat", "name": "Live Chat Widget", "type": "digital", "enabled": false, "volume": "medium" },
+    { "id": "referral", "name": "Partner Referrals", "type": "manual", "enabled": true, "volume": "low" },
+    { "id": "events", "name": "Event Registrations", "type": "digital", "enabled": false, "volume": "low" },
+    { "id": "social", "name": "Social Media DMs", "type": "digital", "enabled": false, "volume": "low" }
+  ],
+  "serviceLines": [
+    { "id": "consulting", "name": "Consulting Services", "description": "Strategic advisory and project-based consulting" },
+    { "id": "implementation", "name": "Implementation Services", "description": "Software deployment and system integration" },
+    { "id": "managed", "name": "Managed Services", "description": "Ongoing operational support and maintenance" },
+    { "id": "training", "name": "Training & Enablement", "description": "Team training and certification programs" },
+    { "id": "support", "name": "Premium Support", "description": "Priority technical support and SLAs" }
+  ],
+  "accountSegments": [
+    { "id": "enterprise", "name": "Enterprise", "criteria": "500+ employees, $50M+ revenue", "priority": "high" },
+    { "id": "mid-market", "name": "Mid-Market", "criteria": "100-499 employees, $10M-50M revenue", "priority": "high" },
+    { "id": "smb", "name": "SMB", "criteria": "10-99 employees, $1M-10M revenue", "priority": "medium" },
+    { "id": "startup", "name": "Startup", "criteria": "<10 employees or <$1M revenue", "priority": "low" }
+  ],
+  "routingRules": [
+    { "id": "geo", "type": "Geographic", "description": "Route by customer region", "enabled": true },
+    { "id": "size", "type": "Company Size", "description": "SMB vs Mid-Market vs Enterprise teams", "enabled": true },
+    { "id": "service", "type": "Service Line", "description": "Route by requested service type", "enabled": true },
+    { "id": "industry", "type": "Industry Vertical", "description": "Specialized teams by industry", "enabled": false },
+    { "id": "existing", "type": "Existing Customer", "description": "Route to assigned account owner", "enabled": true }
+  ],
+  "exceptions": [
+    { "id": "vip", "name": "VIP Customers", "trigger": "Account tier = VIP", "action": "Priority queue + notify manager" },
+    { "id": "competitor", "name": "Competitor Mention", "trigger": "Competitor name detected", "action": "Flag for review" },
+    { "id": "urgent", "name": "Urgent Request", "trigger": "Keywords: urgent, asap, emergency", "action": "Immediate escalation" },
+    { "id": "large-deal", "name": "Large Deal Potential", "trigger": "Deal size > $100K", "action": "Executive notification" },
+    { "id": "churn-risk", "name": "Churn Risk Signal", "trigger": "Existing customer + negative sentiment", "action": "Customer success alert" }
+  ],
+  "terminology": {
+    "lead": "Prospect",
+    "opportunity": "Deal",
+    "customer": "Client",
+    "account": "Company",
+    "contact": "Buyer",
+    "meeting": "Discovery Call",
+    "proposal": "Solution Proposal"
+  },
+  "regions": [
+    { "id": "na-west", "name": "North America - West", "timezone": "America/Los_Angeles" },
+    { "id": "na-east", "name": "North America - East", "timezone": "America/New_York" },
+    { "id": "emea", "name": "EMEA", "timezone": "Europe/London" },
+    { "id": "apac", "name": "Asia Pacific", "timezone": "Asia/Singapore" }
+  ],
+  "workingHours": {
+    "start": "08:00",
+    "end": "18:00",
+    "timezone": "America/Los_Angeles",
+    "workDays": [1, 2, 3, 4, 5]
+  },
+  "slaDefaults": {
+    "initialResponse": 60,
+    "qualification": 240,
+    "routing": 30,
+    "handoff": 480
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/connector-get-functional-types.response.schema.json",
+  "title": "ConnectorGetFunctionalTypesResponse",
+  "description": "Response from POST /api/connectors/functional-types. Canonical list of connector types with both a working auth flow and an available MCP implementation. Replaces the static FUNCTIONAL_CONNECTOR_TYPES set in platform-backend.",
+  "type": "object",
+  "required": ["connectorTypes"],
+  "additionalProperties": false,
+  "properties": {
+    "connectorTypes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    }
+  }
+}

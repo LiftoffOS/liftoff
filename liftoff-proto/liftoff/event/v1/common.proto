@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+// Common shapes referenced across every Liftoff service — tenant context,
+// pagination, error responses, and a timestamp wrapper.
+package liftoff.event.v1;
+
+// TenantContext is attached to every cross-service request. Lets each
+// service enforce RLS / audit / rate-limiting without re-parsing the
+// auth header or re-loading the tenant record.
+message TenantContext {
+  // Opaque tenant identifier. Matches tenants.id in platform-control-pg.
+  string tenant_id = 1;
+
+  // Isolation tier — affects which DB, connector pool, and sandbox the
+  // request is routed to. `standard` = shared infra, `enterprise` =
+  // dedicated per-tenant GCP project.
+  IsolationTier isolation_tier = 2;
+
+  // Authenticated user making the request. Empty for service-to-service
+  // calls originating from the control plane.
+  string user_id = 3;
+
+  // RBAC roles of the user at request time. Re-evaluated on every request
+  // rather than cached on a JWT — role changes propagate in <1s.
+  repeated string roles = 4;
+}
+
+enum IsolationTier {
+  ISOLATION_TIER_UNSPECIFIED = 0;
+  ISOLATION_TIER_STANDARD = 1;
+  ISOLATION_TIER_ENTERPRISE = 2;
+}
+
+// Cursor-based pagination. Offset pagination is deliberately not supported —
+// it gives wrong answers when rows are inserted between pages.
+message Pagination {
+  // Max rows to return. Server may return fewer. Clamped to [1, 200].
+  int32 page_size = 1;
+
+  // Opaque cursor returned from a previous response's `next_page_token`.
+  // Empty string on the first request.
+  string page_token = 2;
+}
+
+// Error is the canonical error response shape. Matches google.rpc.Status
+// fields but kept local to avoid the google.rpc dependency.
+message Error {
+  // Machine-readable code. Domain-specific; see service docs.
+  string code = 1;
+  // Human-readable message — safe to surface to end users.
+  string message = 2;
+  // Developer-oriented detail; logged server-side, not returned to end users.
+  string detail = 3;
+  // Correlation ID — trace through to logs.
+  string correlation_id = 4;
+}

@@ -1,0 +1,5 @@
+# Triggers I4: "business days" language requires weekday-aware date math.
+role: SLA Monitor
+responsibilities: >
+  Escalate any support ticket that has stayed open for more than 2 business
+  days without a customer-facing response.

@@ -1,0 +1,16 @@
+.insights-text {
+  /* Extra top margin so the leading insight intro paragraph has breathing
+   * room from the page header above it. The bottom margin is unchanged
+   * so the gap to the metric cards stays consistent. */
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-4);
+}
+
+.insights-text__content {
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-black);
+  margin: 0;
+  white-space: pre-line;
+  word-break: break-word;
+}

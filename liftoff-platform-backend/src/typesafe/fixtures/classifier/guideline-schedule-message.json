@@ -1,0 +1,36 @@
+{
+  "set": {
+    "id": "classifier",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "tool": {
+      "name": "schedule_message",
+      "description": "Schedule a message to be posted to a channel at a later time."
+    }
+  },
+  "expect": {
+    "customerCommunication": {
+      "choice": "no"
+    },
+    "financialActions": {
+      "choice": "no"
+    },
+    "dataChanges": {
+      "choice": "no",
+      "advisory": true
+    },
+    "externalPublishing": {
+      "choice": "yes"
+    },
+    "hiringDecisions": {
+      "choice": "no"
+    },
+    "effect": {
+      "choice": "outbound",
+      "advisory": true
+    }
+  },
+  "note": "Guideline sentence from the classification prompt, in the direction it states. A scheduled message WILL be published. 1b: a scheduled post reaches people outside the workspace. dataChanges and the effect are advisory: the guideline states externalPublishing and the 1b list does not name schedule_message; Jev reads a scheduled message as a write (a scheduled item is created)."
+}

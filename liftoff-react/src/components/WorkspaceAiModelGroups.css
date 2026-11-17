@@ -1,0 +1,46 @@
+/* A provider's models and coding tool under its dropdown: a label, then its
+   chips. The chips are the Connections modal's object tags, with a hairline so
+   they hold their shape on a white card. */
+
+.ai-model-groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.ai-model-groups__row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.ai-model-groups__label {
+  flex: 0 0 56px;
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}
+
+.ai-model-groups__chips {
+  margin: 0;
+  min-width: 0;
+}
+
+.ai-model-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ai-model-chips__chip {
+  padding: 4px 10px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-black);
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: 9999px;
+}

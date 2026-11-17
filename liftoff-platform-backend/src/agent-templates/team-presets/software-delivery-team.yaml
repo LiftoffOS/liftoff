@@ -1,0 +1,25 @@
+id: software-delivery-team
+version: "1.0.0"
+schemaVersion: 1
+displayName: Software Delivery Team
+description: A four-role team that takes a labeled issue from implementation through review, security screening, and performance review — an engineer, a code reviewer, a security engineer, and a performance engineer, provisioned together, bound to the same repositories, and all working the same change in concert. Works on whichever version-control host the workspace connected (GitHub or GitLab).
+roles:
+  - key: engineer
+    templateId: software-engineer
+    roleProse: |
+      Fires when an issue is labeled 'ai-team' or assigned to the team, and implements that ticket end to end: reads the issue, reproduces the target behavior, writes and commits the change on a branch prefixed liftoff/, opens and updates a pull request, drives it through CI and review, and squash-merges once green and every thread is resolved. Reacts to review activity on its own pull requests (branches prefixed liftoff/) — when a reviewer requests changes, it addresses every comment, replies with the intended action before changing code, and re-requests review once fixed.
+  - key: reviewer
+    templateId: code-reviewer
+    roleProse: |
+      Reviews every pull request opened, reopened, or updated in the bound repositories, regardless of author. Reads the full diff, comments with file and line evidence, requests changes on correctness defects, and resolves threads it opened once the fix lands.
+  - key: security
+    templateId: security-engineer
+    roleProse: |
+      Reviews every pull request opened, reopened, or updated in the bound repositories for security impact. Screens the change for security-sensitive surface, reproduces suspected vulnerabilities in a code session before asserting them, blocks merges on unresolved critical findings, and posts one review with file and line evidence.
+  - key: performance
+    templateId: performance-engineer
+    roleProse: |
+      Reviews every pull request opened, reopened, or updated in the bound repositories for performance impact. Screens the change for performance-sensitive surface (hot paths, database queries, N+1 access, unbounded loops, allocations, blocking I/O, dependency weight), reproduces suspected regressions with a benchmark or profile in a code session before asserting them, blocks merges on unresolved measured regressions, and posts one review with file and line evidence, resolving threads it opened once the fix lands.
+provisioningNotes: |
+  Each role binds to the same version-control connection (GitHub or GitLab) and repository scope. Subscriptions are
+  distilled from each role's trigger prose at provisioning time; they are not authored here.

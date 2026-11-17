@@ -1,0 +1,41 @@
+-- Migration 020: the Chief AI Officer's thread can hold a row that is not speech.
+--
+-- Liftoff brings the Chief AI Officer into a conversation it cannot see, so it
+-- writes a short summary of what has been said and sends it with the person's
+-- message. That summary was CONCATENATED onto the message, and this service
+-- persisted the result as the USER's row. The CAIO's thread therefore shows
+-- paragraphs the person never wrote, in Liftoff's voice, about them:
+--
+--   "[Context from the conversation so far: ... the user asked for a weekly
+--    report and declined the optional review step ...]
+--
+--    Yes"
+--
+-- Every user row written through that path reads like that, and the Insights
+-- Manager's thread in platform-backend had the same defect from the same line
+-- of code.
+--
+-- The fix gives the summary its own row, and a row that reports on a
+-- conversation rather than taking part in it needs a way to say so. That
+-- vocabulary already exists in platform-backend twice: migration 174 added
+-- `message_type` to agent_chat_messages, and 352 added it to
+-- liftoff_chat_messages for exactly this purpose, saying "the two surfaces share
+-- one vocabulary and one renderer instead of growing a second mechanism for the
+-- same fact". This is the same column on the same terms, in this service's
+-- database because this service owns team_plan_messages.
+--
+-- Nullable and sparse, like both of those: ordinary speech stores NULL, which is
+-- what every row written before this migration reads back as, and the repository
+-- maps NULL to "an ordinary message" without any caller having to know.
+--
+-- No backfill. The rows already written have the summary fused into the user's
+-- message text; there is no marker to key on, and no way to split them apart
+-- that is not a guess about where Liftoff's words ended and the person's began.
+-- They are left as they are, and this stops it happening again.
+--
+-- team_plan_messages is tenant-scoped through its thread and carries RLS, but
+-- ADD COLUMN is a schema change rather than a row write, so it needs none of the
+-- FORCE / NO FORCE handling a data migration on a policied table would.
+
+ALTER TABLE team_plan_messages
+  ADD COLUMN IF NOT EXISTS message_type TEXT;

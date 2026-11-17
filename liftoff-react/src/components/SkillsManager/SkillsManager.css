@@ -1,0 +1,189 @@
+/* Skill steering controls (P1.4). One display, not two: the "Uses" pills are
+   the whole surface, and each pill carries its own action menu. Styled from the
+   design tokens the rest of the team update page uses. */
+
+.skills-manager {
+  margin-top: var(--space-5);
+}
+
+/* ─── Uses row ─────────────────────────────────────────────── */
+
+.skills-manager__uses {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.skills-manager__uses-label {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.skills-manager__chips {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* ─── Pill ─────────────────────────────────────────────────── */
+
+.skills-manager__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 2px 2px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-light);
+  background: var(--color-gray-50);
+  font-size: var(--text-xs);
+  color: var(--color-black);
+  transition: border-color var(--duration-fast) var(--ease-out),
+              background-color var(--duration-fast) var(--ease-out);
+}
+
+.skills-manager__chip--editing {
+  border-color: var(--color-gray-300);
+  background: var(--color-gray-100);
+}
+
+.skills-manager__chip--archived {
+  opacity: 0.6;
+}
+
+.skills-manager__chip-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.skills-manager__chip-lock {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  color: var(--color-gray-400);
+}
+
+.skills-manager__chip-name {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The pill's trigger is the shared ActionMenu, so the dropdown surface, item
+   type scale, spacing and z-index all come from ActionMenu.css. Only the fit
+   inside a pill is set here: the trigger keeps its 28px hit area but takes the
+   pill's rounding so its hover state does not read as a square in a capsule. */
+.skills-manager__chip .action-menu__trigger {
+  border-radius: var(--radius-full);
+}
+
+/* ─── Editor card ──────────────────────────────────────────── */
+
+.skills-manager__editor {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  background: var(--surface-raised);
+}
+
+.skills-manager__editor-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.skills-manager__editor-name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-black);
+}
+
+.skills-manager__editor-description {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  line-height: 1.5;
+}
+
+/* The box matches the page's other long-form fields (.markdown-textarea .tiptap,
+   used by Role / Responsibilities / Additional Guidance).
+
+   The type block below it is not decoration. Those fields are contenteditable
+   divs, so they inherit the body's "wght" 320, 'blwf' and -0.01em tracking. A
+   real <textarea> does not: the UA sheet applies the `font` shorthand, which
+   resets font-variation-settings and font-feature-settings to normal, so the
+   text renders at full weight against lighter prose everywhere else on the
+   page. Re-apply them explicitly, the same way .markdown-textarea__rendered
+   code does. */
+.skills-manager__textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 14px 16px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  font-variation-settings: "opsz" 32, "wght" 320;
+  font-feature-settings: 'blwf' on;
+  letter-spacing: -0.01em;
+  line-height: 1.6;
+  text-align: left;
+  color: var(--color-black);
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  outline: none;
+  resize: vertical;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.skills-manager__textarea::placeholder {
+  color: var(--color-gray-400);
+}
+
+.skills-manager__textarea:disabled {
+  background: var(--color-gray-100);
+  color: var(--color-gray-400);
+  cursor: not-allowed;
+}
+
+.skills-manager__editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ─── Archived ─────────────────────────────────────────────── */
+
+.skills-manager__archived {
+  margin-top: var(--space-4);
+}
+
+.skills-manager__archived-toggle {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.skills-manager__archived-toggle:hover {
+  color: var(--color-black);
+}
+
+.skills-manager__chips--archived {
+  margin-top: var(--space-2);
+}

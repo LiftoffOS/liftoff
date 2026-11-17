@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"],
+  // Exclude test files from the build output — Jest consumes them via ts-jest
+  // at test time; shipping compiled .test.js files in dist/ would bloat the
+  // container image and pull test deps onto the runtime classpath.
+  "exclude": ["node_modules", "dist", "src/_source-ports", "src/**/__tests__/**", "src/**/*.test.ts"]
+}

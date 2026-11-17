@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/connector-list-tenant-connectors.request.schema.json",
+  "title": "ConnectorListTenantConnectorsRequest",
+  "description": "Request body for POST /api/connectors/list-tenant-connectors — returns the tenant's connector instances. connectorTypes and statuses are optional filters (empty = every row).",
+  "type": "object",
+  "required": ["tenantContext"],
+  "additionalProperties": false,
+  "properties": {
+    "tenantContext": {
+      "type": "object",
+      "required": ["tenantId"],
+      "additionalProperties": false,
+      "properties": {
+        "tenantId": { "type": "string", "minLength": 1 },
+        "workflowId": { "type": "string" },
+        "agentId": { "type": "string" },
+        "actorId": { "type": "string" }
+      }
+    },
+    "connectorTypes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "statuses": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["active", "disabled", "error", "disconnected", "pending"]
+      },
+      "uniqueItems": true
+    },
+    "idempotencyKey": { "type": "string", "minLength": 1 }
+  }
+}

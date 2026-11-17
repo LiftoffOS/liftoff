@@ -1,0 +1,32 @@
+/* External Agent Selector Styles */
+
+.external-agent-selector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.external-agent-selector--empty {
+  padding: var(--space-6);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.external-agent-selector__empty-text {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin: 0;
+}
+
+.external-agent-selector__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-3);
+}
+
+.external-agent-selector__count {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin: 0;
+}

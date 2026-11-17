@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`scoreMemory baseline under DEFAULT_WEIGHTS matches the captured snapshot 1`] = `
+[
+  {
+    "label": "fresh-no-tags",
+    "score": 0.41534090909090915,
+  },
+  {
+    "label": "fresh-gotcha-matched-tag",
+    "score": 0.8578181818181817,
+  },
+  {
+    "label": "old-decision-no-overlap",
+    "score": 0.35546590909090914,
+  },
+  {
+    "label": "summary-l1",
+    "score": 0.3973704146730463,
+  },
+  {
+    "label": "low-trust-feedback",
+    "score": 0.45381818181818184,
+  },
+  {
+    "label": "high-influence-zero-W_INFLUENCE",
+    "score": 0.3520075757575758,
+  },
+  {
+    "label": "negative-usefulness",
+    "score": 0.27892045454545455,
+  },
+]
+`;

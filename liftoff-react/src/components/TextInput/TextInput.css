@@ -1,0 +1,128 @@
+.text-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.text-input__label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+}
+
+.text-input__wrapper {
+  position: relative;
+}
+
+.text-input__icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-gray-400);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.text-input__wrapper--has-icon .text-input__field {
+  padding-left: 44px;
+}
+
+.text-input__prefix {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  pointer-events: none;
+}
+
+.text-input__wrapper--has-prefix .text-input__field {
+  padding-left: 34px;
+}
+
+.text-input__wrapper--has-suffix .text-input__field {
+  padding-right: 120px;
+}
+
+.text-input__wrapper--has-clear .text-input__field {
+  padding-right: 40px;
+}
+
+.text-input__clear {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: var(--color-gray-400);
+  display: flex;
+  align-items: center;
+  line-height: 0;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.text-input__clear:hover {
+  color: var(--color-black);
+}
+
+.text-input__clear:focus-visible {
+  color: var(--color-black);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+.text-input__suffix {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.text-input__field {
+  width: 100%;
+  padding: 10px 20px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: 9999px;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.text-input__field:focus-visible {
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+
+.text-input__field::placeholder {
+  color: var(--color-gray-400);
+}
+
+.text-input__field--error {
+  border-color: var(--status-error);
+}
+
+.text-input__hint {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}
+
+.text-input__error {
+  font-size: var(--text-xs);
+  color: var(--status-error);
+}

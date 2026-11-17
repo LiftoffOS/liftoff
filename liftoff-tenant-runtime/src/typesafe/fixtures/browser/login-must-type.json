@@ -1,0 +1,86 @@
+{
+  "set": {
+    "id": "browser_step",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "page": {
+    "url": "https://fixture.test/login",
+    "title": "Fixture",
+    "w": 756,
+    "h": 413,
+    "text": "Sign in\nUsername\nPassword\nSign in",
+    "scroll": {
+      "y": 0,
+      "height": 413
+    },
+    "actions": [
+      {
+        "node": 1,
+        "role": "textbox",
+        "label": "Username",
+        "rect": {
+          "x": 98.859375,
+          "y": 88.4375,
+          "w": 153,
+          "h": 21
+        },
+        "kind": "fill",
+        "value": "",
+        "id": "e1"
+      },
+      {
+        "node": 1,
+        "role": "textbox",
+        "label": "Open Username",
+        "rect": {
+          "x": 98.859375,
+          "y": 88.4375,
+          "w": 153,
+          "h": 21
+        },
+        "kind": "click",
+        "value": "",
+        "id": "e2"
+      },
+      {
+        "node": 2,
+        "role": "button",
+        "label": "Sign in",
+        "rect": {
+          "x": 470.203125,
+          "y": 88.4375,
+          "w": 56.765625,
+          "h": 21
+        },
+        "kind": "click",
+        "value": "",
+        "id": "e3"
+      },
+      {
+        "id": "wait",
+        "kind": "wait",
+        "label": "Wait for the page to update"
+      }
+    ],
+    "marker": null,
+    "page_key": null,
+    "guards": {},
+    "omitted_actions": 0,
+    "fingerprint": "2960ecf95eede7499ba70f6aea6869e91bba7b9c29f51ae5c72598001df4cf79"
+  },
+  "goal": "Sign in as \"jane\" and confirm the welcome page",
+  "history": [],
+  "expect": {
+    "operation": {
+      "choice": "TYPE_TEXT"
+    },
+    "type_text_target": {
+      "label": "Username"
+    },
+    "type_text_value": {
+      "choice": "l1"
+    }
+  },
+  "note": "An empty username field with the value in the task: must type it first."
+}

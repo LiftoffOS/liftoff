@@ -1,0 +1,63 @@
+/* Deliberately loud. This is the one piece of chrome that must never be
+   mistaken for part of the product, because the whole job of it is to stop
+   somebody forgetting whose account they are typing into. */
+.delegation-banner {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-accent);
+  color: var(--color-white);
+  font-size: 0.8125rem;
+  /* Buttons and custom text drift lighter than body copy without this; the
+     banner has to read at a glance. */
+  font-variation-settings: 'wght' 450;
+  letter-spacing: normal;
+}
+
+.delegation-banner__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* An email address carries no break opportunity, so on a narrow window a long
+     one would run past the right edge rather than wrap. The one thing this
+     banner must always do is stay readable, and the address of the person whose
+     account this is, is the part that matters most. */
+  overflow-wrap: anywhere;
+}
+
+/* The weight axis is pinned on the banner, which silently overrides <strong>:
+   font-variation-settings beats font-weight, so the emphasis on the address
+   rendered at exactly the same weight as the sentence around it. The address is
+   the single most important word here, so it is re-emphasised on the axis that
+   is actually in play. */
+.delegation-banner strong {
+  font-variation-settings: 'wght' 650;
+}
+
+.delegation-banner__exit {
+  flex: 0 0 auto;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--color-white);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-white);
+  font: inherit;
+  font-variation-settings: 'wght' 450;
+  letter-spacing: normal;
+  cursor: pointer;
+}
+
+.delegation-banner__exit:hover {
+  background: var(--color-white);
+  color: var(--color-accent);
+}
+
+@media (max-width: 640px) {
+  .delegation-banner {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}

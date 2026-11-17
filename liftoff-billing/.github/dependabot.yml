@@ -1,0 +1,57 @@
+version: 2
+
+# Two streams, tuned in opposite directions.
+#
+# SECURITY updates are switched on in repository settings and are deliberately
+# NOT configured here. They bypass everything below by design: they ignore
+# `groups`, and `ignore` rules do not suppress them.
+#
+# VERSION updates are grouped, cooled off, and exclude majors — a major is a
+# migration somebody schedules. This repository carried 11 pull requests that
+# were 110 days old, every one of them a major.
+
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 5
+    labels: [dependencies, security]
+
+    # Never on release day: noise control and supply-chain caution at once.
+    cooldown:
+      semver-minor-days: 7
+      semver-patch-days: 3
+
+    ignore:
+      # First-party packages move with their own release process.
+      - dependency-name: "@liftoffos/*"
+      # Majors are planned work. Security updates ignore this rule by design.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+    groups:
+      production:
+        dependency-type: "production"
+      development:
+        dependency-type: "development"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule: { interval: weekly }
+    labels: [dependencies, github-actions]
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directory: "/"
+    schedule: { interval: weekly }
+    labels: [dependencies, docker-base-image]
+    ignore:
+      # `node:20-alpine` to `node:26-alpine` is a runtime migration, not a bump.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]

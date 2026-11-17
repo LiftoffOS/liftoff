@@ -1,0 +1,29 @@
+# Google Cloud Ops Agent scrape config — injected via VM metadata
+# `google-logging-enabled` + `ops-agent-config`. Pulls
+# pgbouncer-exporter's /metrics endpoint and publishes the metrics
+# under `custom.googleapis.com/pgbouncer/*` so the alert policies at
+# the bottom of main.tf can reference them.
+#
+# Apply via google_compute_project_metadata or attach as an
+# instance-template metadata key. Tracked here so the scrape contract
+# is part of the module, not tribal knowledge.
+
+metrics:
+  receivers:
+    pgbouncer_exporter:
+      type: prometheus
+      config:
+        scrape_configs:
+          - job_name: pgbouncer_exporter
+            scrape_interval: 30s
+            static_configs:
+              - targets: ["127.0.0.1:9127"]
+            metric_relabel_configs:
+              - source_labels: [__name__]
+                regex: "pgbouncer_pools_.*|pgbouncer_stats_.*|pgbouncer_databases_current_connections"
+                action: keep
+
+  service:
+    pipelines:
+      pgbouncer:
+        receivers: [pgbouncer_exporter]

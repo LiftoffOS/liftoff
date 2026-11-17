@@ -1,0 +1,68 @@
+/* Matches activity-filter pattern from ActivityPage */
+
+.insights-time-filter {
+  position: relative;
+}
+
+.insights-time-filter__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.insights-time-filter__trigger:hover {
+  border-color: var(--color-gray-300);
+}
+
+.insights-time-filter__trigger:focus-visible {
+  outline: none;
+}
+
+.insights-time-filter__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 100;
+  min-width: 200px;
+  padding: 4px;
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.insights-time-filter__option {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-gray-500);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.insights-time-filter__option:hover {
+  background: var(--color-gray-50);
+}
+
+.insights-time-filter__option--active {
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  font-weight: 500;
+}

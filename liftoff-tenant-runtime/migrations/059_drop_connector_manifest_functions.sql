@@ -1,0 +1,44 @@
+-- Drop connector_manifests.functions JSONB column.
+--
+-- The functions column used to store tool input schemas (name, description,
+-- inputSchema) for each connector. The column was written by
+-- handleCredentialsStored in src/events/subscriber.ts whenever a credentials
+-- event fired, with the schemas serialized from the in-memory registry at
+-- src/connectors/connector-functions-registry.ts.
+--
+-- This design can cause an outage:
+--   1. The TypeScript type for inputSchema didn't enforce that array
+--      properties had `items` (a JSON Schema requirement that OpenAI and
+--      Anthropic both enforce at request time).
+--   2. A connector function definition saved with bare `type: array` and
+--      no `items` is invalid.
+--   3. Every tenant who connects that connector gets the broken schema
+--      persisted into their connector_manifests.functions row.
+--   4. When the tenant runtime builds its tools list at execution time, it
+--      pulls the broken schemas from this column (NOT from the in-memory
+--      registry), passes them to the LLM provider, and the LLM rejects
+--      the entire tools list with 400 "schema missing items".
+--   5. Fixing the registry in source code does NOT fix existing tenants
+--      because the column is frozen at the value written by the LAST
+--      credentials_stored event, which fired before the source fix existed.
+--
+-- The fix is to make the in-memory registry the single source of truth for
+-- tool schemas. The runtime image and the schemas ship together, so they
+-- can never be out of sync. Code changes take effect on the next deploy
+-- automatically with no data migration. Bad schemas are caught at three
+-- layers (TypeScript type, unit test, runtime startup validator) before
+-- they can ever reach an LLM call.
+--
+-- The functions column becomes dead data after this migration. The other
+-- columns on the manifest row (id, tenant_id, connector_type, alias,
+-- display_name, enabled) stay — they're per-tenant metadata about which
+-- connectors a tenant has connected and what to call them.
+--
+-- See:
+--   - src/connectors/registry-validator.ts (startup validation)
+--   - src/connectors/connector-functions-registry.ts (the registry itself)
+--   - src/connectors/__tests__/function-schema-validation.test.ts (CI guard)
+--   - src/connectors/__tests__/registry-validator.test.ts (validator unit)
+--   - src/agent-execution/service.ts buildToolsSchema (uses registry)
+
+ALTER TABLE connector_manifests DROP COLUMN IF EXISTS functions;

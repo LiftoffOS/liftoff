@@ -1,0 +1,172 @@
+/* SwitchWizard — extends AgentConnector layout.
+ *
+ * Same structure as ClaudeCodeConnector: visual → text → actions. Everything
+ * structural (centering, header/subtext scale, the animated connect visual,
+ * cards, pills, fields) comes from AgentConnector.css. Only the few things that
+ * genuinely do not exist there live here. */
+
+/* Left circle carries the source mark.
+ *
+ * The base layout tints this circle with --color-gray-400. Hermes is a single
+ * monochrome path using currentColor, so it inherits that grey directly.
+ * OpenClaw is a multi-tone illustration whose greys are baked into the file,
+ * because currentColor can only carry one value and flattening it would lose
+ * the mark's shape at 20px. */
+.switch-wizard .agent-connector__team--left {
+  color: var(--color-gray-500);
+}
+
+/* Command chip. The connector pages define this locally because they do not
+   import SettingsPage.css, where .settings-section__code lives. Same sizing as
+   ClaudeCodeConnector so an import command and a setup command look identical. */
+.switch-wizard__command {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.switch-wizard__command .settings-section__code {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: var(--text-xs);
+  color: var(--color-black);
+  background: var(--color-gray-100);
+  padding: 6px 10px;
+  border-radius: 6px;
+  word-break: break-all;
+  text-align: left;
+}
+
+.switch-wizard__command .settings-section__copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.switch-wizard__command .settings-section__copy:hover {
+  background: var(--color-gray-100);
+  /* --color-gray-700 is what ClaudeCodeConnector.css uses here, but that token
+     is not defined anywhere, so the hover colour silently does nothing there.
+     --color-black is the hover colour the rest of this layout uses. */
+  color: var(--color-black);
+}
+
+/* Longer explanatory copy than a connect step. */
+.switch-wizard .agent-connector-step__subtext {
+  max-width: 460px;
+}
+
+/* The AgentConnector shell centres its content (agent-connector__content sets
+   text-align: center), which the connection cards inherit — on the Connections
+   page they sit in a left-aligned container instead. Reset it here so a card
+   reads identically in both places. */
+.switch-wizard .connection-card {
+  text-align: left;
+}
+
+/* Retry sits inside the row, where the failure is. Sized and shaped like
+   connection-card__action so an inline action looks the same wherever it
+   appears. */
+.switch-wizard__retry {
+  padding: 4px 10px;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--color-black);
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.switch-wizard__retry:hover:not(:disabled) {
+  border-color: var(--color-gray-300);
+  background: var(--color-gray-50);
+}
+
+/* Inventory rows inside a capabilities card. */
+.switch-wizard__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  text-align: left;
+}
+
+.switch-wizard__row + .switch-wizard__row {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-light);
+}
+
+.switch-wizard__row-name {
+  font-size: var(--text-sm);
+  color: var(--color-black);
+}
+
+.switch-wizard__row-state {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  flex-shrink: 0;
+}
+
+/* The global inline spinner is sized for 16px rows; at this text size it reads
+   better a touch smaller, and its ring should match the muted state colour
+   rather than the near-black default used on full-page loaders. */
+.switch-wizard__row-state .loading-spinner--sm {
+  width: 12px;
+  height: 12px;
+  border-width: 1.5px;
+  border-color: var(--border-light);
+  border-top-color: var(--color-gray-400);
+}
+
+/* A built-but-not-started team member reads as "Awaiting Launch" in the same
+   violet Teams uses for a draft (status-badge--draft, agent-card__status--draft),
+   so the same state does not change colour between two pages. */
+.switch-wizard__row-state--converted {
+  color: #6d28d9;
+}
+
+.switch-wizard__row-state--failed {
+  color: #d97706;
+}
+
+/* A member being rebuilt reads exactly like a member being built the first
+   time — muted, with the inline spinner — because it is the same work. */
+.switch-wizard__row-state--working {
+  color: var(--color-gray-400);
+}
+
+/* Checkbox rows for routines and consent. */
+.switch-wizard__choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  text-align: left;
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  cursor: pointer;
+}
+
+.switch-wizard__choice input {
+  margin-top: 3px;
+  accent-color: var(--color-accent);
+}
+
+.switch-wizard__choice-meta {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}

@@ -1,0 +1,26 @@
+{
+  "connectorType": "paddle",
+  "harvestedAt": "2026-09-15",
+  "source": "vendor_docs",
+  "sourceUrl": "https://developer.paddle.com/sdks/ai/paddle-mcp",
+  "tools": [
+    {
+      "name": "search",
+      "description": "Looks up Paddle API methods by name or description. Returns the method path, parameters, and response shape so the agent knows how to call it.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "execute",
+      "description": "Runs a JavaScript async function that chains one or more Paddle API calls in a single invocation. Variables don't persist between calls.",
+      "annotations": {
+        "destructiveHint": true
+      }
+    },
+    {
+      "name": "report_missing_tool",
+      "description": "Lets the agent flag a missing capability so we can prioritize it. This doesn't call the Paddle API, it reports the missing tool to the Paddle team."
+    }
+  ]
+}

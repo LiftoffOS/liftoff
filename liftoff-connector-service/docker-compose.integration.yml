@@ -1,0 +1,41 @@
+# Integration test harness — brings up a real Postgres instance with the
+# connector-service schema loaded, so jest integration tests can exercise
+# the full stack (HTTP → Connect-RPC → DB → Secret Manager mock).
+#
+# Usage:
+#   docker-compose -f docker-compose.integration.yml up -d
+#   npm run test:integration
+#   docker-compose -f docker-compose.integration.yml down -v
+#
+# The postgres service mounts ./migrations as /docker-entrypoint-initdb.d,
+# so every `*.sql` file in that directory runs in lexical order the first
+# time the volume is initialised. That matches the on-disk migration
+# ordering (001 → 002 → 003 → 004).
+#
+# Secret Manager is NOT part of this compose file — tests stub the Secret
+# Manager client via `__setSecretManagerClient` at the test layer.
+
+version: "3.8"
+
+services:
+  connector-pg:
+    image: postgres:15
+    container_name: connector-service-integration-pg
+    environment:
+      POSTGRES_USER: connector_app
+      POSTGRES_DB: connector_service
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-connector_app_test}
+    # Bind to localhost only — avoid exposing on LAN. Host port 55432 keeps
+    # this harness off the dev-machine's usual 5432 so it never collides
+    # with a locally running Postgres.
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      # Init SQL: migrations 001–004 run on first container start.
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U connector_app -d connector_service"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 5s

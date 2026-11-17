@@ -1,0 +1,32 @@
+{
+  "name": "@liftoffos/agent-test-scenarios",
+  "version": "0.5.0",
+  "description": "Shared agent test-harness scenarios + assertion helpers. Consumed by both the TR-side runner (execution-layer probe) and the PB-side runner (end-to-end probe through StartChatTurn).",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "test": "jest",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LiftoffOS/liftoff.git",
+    "directory": "liftoff-platform-backend/packages/agent-test-scenarios"
+  },
+  "keywords": [
+    "liftoff",
+    "agent",
+    "testing",
+    "harness"
+  ],
+  "author": "Liftoff",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

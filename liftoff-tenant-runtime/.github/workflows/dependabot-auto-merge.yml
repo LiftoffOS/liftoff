@@ -1,0 +1,49 @@
+name: Dependabot auto-merge
+
+# Auto-merges ONLY the tiers that cannot change runtime behaviour:
+#
+#   * github-actions bumps — CI plumbing. A bad one fails loudly in CI and
+#     never reaches a deployed artifact.
+#   * development-dependency patch and minor updates.
+#
+# Production dependencies are deliberately excluded and always wait for a
+# human. This estate shares one node_modules across many git worktrees, so a
+# runtime bump silently changes what every other checkout compiles and tests
+# against — that is not a decision to make automatically.
+#
+# `--auto` holds the merge until required status checks pass, so this workflow
+# is only a real gate in a repository whose branch protection requires them.
+# It is intentionally NOT installed where none are required: there it would
+# merge on arrival, which is the opposite of the intent.
+#
+# Majors never appear here — dependabot.yml ignores them for version updates.
+# Security updates ignore that rule by design, so a major security fix still
+# opens a PR; it will not auto-merge, which is correct.
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v3
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Enable auto-merge for the safe tiers
+        if: >-
+          steps.metadata.outputs.package-ecosystem == 'github_actions' ||
+          (steps.metadata.outputs.dependency-type == 'direct:development' &&
+           (steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+            steps.metadata.outputs.update-type == 'version-update:semver-minor'))
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

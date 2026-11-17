@@ -1,0 +1,124 @@
+syntax = "proto3";
+
+// Shared message shapes for liftoff-workforce-service (CAIO + HRBP).
+package liftoff.workforce.v1;
+
+import "google/protobuf/timestamp.proto";
+
+enum PlanStatus {
+  PLAN_STATUS_UNSPECIFIED = 0;
+  PLAN_STATUS_DRAFT = 1;
+  PLAN_STATUS_PENDING_APPROVAL = 2;
+  PLAN_STATUS_APPROVED = 3;
+  PLAN_STATUS_PROVISIONING = 4;
+  PLAN_STATUS_PROVISIONING_WAITING_FOR_OAUTH = 5;
+  PLAN_STATUS_COMPLETED = 6;
+  PLAN_STATUS_FAILED = 7;
+  PLAN_STATUS_CANCELED = 8;
+}
+
+enum ProposedAgentKind {
+  PROPOSED_AGENT_KIND_UNSPECIFIED = 0;
+  PROPOSED_AGENT_KIND_TEMPLATE = 1;
+  PROPOSED_AGENT_KIND_CUSTOM = 2;
+}
+
+message ProposedAgent {
+  string name = 1;
+  string role = 2;
+  ProposedAgentKind kind = 3;
+  string template_id = 4;
+  string system_prompt = 5;
+  repeated string connector_types = 6;
+  int32 hitl_level = 7;
+}
+
+message Plan {
+  string id = 1;
+  string tenant_id = 2;
+  string created_by_user_id = 3;
+  PlanStatus status = 4;
+  string title = 5;
+  string objective = 6;
+  repeated ProposedAgent proposed_agents = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  google.protobuf.Timestamp approved_at = 10;
+  string approved_by_user_id = 11;
+  string approval_capability_token = 12;
+  // Populated once all provisioning steps complete. IDs of the created
+  // agent-template rows in platform-backend, in order.
+  repeated string provisioned_agent_template_ids = 13;
+  string failure_reason = 14;
+}
+
+// SSE event stream — emitted by DraftPlan (SSE HTTP endpoint) and
+// referenced by client contract tests. Represented as a proto so
+// consumers can deserialize captured SSE events for replay.
+message DraftPlanEvent {
+  string event_id = 1;
+  string plan_id = 2;
+  Kind kind = 3;
+  // For message-delta + tool-call kinds.
+  string payload = 4;
+  google.protobuf.Timestamp occurred_at = 5;
+
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    KIND_SESSION_STARTED = 1;
+    KIND_MESSAGE_DELTA = 2;
+    KIND_TOOL_CALL = 3;
+    KIND_AGENT_PROPOSED = 4;
+    KIND_PLAN_READY_FOR_APPROVAL = 5;
+    KIND_SESSION_ENDED = 6;
+    KIND_ERROR = 7;
+  }
+}
+
+message GetCAIOToolDefinitionsResponse {
+  repeated ToolDefinition tools = 1;
+}
+
+message ToolDefinition {
+  string name = 1;
+  string description = 2;
+  // JSON Schema serialized as bytes so the schema does not have to live
+  // in proto form. Callers parse with any JSON Schema validator.
+  bytes input_schema_json = 3;
+}
+
+enum DataScope {
+  DATA_SCOPE_UNSPECIFIED = 0;
+  DATA_SCOPE_TENANT = 1;
+  DATA_SCOPE_USER = 2;
+}
+
+message ExportTenantDataRequest {
+  string tenant_id = 1;
+  string subject_user_id = 2;
+  DataScope scope = 3;
+  string requested_by = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  bytes authorization_hmac = 6;
+}
+
+message ExportTenantDataResponse {
+  bytes record = 1;
+  string record_type = 2;
+  int64 sequence = 3;
+}
+
+message DeleteTenantUserDataRequest {
+  string tenant_id = 1;
+  string subject_user_id = 2;
+  DataScope scope = 3;
+  string requested_by = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  bytes authorization_hmac = 6;
+}
+
+message DeleteTenantUserDataResponse {
+  int64 records_deleted = 1;
+  int64 records_pseudonymized = 2;
+  string audit_receipt_id = 3;
+}

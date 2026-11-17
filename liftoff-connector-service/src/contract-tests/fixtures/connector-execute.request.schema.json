@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/connector-execute.request.schema.json",
+  "title": "ConnectorExecuteRequest",
+  "description": "Request body for POST /api/connectors/execute — single connector operation. Target p95 < 20ms.",
+  "type": "object",
+  "required": ["tenantId", "connectorId", "functionName", "input", "idempotencyKey"],
+  "additionalProperties": false,
+  "properties": {
+    "tenantId": { "type": "string", "minLength": 1 },
+    "connectorId": { "type": "string", "minLength": 1 },
+    "functionName": { "type": "string", "minLength": 1 },
+    "input": { "type": "object" },
+    "idempotencyKey": { "type": "string", "minLength": 1 },
+    "traceId": { "type": "string" }
+  }
+}

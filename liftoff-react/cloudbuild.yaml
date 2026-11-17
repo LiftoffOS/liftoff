@@ -1,0 +1,168 @@
+substitutions:
+  _DEVELOPER_PROXY_URL: 'https://developer-proxy-YOUR_PROJECT_HASH-uw.a.run.app'
+  # Web Push (VAPID) public key for browser notifications. A plain substitution,
+  # not a Secret Manager entry, for the same reason as _DEVELOPER_PROXY_URL: it
+  # is compiled into the JS bundle and served to every visitor, so a secret
+  # would add IAM and a rotation surface while protecting nothing. One key pair
+  # covers dev and prod because both share the Firebase project YOUR_WEB_PROJECT.
+  _VITE_FIREBASE_VAPID_KEY: 'BGVQbhclU85GwaWEPQb07KiAVKz4hb4ra8isa9zpI9yhz4oG_RQGIBDPC7Uz6rmNEp0ZuXouLMi5LQemZj6_TDA'
+  # Per-environment overrides. Defaults below = PROD; the dev trigger
+  # (liftoff-react-deploy-dev) overrides these to deploy the dev frontend.
+  _SERVICE_NAME: 'liftoff-react'
+  _VITE_API_URL_SECRET: 'VITE_API_URL'
+  _VITE_STRIPE_PUBLISHABLE_KEY_SECRET: 'VITE_STRIPE_PUBLISHABLE_KEY'
+  _ENVIRONMENT: 'prod'
+  _MAX_INSTANCES: '10'
+  # Email-domain allow-list enforced by the login page. Empty here because the
+  # default is PROD, where signup is open to every domain. The dev trigger
+  # (liftoff-react-deploy-dev) overrides it to 'example.com'. The backend
+  # enforces its own list independently (platform-backend ALLOWED_DOMAINS);
+  # this only decides what the login page accepts.
+  _VITE_ALLOWED_EMAIL_DOMAINS: ''
+
+steps:
+  # Cancel any older builds for the same trigger so only the newest runs.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'cancel-stale-builds'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Skip when not started by a trigger (manual `gcloud builds submit`):
+        # those builds carry no TRIGGER_NAME, and the filter would otherwise
+        # match every other manual build in flight.
+        if [ -z "${TRIGGER_NAME}" ]; then
+          echo "Manual build (no TRIGGER_NAME); skipping stale-build cancellation."
+          exit 0
+        fi
+        gcloud builds list \
+          --project=${PROJECT_ID} \
+          --region=${LOCATION} \
+          --filter="status=WORKING OR status=QUEUED" \
+          --format='value(id,substitutions.TRIGGER_NAME)' | \
+          awk -v me="${BUILD_ID}" -v key="${TRIGGER_NAME}" '$$1!=me && $$2==key {print $$1}' | \
+        while read OLD_ID; do
+          echo "Cancelling stale build: $$OLD_ID"
+          gcloud builds cancel "$$OLD_ID" --project=${PROJECT_ID} --region=${LOCATION} --quiet 2>/dev/null || true
+        done
+    waitFor: ['-']
+
+  # Build the container image with Firebase secrets
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        docker build \
+          --build-arg VITE_FIREBASE_API_KEY=$$VITE_FIREBASE_API_KEY \
+          --build-arg VITE_FIREBASE_AUTH_DOMAIN=$$VITE_FIREBASE_AUTH_DOMAIN \
+          --build-arg VITE_FIREBASE_PROJECT_ID=$$VITE_FIREBASE_PROJECT_ID \
+          --build-arg VITE_FIREBASE_STORAGE_BUCKET=$$VITE_FIREBASE_STORAGE_BUCKET \
+          --build-arg VITE_FIREBASE_MESSAGING_SENDER_ID=$$VITE_FIREBASE_MESSAGING_SENDER_ID \
+          --build-arg VITE_FIREBASE_APP_ID=$$VITE_FIREBASE_APP_ID \
+          --build-arg VITE_API_URL=$$VITE_API_URL \
+          --build-arg VITE_STRIPE_PUBLISHABLE_KEY=$$VITE_STRIPE_PUBLISHABLE_KEY \
+          --build-arg VITE_POSTHOG_KEY_PROD=$$VITE_POSTHOG_KEY_PROD \
+          --build-arg VITE_POSTHOG_KEY_DEV=$$VITE_POSTHOG_KEY_DEV \
+          --build-arg VITE_DEVELOPER_PROXY_URL=${_DEVELOPER_PROXY_URL} \
+          --build-arg VITE_FIREBASE_VAPID_KEY=${_VITE_FIREBASE_VAPID_KEY} \
+          --build-arg VITE_ALLOWED_EMAIL_DOMAINS=${_VITE_ALLOWED_EMAIL_DOMAINS} \
+          -t $_ARTIFACT_REGISTRY/liftoff-react:$COMMIT_SHA \
+          .
+    secretEnv:
+      - 'VITE_FIREBASE_API_KEY'
+      - 'VITE_FIREBASE_AUTH_DOMAIN'
+      - 'VITE_FIREBASE_PROJECT_ID'
+      - 'VITE_FIREBASE_STORAGE_BUCKET'
+      - 'VITE_FIREBASE_MESSAGING_SENDER_ID'
+      - 'VITE_FIREBASE_APP_ID'
+      - 'VITE_API_URL'
+      - 'VITE_STRIPE_PUBLISHABLE_KEY'
+      - 'VITE_POSTHOG_KEY_PROD'
+      - 'VITE_POSTHOG_KEY_DEV'
+
+  # Push the container image to Artifact Registry — SHA-only. AR
+  # vulnerability scanning bills per unique image; the floating :latest
+  # tag counted as a distinct scan every build.
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '$_ARTIFACT_REGISTRY/liftoff-react:$COMMIT_SHA'
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '$_SERVICE_NAME'
+      - '--image'
+      - '$_ARTIFACT_REGISTRY/liftoff-react:$COMMIT_SHA'
+      - '--region'
+      - '$_REGION'
+      - '--project'
+      - '$_PROJECT_ID'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      # The site is served through the website load balancer (TLS 1.2+); the
+      # direct run.app URL negotiates TLS 1.0, so only the load balancer and
+      # same-project Google sources may reach the service. Nothing else did.
+      - '--ingress'
+      - 'internal-and-cloud-load-balancing'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '256Mi'
+      - '--cpu'
+      - '1'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '$_MAX_INSTANCES'
+
+  # Seed Firebase Remote Config — NON-DESTRUCTIVE. The Firebase console is the
+  # source of truth for flag values; this step only creates parameters that do
+  # not yet exist live and never overwrites a value an operator set in the UI.
+  # Full rationale + logic in scripts/seed-remote-config.sh.
+  # PROD-only: Remote Config lives in the shared YOUR_WEB_PROJECT Firebase
+  # project, so dev builds ($_ENVIRONMENT=dev) skip this to avoid touching it.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        if [ "${_ENVIRONMENT}" = "prod" ]; then
+          bash scripts/seed-remote-config.sh
+        else
+          echo "Skipping Remote Config seed for _ENVIRONMENT=${_ENVIRONMENT}."
+        fi
+
+images:
+  - '$_ARTIFACT_REGISTRY/liftoff-react:$COMMIT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/$_PROJECT_ID/secrets/VITE_FIREBASE_API_KEY/versions/latest
+      env: 'VITE_FIREBASE_API_KEY'
+    - versionName: projects/$_PROJECT_ID/secrets/VITE_FIREBASE_AUTH_DOMAIN/versions/latest
+      env: 'VITE_FIREBASE_AUTH_DOMAIN'
+    - versionName: projects/$_PROJECT_ID/secrets/VITE_FIREBASE_PROJECT_ID/versions/latest
+      env: 'VITE_FIREBASE_PROJECT_ID'
+    - versionName: projects/$_PROJECT_ID/secrets/VITE_FIREBASE_STORAGE_BUCKET/versions/latest
+      env: 'VITE_FIREBASE_STORAGE_BUCKET'
+    - versionName: projects/$_PROJECT_ID/secrets/VITE_FIREBASE_MESSAGING_SENDER_ID/versions/latest
+      env: 'VITE_FIREBASE_MESSAGING_SENDER_ID'
+    - versionName: projects/$_PROJECT_ID/secrets/VITE_FIREBASE_APP_ID/versions/latest
+      env: 'VITE_FIREBASE_APP_ID'
+    - versionName: projects/$_PROJECT_ID/secrets/${_VITE_API_URL_SECRET}/versions/latest
+      env: 'VITE_API_URL'
+    - versionName: projects/$_PROJECT_ID/secrets/${_VITE_STRIPE_PUBLISHABLE_KEY_SECRET}/versions/latest
+      env: 'VITE_STRIPE_PUBLISHABLE_KEY'
+    - versionName: projects/$_PROJECT_ID/secrets/VITE_POSTHOG_KEY_PROD/versions/latest
+      env: 'VITE_POSTHOG_KEY_PROD'
+    - versionName: projects/$_PROJECT_ID/secrets/VITE_POSTHOG_KEY_DEV/versions/latest
+      env: 'VITE_POSTHOG_KEY_DEV'

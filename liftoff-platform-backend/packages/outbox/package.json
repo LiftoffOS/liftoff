@@ -1,0 +1,32 @@
+{
+  "name": "@liftoffos/outbox",
+  "version": "0.1.1",
+  "description": "Outbox pattern: at-least-once cross-service event publishing via Postgres + Pub/Sub. Same-transaction business writes guarantee the event is never lost or double-published.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "test": "jest",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LiftoffOS/liftoff.git",
+    "directory": "liftoff-platform-backend/packages/outbox"
+  },
+  "author": "Liftoff",
+  "license": "Apache-2.0",
+  "peerDependencies": {
+    "@google-cloud/pubsub": "^4.0.0",
+    "pg": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "@types/pg": "^8.20.4",
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,0 +1,52 @@
+name: OU-native grep gate
+
+# Mirror of the platform-backend gate — fails the build if any liftoff-billing
+# code path still references the dropped USD-allocation symbols.
+#
+# liftoff-billing has no /insights surface and no SUM(cost_usd) on local
+# customer-facing data, so the SUM gate from platform-backend isn't replicated
+# here.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  grep-gate:
+    name: Forbidden symbols
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install ripgrep
+        # ubuntu-latest runners do not bundle `rg`. Without this the next step
+        # exits 127 (rg: command not found) and the gate never actually checks.
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
+      - name: ripgrep available?
+        run: rg --version
+
+      - name: No references to dropped USD-allocation symbols
+        run: |
+          set -euo pipefail
+          # Path exemptions:
+          #   migrations/                — append-only history (any pre-existing
+          #     migrations referencing the legacy schema stay).
+          #   src/**/__tests__/, *.test.ts — test fixtures may exercise the
+          #     boundary layer's backwards-compat behaviour for the legacy
+          #     `monthlyAllocationUsd` field name.
+          #   stripe-event-processor.ts comment-only mention is exempt because
+          #     comments don't get matched here (the gate filters by .ts/.sql
+          #     content; we additionally allow inline comments to mention the
+          #     legacy symbols by guarding only against actual code uses below).
+          if rg -n --type ts --type sql \
+               --glob '!migrations/**' \
+               --glob '!src/**/__tests__/**' \
+               --glob '!src/**/*.test.ts' \
+               'monthly_allocation_usd|ou_pricing|monthlyAllocationUsd|OU_PRICE_USD|costToOus' \
+               src migrations 2>/dev/null \
+               | rg -v '^[^:]+:[0-9]+:\s*//' \
+               | rg . ; then
+            echo "::error::Forbidden symbol present — see plan §Migration B."
+            exit 1
+          fi

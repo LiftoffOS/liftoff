@@ -1,0 +1,11 @@
+{
+  "GOOGLE_SEARCH_CONSOLE_LIST_SITES": { "stableName": "list_sites", "categories": ["read"] },
+  "GOOGLE_SEARCH_CONSOLE_GET_SITE": { "stableName": "get_site", "categories": ["read"] },
+  "GOOGLE_SEARCH_CONSOLE_SEARCH_ANALYTICS_QUERY": { "stableName": "query_search_analytics", "categories": ["read"] },
+  "GOOGLE_SEARCH_CONSOLE_INSPECT_URL": { "stableName": "inspect_url", "categories": ["read"] },
+  "GOOGLE_SEARCH_CONSOLE_LIST_SITEMAPS": { "stableName": "list_sitemaps", "categories": ["read"] },
+  "GOOGLE_SEARCH_CONSOLE_GET_SITEMAP": { "stableName": "get_sitemap", "categories": ["read"] },
+  "GOOGLE_SEARCH_CONSOLE_SUBMIT_SITEMAP": { "stableName": "submit_sitemap", "categories": ["write"] },
+  "GOOGLE_SEARCH_CONSOLE_ADD_SITE": { "stableName": "add_site", "categories": ["write"] },
+  "GOOGLE_SEARCH_CONSOLE_DELETE_SITE": { "stableName": "delete_site", "categories": ["write", "destructive"] }
+}

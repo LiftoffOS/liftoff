@@ -1,0 +1,272 @@
+/* Template guidance that can be rewritten in place.
+   At rest this must read exactly as prose: the affordance lives entirely in
+   hover, so nothing here paints a box, a tint, or a frame. */
+
+.inline-prose {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-black);
+}
+
+/* One line. Both renderings use the same element and the same metrics, so
+   clicking into a part never moves a pixel of it. */
+.inline-prose__line {
+  position: relative;
+  padding-left: 1.9em;
+  min-height: 1.6em;
+}
+
+.inline-prose__line + .inline-prose__line {
+  margin-top: var(--space-2);
+}
+
+/* A bold lead-in introduces the run under it, so it gets the larger gap.
+   Stated at two-class specificity because the adjacent-sibling rule above is
+   also (0,2,0) and would otherwise win on source order. */
+.inline-prose__line + .inline-prose__line--lead {
+  margin-top: var(--space-5);
+}
+
+/* Numbers are counters, never text.
+   A number that existed in the DOM could be selected, typed over and deleted,
+   and the list would renumber itself around the hole. As a counter it cannot
+   be reached at all, and it renumbers on its own when a step is added or
+   removed. Every non-ordered line resets the count, so a second run after a
+   lead-in starts at 1 again rather than continuing the run above it. */
+.inline-prose {
+  counter-reset: inline-prose-step;
+}
+
+/* counter-SET, not counter-reset, and the difference is load-bearing.
+   `counter-reset` on a sibling creates a NEW nested counter rather than
+   restarting the one already in scope, so the run after a lead-in carried on
+   from the run above it: "Payment runs:" was followed by 4. and 5. instead of
+   1. and 2. `counter-set` writes to the counter that is already there.
+   (Safari below 17.2 ignores counter-set and numbers run on continuously —
+   wrong, but still numbered and still readable.) */
+.inline-prose__line:not([data-kind="ol"]) {
+  counter-set: inline-prose-step 0;
+}
+
+.inline-prose__line[data-kind="ol"] {
+  counter-increment: inline-prose-step;
+}
+
+.inline-prose__line[data-kind="ol"]::before {
+  content: counter(inline-prose-step) ".";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--color-gray-400);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+.inline-prose__line[data-kind="ul"]::before {
+  content: "\2022";
+  position: absolute;
+  left: 0.45em;
+  top: 0;
+  color: var(--color-gray-300);
+  user-select: none;
+}
+
+/* Only a lead-in or a paragraph sits flush; list lines keep the gutter their
+   marker lives in, which is also what hanging-indents their wrapped lines. */
+.inline-prose__line--lead,
+.inline-prose__line[data-kind="p"] {
+  padding-left: 0;
+}
+
+/* The affordance: a dotted underline across the line you are about to type
+   into. The marker is a pseudo-element on a position: absolute box, so it
+   never picks up the decoration.
+
+   There was a second, heavier underline on the single word under the cursor.
+   It was precise but it twitched with every small movement of the mouse, and
+   the line already says what will open — one steady mark reads better than two
+   competing ones. */
+.inline-prose__line:hover {
+  text-decoration: underline dotted var(--color-gray-300);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+/* Keyboard focus reads as hover does, not as a box.
+   The app suppresses focus outlines globally (index.css) precisely so each
+   surface can say it in its own language; this one speaks in dotted
+   underlines. An accent outline on a rounded box turned every focus hand-off
+   during a delete into an orange rectangle flashing over the text. */
+.inline-prose:not(.inline-prose--editing):focus-visible {
+  outline: none;
+  text-decoration: underline dotted var(--color-gray-400);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+}
+
+/* The editor never decorates itself, and this needs saying explicitly.
+   text-decoration propagates to every descendant, and the spec makes anything
+   that takes keyboard text — an input, a textarea, a contenteditable — match
+   :focus-visible whenever it is focused, mouse or not. So the resting focus
+   underline above painted a dotted line under the ENTIRE section, constantly,
+   from the moment somebody clicked into it. The same trap as `.inline-text`,
+   one element up. */
+.inline-prose--editing,
+.inline-prose--editing:focus,
+.inline-prose--editing:focus-visible {
+  outline: none;
+  text-decoration: none;
+}
+
+/* Once anything on the page is being typed into, every hover affordance goes
+   quiet — the name, both sections, all of it — until Escape or a click outside.
+   A dotted underline saying "you can edit this" is noise addressed to someone
+   who is already editing, and it keeps drawing the eye away from the caret.
+   Written as a suppression on top of the rules above rather than as a guard
+   around them: a browser without :has() simply drops this and keeps the hover
+   it has always had, instead of losing the affordance altogether. */
+html:has(.inline-prose--editing) :is(.inline-prose__line, .inline-text):hover,
+html:has(.inline-text--editing) :is(.inline-prose__line, .inline-text):hover {
+  text-decoration: none;
+}
+
+/* A value the workspace supplies rather than words anyone typed. Blue is the
+   token set's informational hue, so it never competes with the accent that
+   marks an edit. `inline` + clone so a chip that lands at a line break wraps
+   like text instead of forcing an overflow. */
+.inline-prose__chip {
+  display: inline;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  background: var(--color-blue-light);
+  color: #1a6fd4;
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+  margin: 0 1px;
+  /* The app body sets "wght" 320, which on a variable font overrides plain
+     font-weight; without restating the axis a chip reads lighter than the
+     sentence around it. */
+  font-variation-settings: "opsz" 32, "wght" 460;
+  letter-spacing: -0.01em;
+  cursor: default;
+}
+
+/* Removing a chip is only offered while the line is open. Reading text should
+   not present a control for deleting part of it. */
+.inline-prose__chip-remove {
+  display: none;
+  margin-left: 5px;
+  opacity: 0.55;
+  font-variation-settings: "opsz" 32, "wght" 600;
+}
+
+.inline-prose--editing .inline-prose__chip {
+  user-select: none;
+}
+
+.inline-prose--editing .inline-prose__chip-remove {
+  display: inline;
+  cursor: pointer;
+}
+
+.inline-prose__chip-remove:hover {
+  opacity: 1;
+  color: var(--color-accent);
+}
+
+.inline-prose__bold {
+  font-weight: 600;
+  font-variation-settings: "opsz" 32, "wght" 600;
+  color: var(--color-black);
+}
+
+.inline-prose__code {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.92em;
+  background: var(--color-gray-100);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* The editable part carries the resting part's exact metrics, so clicking in
+   never moves a pixel of it. No ring, no ground: the caret is the signal,
+   because anything more makes this feel like a tool rather than typing into
+   the page. */
+.inline-prose {
+  cursor: text;
+}
+
+.inline-prose--editing {
+  outline: none;
+  font-variation-settings: "opsz" 32, "wght" 320;
+  letter-spacing: -0.01em;
+  color: var(--color-black);
+}
+
+.inline-prose__hint {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  margin-top: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  letter-spacing: 0;
+}
+
+.inline-prose__hint kbd {
+  font: inherit;
+  font-size: 10px;
+  background: var(--color-gray-100);
+  border: 1px solid var(--border-medium);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--color-gray-400);
+}
+
+/* A single editable line — the team's name. Same language as the prose below
+   it: nothing at rest, a dotted underline on hover, a caret on click. The
+   heading keeps its own type scale; only the affordance is shared. */
+.inline-text {
+  cursor: text;
+}
+
+.inline-text:hover {
+  text-decoration: underline dotted var(--color-gray-300);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 6px;
+}
+
+/* Nothing on focus but the caret, matching the prose editor exactly.
+   :focus-visible does NOT help here: the spec makes any element that takes
+   keyboard text — an input, a textarea, a contenteditable — match it whenever
+   it is focused, mouse or not. So the "keyboard only" outline showed on every
+   click, which is what put a ring back after the box-shadow came out. The
+   caret is the focus indicator for something you type into, which is the same
+   reasoning that lets .inline-prose__editor carry outline: none. */
+.inline-text:focus,
+.inline-text:focus-visible {
+  text-decoration: none;
+  outline: none;
+}
+
+.inline-text:empty::before {
+  content: attr(aria-label);
+  color: var(--color-gray-600);
+}
+
+/* A part emptied of every line keeps one blank one, so there is still
+   something to click on to write it back. Every line already carries a
+   min-height, so this only supplies the prompt. */
+.inline-prose__line--empty::after {
+  content: "Write a line";
+  color: var(--color-gray-600);
+  pointer-events: none;
+}
+
+.inline-prose__line--empty:hover {
+  text-decoration: none;
+}

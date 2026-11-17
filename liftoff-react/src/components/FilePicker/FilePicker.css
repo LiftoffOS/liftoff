@@ -1,0 +1,283 @@
+/* Shared file-picker modal styles. Extracted from KnowledgePage.css so the
+   picker can be reused outside the knowledge page (team-build import popover).
+   Class names are unchanged. */
+
+/* ── Modal ────────────────────────────────────────────────── */
+
+.knowledge-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  overflow: hidden;
+  text-align: left;
+}
+
+.knowledge-modal__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.knowledge-modal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--color-gray-50);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.knowledge-modal__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.knowledge-modal__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+}
+
+.knowledge-modal__subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin: -var(--space-2) 0 0;
+  line-height: 1.5;
+}
+
+.knowledge-modal__content {
+  margin-top: var(--space-2);
+}
+
+.knowledge-modal__connector-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.knowledge-modal__loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* ── File picker ──────────────────────────────────────────── */
+
+.file-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 400px;
+  /* A list of names reads down its left edge, always. Stated here rather than
+     relied upon, because this component gets rendered inside ModalOverlay,
+     whose content box sets `text-align: center` for short confirm dialogs —
+     which centred every file name in the tree. A component that changes shape
+     depending on where it is mounted is not finished. */
+  text-align: left;
+}
+
+.file-picker__search {
+  flex-shrink: 0;
+}
+
+.file-picker__folder {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: 6px;
+  padding-bottom: 6px;
+  padding-right: var(--space-3);
+  width: 100%;
+  border-bottom: 1px solid var(--border-light);
+  transition: background 0.1s ease;
+}
+
+.file-picker__folder:hover {
+  background: var(--color-gray-50);
+}
+
+.file-picker__folder--open {
+  border-top: 1px solid var(--border-light);
+  border-bottom: none;
+}
+
+.file-picker__folder-check {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.file-picker__folder-btn {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: var(--space-2);
+  justify-content: space-between;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  min-width: 0;
+  font-weight: 400;
+  font-size: var(--text-sm);
+  font-family: inherit;
+  color: var(--color-black);
+}
+
+.file-picker__folder-name {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-black);
+  flex: 1;
+  text-align: left;
+}
+
+.file-picker__folder-chevron {
+  width: 14px;
+  height: 14px;
+  color: var(--color-gray-300);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.file-picker__folder-chevron--open {
+  transform: rotate(90deg);
+}
+
+.file-picker__tree-node {
+  display: flex;
+  flex-direction: column;
+}
+
+.file-picker__tree-children {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Left-aligned, not centered: the inline paddingLeft this row carries is the
+   tree indent, so a centered spinner would detach it from its folder. */
+.file-picker__folder-loading {
+  display: flex;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.file-picker__list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 320px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+}
+
+.file-picker__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px var(--space-3);
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.file-picker__item:hover {
+  background: var(--color-gray-50);
+}
+
+.file-picker__item-title {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-black);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Hide native inputs, replace with circular checkmark */
+.file-picker__item input[type="checkbox"],
+.file-picker__folder-check input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* Hover state for file-picker circular checkmarks */
+.file-picker__item:hover .checkbox__checkmark,
+.file-picker__folder-check:hover .checkbox__checkmark {
+  border-color: var(--color-gray-400);
+}
+
+/* Checked state for file-picker circular checkmarks */
+.file-picker__item input[type="checkbox"]:checked + .checkbox__checkmark,
+.file-picker__folder-check input[type="checkbox"]:checked + .checkbox__checkmark {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.file-picker__item input[type="checkbox"]:checked + .checkbox__checkmark::after,
+.file-picker__folder-check input[type="checkbox"]:checked + .checkbox__checkmark::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.file-picker__error,
+.file-picker__empty,
+.file-picker__load-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+.file-picker__error {
+  color: #b45309;
+}
+
+.file-picker__loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+}
+
+.file-picker__skeleton {
+  height: 40px;
+  background: var(--color-gray-100);
+  border-radius: 6px;
+}
+
+.file-picker__footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+  padding-top: var(--space-2);
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .knowledge-modal {
+    min-width: unset;
+    width: 100%;
+  }
+}

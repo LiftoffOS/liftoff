@@ -1,0 +1,320 @@
+substitutions:
+  _ENVIRONMENT: 'dev'
+  _REGION: 'us-west1'
+  _SERVICE_NAME: 'harvest-service'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  substitution_option: 'ALLOW_LOOSE'
+
+steps:
+  # Step 0: Cancel any older builds for this environment so only the newest runs.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'cancel-stale-builds'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Skip when not started by a trigger (manual `gcloud builds submit`):
+        # those builds carry no TRIGGER_NAME, and the filter would otherwise
+        # match every other manual build in flight.
+        if [ -z "${TRIGGER_NAME}" ]; then
+          echo "Manual build (no TRIGGER_NAME); skipping stale-build cancellation."
+          exit 0
+        fi
+        gcloud builds list \
+          --project=${PROJECT_ID} \
+          --region=${LOCATION} \
+          --filter="status=WORKING OR status=QUEUED" \
+          --format='value(id,substitutions.TRIGGER_NAME)' | \
+          awk -v me="${BUILD_ID}" -v key="${TRIGGER_NAME}" '$$1!=me && $$2==key {print $$1}' | \
+        while read OLD_ID; do
+          echo "Cancelling stale build: $$OLD_ID"
+          gcloud builds cancel "$$OLD_ID" --project=${PROJECT_ID} --region=${LOCATION} --quiet 2>/dev/null || true
+        done
+    waitFor: ['-']
+
+  # Step 1: fetch an Artifact Registry access token for @liftoffos/* pulls.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'ar-token'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud auth print-access-token > /workspace/.ar-token
+        echo "Artifact Registry token fetched (length=$$(wc -c < /workspace/.ar-token))"
+
+  - name: 'node:20-slim'
+    id: 'install'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'ARTIFACT_REGISTRY_TOKEN=$$(cat /workspace/.ar-token) npm ci'
+    waitFor: ['ar-token']
+
+  - name: 'node:20-slim'
+    id: 'lint'
+    entrypoint: 'npm'
+    args: ['run', 'lint']
+    waitFor: ['install']
+
+  - name: 'node:20-slim'
+    id: 'typecheck'
+    entrypoint: 'npm'
+    args: ['run', 'typecheck']
+    waitFor: ['install']
+
+  - name: 'node:20-slim'
+    id: 'test'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'npm test -- --ci --passWithNoTests --maxWorkers=2'
+    waitFor: ['install']
+
+  - name: 'node:20-slim'
+    id: 'build'
+    entrypoint: 'npm'
+    args: ['run', 'build']
+    waitFor: ['lint', 'typecheck', 'test']
+
+  # Build app image (service).
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build-app'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        TOKEN=$$(cat /workspace/.ar-token)
+        docker build \
+          --build-arg ARTIFACT_REGISTRY_TOKEN=$$TOKEN \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+          .
+    waitFor: ['build', 'ar-token']
+
+  # Build migrate image.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build-migrate'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        TOKEN=$$(cat /workspace/.ar-token)
+        docker build \
+          --build-arg ARTIFACT_REGISTRY_TOKEN=$$TOKEN \
+          -f Dockerfile.migrate \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA} \
+          .
+    waitFor: ['build', 'ar-token']
+
+  # Push both images — SHA-only.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-app'
+    args:
+      - 'push'
+      - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}'
+    waitFor: ['docker-build-app']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-migrate'
+    args:
+      - 'push'
+      - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA}'
+    waitFor: ['docker-build-migrate']
+
+  # Create or update the migrate Cloud Run job, then execute it.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-migrate-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+        if gcloud run jobs describe ${_SERVICE_NAME}-migrate --region ${_REGION} --project YOUR_GCP_PROJECT 2>/dev/null; then
+          echo "Updating existing migration job..."
+          gcloud run jobs update ${_SERVICE_NAME}-migrate \
+            --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA} \
+            --region ${_REGION} \
+            --project YOUR_GCP_PROJECT \
+            --service-account YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com \
+            --set-cloudsql-instances $$SQL_CONN \
+            --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT} \
+            --vpc-egress private-ranges-only \
+            --set-env-vars "CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=harvest_app,DB_NAME=harvest" \
+            --set-secrets "DB_PASSWORD=harvest-pg-password:latest"
+        else
+          echo "Creating new migration job..."
+          gcloud run jobs create ${_SERVICE_NAME}-migrate \
+            --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA} \
+            --region ${_REGION} \
+            --project YOUR_GCP_PROJECT \
+            --service-account YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com \
+            --set-cloudsql-instances $$SQL_CONN \
+            --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT} \
+            --vpc-egress private-ranges-only \
+            --set-env-vars "CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=harvest_app,DB_NAME=harvest" \
+            --set-secrets "DB_PASSWORD=harvest-pg-password:latest" \
+            --memory 512Mi \
+            --cpu 1 \
+            --task-timeout 600 \
+            --max-retries 1
+        fi
+    waitFor: ['docker-push-migrate']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'migrate'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        echo "Running harvest-pg migrations..."
+        gcloud run jobs execute ${_SERVICE_NAME}-migrate \
+          --region ${_REGION} \
+          --project YOUR_GCP_PROJECT \
+          --wait
+        echo "Migrations complete"
+    waitFor: ['create-migrate-job']
+
+  # Deploy the Cloud Run service.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+        # The public hostnames, never the run.app URLs: platform-backend's and
+        # connector-service's ingress admit another Cloud Run service only
+        # through their load balancers (the run.app path was closed because it
+        # negotiates TLS 1.0).
+        if [[ "${_ENVIRONMENT}" == "prod" ]]; then
+          PB_URL=https://api.example.com
+          CS_URL=https://connectors.example.com
+        else
+          PB_URL=https://api-${_ENVIRONMENT}.example.com
+          CS_URL=https://connectors-${_ENVIRONMENT}.example.com
+        fi
+        # --cpu-throttling (request-based CPU): both Pub/Sub push routes await
+        # their processing before they acknowledge (src/routes/pubsub.ts) and the
+        # GC is a scheduled call, so nothing runs between requests. Always-
+        # allocated, a push every minute or two kept ~2 instances billed 24/7.
+        gcloud run deploy ${_SERVICE_NAME} \
+          --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+          --region ${_REGION} \
+          --project YOUR_GCP_PROJECT \
+          --platform managed \
+          --no-allow-unauthenticated \
+          --ingress all \
+          --service-account YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com \
+          --set-cloudsql-instances $$SQL_CONN \
+          --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT} \
+          --vpc-egress private-ranges-only \
+          --min-instances 0 \
+          --max-instances 20 \
+          --cpu 1 \
+          --cpu-throttling \
+          --memory 512Mi \
+          --concurrency 8 \
+          --timeout 300 \
+          --set-env-vars "ENVIRONMENT=${_ENVIRONMENT},GCP_PROJECT_ID=YOUR_GCP_PROJECT,CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=harvest_app,DB_NAME=harvest,DB_SOCKET_PATH=/cloudsql/$$SQL_CONN,PLATFORM_BACKEND_URL=$$PB_URL,CONNECTOR_SERVICE_URL=$$CS_URL,SERVICE_VERSION=${SHORT_SHA},COMMIT_SHA=${SHORT_SHA}" \
+          --set-secrets "DB_PASSWORD=harvest-pg-password:latest,HARVEST_SERVICE_TOKEN=harvest-service-token:latest,HARVEST_TENANT_RUNTIME_SERVICE_TOKEN=harvest-tenant-runtime-service-token:latest"
+    waitFor: ['docker-push-app', 'migrate']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-reharvest-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+        # The public hostnames, never the run.app URLs: platform-backend's and
+        # connector-service's ingress admit another Cloud Run service only
+        # through their load balancers (the run.app path was closed because it
+        # negotiates TLS 1.0).
+        if [[ "${_ENVIRONMENT}" == "prod" ]]; then
+          PB_URL=https://api.example.com
+          CS_URL=https://connectors.example.com
+        else
+          PB_URL=https://api-${_ENVIRONMENT}.example.com
+          CS_URL=https://connectors-${_ENVIRONMENT}.example.com
+        fi
+        JOB_NAME="${_SERVICE_NAME}-reharvest"
+        IMAGE="${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}"
+        COMMON_FLAGS="
+          --image $$IMAGE
+          --region ${_REGION}
+          --project YOUR_GCP_PROJECT
+          --service-account YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com
+          --set-cloudsql-instances $$SQL_CONN
+          --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT}
+          --vpc-egress private-ranges-only
+          --set-env-vars ENVIRONMENT=${_ENVIRONMENT},CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=harvest_app,DB_NAME=harvest,DB_SOCKET_PATH=/cloudsql/$$SQL_CONN,PLATFORM_BACKEND_URL=$$PB_URL,CONNECTOR_SERVICE_URL=$$CS_URL
+          --set-secrets DB_PASSWORD=harvest-pg-password:latest,HARVEST_SERVICE_TOKEN=harvest-service-token:latest,CONNECTOR_SERVICE_TOKEN=connector-service-token:latest
+          --memory 512Mi
+          --cpu 1
+          --task-timeout 1800
+          --max-retries 1
+          --command node
+          --args dist/jobs/reharvest.js
+        "
+        if gcloud run jobs describe $$JOB_NAME --region ${_REGION} --project YOUR_GCP_PROJECT 2>/dev/null; then
+          echo "Updating reharvest job..."
+          gcloud run jobs update $$JOB_NAME $$COMMON_FLAGS
+        else
+          echo "Creating reharvest job..."
+          gcloud run jobs create $$JOB_NAME $$COMMON_FLAGS
+        fi
+    waitFor: ['docker-push-app', 'migrate']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-backfill-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+        # The public hostnames, never the run.app URLs: platform-backend's and
+        # connector-service's ingress admit another Cloud Run service only
+        # through their load balancers (the run.app path was closed because it
+        # negotiates TLS 1.0).
+        if [[ "${_ENVIRONMENT}" == "prod" ]]; then
+          PB_URL=https://api.example.com
+          CS_URL=https://connectors.example.com
+        else
+          PB_URL=https://api-${_ENVIRONMENT}.example.com
+          CS_URL=https://connectors-${_ENVIRONMENT}.example.com
+        fi
+        JOB_NAME="${_SERVICE_NAME}-backfill"
+        IMAGE="${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}"
+        COMMON_FLAGS="
+          --image $$IMAGE
+          --region ${_REGION}
+          --project YOUR_GCP_PROJECT
+          --service-account YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com
+          --set-cloudsql-instances $$SQL_CONN
+          --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT}
+          --vpc-egress private-ranges-only
+          --set-env-vars ENVIRONMENT=${_ENVIRONMENT},CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=harvest_app,DB_NAME=harvest,DB_SOCKET_PATH=/cloudsql/$$SQL_CONN,PLATFORM_BACKEND_URL=$$PB_URL,CONNECTOR_SERVICE_URL=$$CS_URL
+          --set-secrets DB_PASSWORD=harvest-pg-password:latest,HARVEST_SERVICE_TOKEN=harvest-service-token:latest,CONNECTOR_SERVICE_TOKEN=connector-service-token:latest
+          --memory 512Mi
+          --cpu 1
+          --task-timeout 3600
+          --max-retries 1
+          --command node
+          --args dist/jobs/reharvest.js,--mode,backfill
+        "
+        if gcloud run jobs describe $$JOB_NAME --region ${_REGION} --project YOUR_GCP_PROJECT 2>/dev/null; then
+          echo "Updating backfill job..."
+          gcloud run jobs update $$JOB_NAME $$COMMON_FLAGS
+        else
+          echo "Creating backfill job..."
+          gcloud run jobs create $$JOB_NAME $$COMMON_FLAGS
+        fi
+    waitFor: ['docker-push-app']
+
+timeout: '2400s'

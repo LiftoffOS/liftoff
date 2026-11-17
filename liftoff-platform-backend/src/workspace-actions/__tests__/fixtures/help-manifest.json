@@ -1,0 +1,116 @@
+{
+ "generatedAt": "2026-09-11T17:07:38.479Z",
+ "categories": [
+  {
+   "slug": "getting-started",
+   "label": "Getting Started",
+   "articleCount": 3
+  },
+  {
+   "slug": "ai-teams",
+   "label": "Agents",
+   "articleCount": 8
+  },
+  {
+   "slug": "knowledge",
+   "label": "Knowledge",
+   "articleCount": 2
+  },
+  {
+   "slug": "external-collaborators",
+   "label": "External Agents",
+   "articleCount": 3
+  },
+  {
+   "slug": "oversight",
+   "label": "Oversight",
+   "articleCount": 4
+  },
+  {
+   "slug": "review-queue",
+   "label": "Review Queue",
+   "articleCount": 2
+  },
+  {
+   "slug": "connections",
+   "label": "Connections",
+   "articleCount": 3
+  },
+  {
+   "slug": "activity",
+   "label": "Activity",
+   "articleCount": 2
+  },
+  {
+   "slug": "insights",
+   "label": "Insights",
+   "articleCount": 1
+  },
+  {
+   "slug": "account",
+   "label": "Account",
+   "articleCount": 5
+  },
+  {
+   "slug": "settings",
+   "label": "Settings",
+   "articleCount": 6
+  }
+ ],
+ "articles": [
+  {
+   "slug": "what-is-an-ai-team",
+   "category": "ai-teams",
+   "categoryLabel": "Agents",
+   "title": "What is an Agent?",
+   "description": "What an agent is, how it is structured, and where to find one in the Liftoff interface.",
+   "order": 1,
+   "path": "ai-teams/what-is-an-ai-team.md"
+  },
+  {
+   "slug": "building-a-custom-team",
+   "category": "ai-teams",
+   "categoryLabel": "Agents",
+   "title": "Building a Custom Agent",
+   "description": "Create an agent from scratch when no catalog template fits.",
+   "order": 2,
+   "path": "ai-teams/building-a-custom-team.md"
+  },
+  {
+   "slug": "hiring-ai-teams",
+   "category": "ai-teams",
+   "categoryLabel": "Agents",
+   "title": "Hiring Agents",
+   "description": "Browse the Hire agents catalog and hire a pre-configured agent in a few steps.",
+   "order": 3,
+   "path": "ai-teams/hiring-ai-teams.md"
+  },
+  {
+   "slug": "planning-your-ai-workforce",
+   "category": "ai-teams",
+   "categoryLabel": "Agents",
+   "title": "Planning Your AI Workforce",
+   "description": "How to scope agent roles, choose autonomy, and add the right connections as you add more agents.",
+   "order": 5,
+   "path": "ai-teams/planning-your-ai-workforce.md"
+  },
+  {
+   "slug": "messaging-your-team",
+   "category": "ai-teams",
+   "categoryLabel": "Agents",
+   "title": "Messaging Your Agent",
+   "description": "Message an agent in its chat, through Slack and Microsoft Teams, or from your AI coding tool, and write instructions that get good results.",
+   "order": 6,
+   "path": "ai-teams/messaging-your-team.md"
+  },
+  {
+   "slug": "managing-your-teams",
+   "category": "ai-teams",
+   "categoryLabel": "Agents",
+   "title": "Managing Your Agents",
+   "description": "Update an agent's configuration, pause and archive agents, and set up inbound webhooks.",
+   "order": 8,
+   "path": "ai-teams/managing-your-teams.md"
+  }
+ ]
+}

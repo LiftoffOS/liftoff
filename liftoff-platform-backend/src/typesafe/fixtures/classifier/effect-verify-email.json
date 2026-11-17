@@ -1,0 +1,34 @@
+{
+  "set": {
+    "id": "classifier",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "tool": {
+      "name": "verify_email",
+      "description": "Verify whether an email address is deliverable. Makes no change."
+    }
+  },
+  "expect": {
+    "customerCommunication": {
+      "choice": "no"
+    },
+    "financialActions": {
+      "choice": "no"
+    },
+    "dataChanges": {
+      "choice": "no"
+    },
+    "externalPublishing": {
+      "choice": "no"
+    },
+    "hiringDecisions": {
+      "choice": "no"
+    },
+    "effect": {
+      "choice": "read"
+    }
+  },
+  "note": "1b: verify_email is read."
+}

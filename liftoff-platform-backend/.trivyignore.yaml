@@ -1,0 +1,31 @@
+# Trivy allow-list — vulnerabilities AND secrets.
+#
+# ONE file, because two was a trap: Trivy auto-detects `.trivyignore` and does
+# NOT auto-detect this one, so a `.trivyignore.yaml` sitting beside it looks
+# active and is ignored. The scan step passes this path explicitly
+# (`trivyignores:` in .github/workflows/ci.yml); nothing is picked up by magic.
+
+# CVEs allowed past the blocking gate — a tracked remediation backlog.
+#
+# Currently EMPTY.
+#
+# Add an entry only for a fixable finding that cannot be resolved immediately,
+# with a package and fix note.
+vulnerabilities: []
+
+secrets:
+  # scrub.js is the redactor. It replaces real credentials in a harvested
+  # fixture with format-realistic fakes, and its own header says why they must
+  # look real: replacing a token with "REDACTED" produces a fixture that cannot
+  # exercise the importer's secret filter, so the filter goes untested against
+  # the shape it has to catch.
+  #
+  # So the file necessarily holds the SHAPE of a Slack token and the scanner
+  # necessarily matches it. The matched value is xoxb-…-MUSTNEVERLEAK, a marker
+  # chosen to be unmistakable if it ever surfaced somewhere real.
+  #
+  # Scoped to this rule in this file. A Slack token anywhere else still fails
+  # the build.
+  - id: slack-access-token
+    paths:
+      - "scripts/switch-harvest/scrub.js"

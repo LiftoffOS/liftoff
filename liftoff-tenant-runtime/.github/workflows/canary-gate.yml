@@ -1,0 +1,80 @@
+# WS-10.3 — pre-merge CI gate. A PR that re-introduces the stub fallback
+# fails this job; the canary cannot ship without a green run.
+name: canary-gate
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'migrations/**'
+      - 'package.json'
+  workflow_dispatch: {}
+
+# Agent ids are derived from the commit, so canaries on DIFFERENT commits are
+# isolated and may run together. Two runs on the SAME ref share a commit and
+# therefore an agent, so they would contend on its execution lock — the newer
+# run is the one anybody cares about.
+concurrency:
+  group: canary-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    # Keyless auth to GCP: mint a GitHub OIDC token and exchange it via the
+    # shared github-actions-pool WIF provider for github-actions-dev creds.
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      CANARY_PROJECT_ID: tenant-canary-dev
+      CANARY_REGION: us-west1
+      PR_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: npm
+
+      # `npm ci` pulls @liftoffos/* from the private npm Artifact Registry, so
+      # ARTIFACT_REGISTRY_TOKEN must be exported FIRST (this composite auths via
+      # WIF as npm-publisher and exports it). Same step ci.yml uses — keeping
+      # both workflows on one implementation avoids them drifting apart.
+      - name: Authenticate npm to Artifact Registry
+        uses: ./.github/actions/npm-auth
+
+      # Re-auth as github-actions-dev for the canary build/deploy/migrate — this
+      # SA holds the tenant-canary-dev roles (the npm-publisher SA above does not).
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
+          service_account: YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Install deps + build (produces dist/scripts/canary-assertions.js + node-pg-migrate)
+        run: |
+          npm ci
+          # @liftoffos/* live under packages/* as npm workspaces; their main/types
+          # fields point at dist/, so build the workspaces first or the app tsc
+          # can't resolve @liftoffos/sandbox-validators|shared-types|mcp-transports
+          # (mirrors ci.yml's pre-build step).
+          npm run build --workspaces --if-present
+          npm run build
+
+      - name: Stand up ephemeral stack from PR revision
+        run: ./.github/canary-stack/up.sh
+
+      # up.sh exports CANARY_API_URL / CANARY_TENANT_ID / CANARY_API_TOKEN (the
+      # minted Cloud Run identity token) to $GITHUB_ENV. Do NOT set any of these
+      # as step-level env here — a step-level value would shadow the $GITHUB_ENV
+      # export, and the exported live URL + fresh token are the source of truth.
+      - name: Run canary assertions
+        run: node dist/scripts/canary-assertions.js
+        timeout-minutes: 10
+
+      - name: Tear down
+        if: always()
+        run: ./.github/canary-stack/down.sh

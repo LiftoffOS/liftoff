@@ -1,0 +1,21 @@
+{
+  "name": "@liftoffos/sandbox-validators",
+  "version": "1.0.0",
+  "description": "Path, network, and output validators shared between runtime and sandbox sidecar",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "author": "Liftoff",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

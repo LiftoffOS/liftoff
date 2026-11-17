@@ -1,0 +1,15 @@
+# This is an application, not a website. Every route behind / requires a
+# session, so there is nothing here for a search engine to index and the whole
+# tree is disallowed rather than enumerated.
+#
+# No Sitemap line, because there is no sitemap. A deployment with nothing
+# public to index has nothing to submit.
+User-agent: *
+Disallow: /
+
+# /share/* is the one exception worth knowing about, and it is handled in nginx
+# rather than here. A Disallow would stop a crawler FETCHING the URL, so it
+# would never read the noindex, and a bare shared link could stay listed. nginx
+# serves /share/* with "X-Robots-Tag: noindex, nofollow" instead, which removes
+# it outright. That still applies under a blanket Disallow: the header is what
+# does the work.

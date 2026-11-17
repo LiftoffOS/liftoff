@@ -1,0 +1,35 @@
+{
+  "set": {
+    "id": "classifier",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "tool": {
+      "name": "invite_user",
+      "description": "Invite a user to a channel by user id."
+    }
+  },
+  "expect": {
+    "customerCommunication": {
+      "choice": "no"
+    },
+    "financialActions": {
+      "choice": "no"
+    },
+    "dataChanges": {
+      "choice": "yes"
+    },
+    "externalPublishing": {
+      "choice": "no"
+    },
+    "hiringDecisions": {
+      "choice": "no"
+    },
+    "effect": {
+      "choice": "write",
+      "advisory": true
+    }
+  },
+  "note": "Guideline sentence from the classification prompt, in the direction it states. Inviting is a membership change. The effect is advisory: the 1b list does not name invite_user, and an invite reaches a person, which Jev reads as outbound."
+}

@@ -1,0 +1,21 @@
+version: v2
+plugins:
+  # TypeScript messages + service descriptors via protobuf-es v2.
+  # protoc-gen-es v2 emits both messages AND Connect-RPC-v2-compatible
+  # service descriptors (`GenService<{...}>`) directly into the *_pb.ts
+  # file — no separate connect-es plugin is needed, and the deprecated
+  # `MethodKind` enum from @bufbuild/protobuf v1 is no longer required.
+  #
+  # The old `buf.build/connectrpc/es` plugin emitted v1-style descriptors
+  # (`{ kind: MethodKind.Unary }`) which are incompatible with
+  # @connectrpc/connect v2 and failed at runtime because
+  # `@bufbuild/protobuf/MethodKind` no longer exists.
+  # Pinned to keep generated stubs reproducible: an unpinned remote plugin
+  # floats to the latest protoc-gen-es and rewrites the @generated version
+  # comment in every file, which fails the publish drift check on unrelated
+  # packages. Bump this deliberately when regenerating all stubs.
+  - remote: buf.build/bufbuild/es:v2.12.0
+    out: gen/ts
+    opt:
+      - target=ts
+      - import_extension=js

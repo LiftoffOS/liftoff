@@ -1,0 +1,176 @@
+{
+  "accountId": "acct-001",
+  "lastUpdated": "2024-01-14T16:00:00Z",
+  "mappings": [
+    {
+      "id": "map-001",
+      "sourceSystem": "Salesforce",
+      "sourceObject": "Lead",
+      "sourceField": "FirstName",
+      "canonicalObject": "Contact",
+      "canonicalField": "firstName",
+      "transform": null,
+      "status": "mapped",
+      "confidence": 100,
+      "sampleValues": ["John", "Sarah", "Michael"]
+    },
+    {
+      "id": "map-002",
+      "sourceSystem": "Salesforce",
+      "sourceObject": "Lead",
+      "sourceField": "LastName",
+      "canonicalObject": "Contact",
+      "canonicalField": "lastName",
+      "transform": null,
+      "status": "mapped",
+      "confidence": 100,
+      "sampleValues": ["Doe", "Chen", "Park"]
+    },
+    {
+      "id": "map-003",
+      "sourceSystem": "Salesforce",
+      "sourceObject": "Lead",
+      "sourceField": "Company",
+      "canonicalObject": "Account",
+      "canonicalField": "name",
+      "transform": "trim",
+      "status": "mapped",
+      "confidence": 100,
+      "sampleValues": ["Acme Corp", "TechStart Inc", "GlobalServices"]
+    },
+    {
+      "id": "map-004",
+      "sourceSystem": "Salesforce",
+      "sourceObject": "Lead",
+      "sourceField": "Email",
+      "canonicalObject": "Contact",
+      "canonicalField": "email",
+      "transform": "lowercase",
+      "status": "mapped",
+      "confidence": 100,
+      "sampleValues": ["john@acme.com", "sarah@techstart.io"]
+    },
+    {
+      "id": "map-005",
+      "sourceSystem": "Salesforce",
+      "sourceObject": "Lead",
+      "sourceField": "Phone",
+      "canonicalObject": "Contact",
+      "canonicalField": "phone",
+      "transform": "normalize-phone",
+      "status": "mapped",
+      "confidence": 95,
+      "sampleValues": ["+1-555-0123", "(555) 456-7890"]
+    },
+    {
+      "id": "map-006",
+      "sourceSystem": "Salesforce",
+      "sourceObject": "Lead",
+      "sourceField": "LeadSource",
+      "canonicalObject": "WorkItem",
+      "canonicalField": "source",
+      "transform": "map-values",
+      "transformConfig": {
+        "Web": "web-form",
+        "Email": "email",
+        "Phone": "phone",
+        "Referral": "referral"
+      },
+      "status": "mapped",
+      "confidence": 90,
+      "sampleValues": ["Web", "Email", "Referral"]
+    },
+    {
+      "id": "map-007",
+      "sourceSystem": "Salesforce",
+      "sourceObject": "Lead",
+      "sourceField": "Industry",
+      "canonicalObject": "Account",
+      "canonicalField": "industry",
+      "transform": null,
+      "status": "mapped",
+      "confidence": 85,
+      "sampleValues": ["Technology", "Healthcare", "Finance"]
+    },
+    {
+      "id": "map-008",
+      "sourceSystem": "Salesforce",
+      "sourceObject": "Lead",
+      "sourceField": "NumberOfEmployees",
+      "canonicalObject": "Account",
+      "canonicalField": "employeeCount",
+      "transform": "to-number",
+      "status": "mapped",
+      "confidence": 80,
+      "sampleValues": ["50", "250", "1000"]
+    },
+    {
+      "id": "map-009",
+      "sourceSystem": "Salesforce",
+      "sourceObject": "Lead",
+      "sourceField": "Custom_Score__c",
+      "canonicalObject": null,
+      "canonicalField": null,
+      "transform": null,
+      "status": "unmapped",
+      "confidence": 0,
+      "sampleValues": ["85", "42", "67"],
+      "suggestedMapping": { "object": "WorkItem", "field": "leadScore" }
+    },
+    {
+      "id": "map-010",
+      "sourceSystem": "Salesforce",
+      "sourceObject": "Lead",
+      "sourceField": "Legacy_ID__c",
+      "canonicalObject": null,
+      "canonicalField": null,
+      "transform": null,
+      "status": "unmapped",
+      "confidence": 0,
+      "sampleValues": ["OLD-12345", "OLD-67890"],
+      "suggestedMapping": null
+    },
+    {
+      "id": "map-011",
+      "sourceSystem": "Salesforce",
+      "sourceObject": "Lead",
+      "sourceField": "Region__c",
+      "canonicalObject": "Account",
+      "canonicalField": "region",
+      "transform": "map-values",
+      "transformConfig": {
+        "West": "na-west",
+        "East": "na-east",
+        "EMEA": "emea",
+        "APAC": "apac"
+      },
+      "status": "review",
+      "confidence": 70,
+      "sampleValues": ["West", "East", "EMEA"],
+      "reviewNote": "Some values don't match expected region codes"
+    }
+  ],
+  "transforms": [
+    { "id": "trim", "name": "Trim Whitespace", "type": "string", "description": "Remove leading/trailing whitespace" },
+    { "id": "lowercase", "name": "Lowercase", "type": "string", "description": "Convert to lowercase" },
+    { "id": "uppercase", "name": "Uppercase", "type": "string", "description": "Convert to uppercase" },
+    { "id": "normalize-phone", "name": "Normalize Phone", "type": "phone", "description": "Standardize phone number format" },
+    { "id": "parse-date", "name": "Parse Date", "type": "date", "description": "Parse date string to ISO format" },
+    { "id": "to-number", "name": "To Number", "type": "number", "description": "Convert string to number" },
+    { "id": "map-values", "name": "Map Values", "type": "lookup", "description": "Map source values to canonical values" },
+    { "id": "extract-domain", "name": "Extract Domain", "type": "string", "description": "Extract domain from email address" }
+  ],
+  "canonicalSchema": {
+    "Contact": ["firstName", "lastName", "email", "phone", "title", "department"],
+    "Account": ["name", "industry", "employeeCount", "revenue", "region", "segment"],
+    "WorkItem": ["source", "type", "priority", "serviceLine", "notes", "leadScore"],
+    "Conversation": ["channel", "direction", "subject", "body", "timestamp"]
+  },
+  "summary": {
+    "totalFields": 11,
+    "mapped": 8,
+    "unmapped": 2,
+    "needsReview": 1,
+    "coveragePercent": 73
+  }
+}

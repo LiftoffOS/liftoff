@@ -1,0 +1,565 @@
+{
+  "connectorType": "pendo",
+  "harvestedAt": "2026-09-15",
+  "source": "vendor_docs",
+  "sourceUrl": "https://support.pendo.io/hc/en-us/articles/42476316360731-Pendo-MCP-tools-for-AI-agents",
+  "tools": [
+    {
+      "name": "listAllApplications",
+      "description": "Retrieve a list of subscriptions and applications you have access to. Often used as a first step with other tools (for example, passing App IDs to aggregateEntityUsage for usage data). Also confirms which application data you have access to through authentication.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "searchEntities",
+      "description": "Find Pendo items by name or conceptual meaning, including Pages, Features, Track Events, accounts, and saved clips. (Deprecated for guides and product areas).",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "segmentList",
+      "description": "List all publicly shared segments with their names and IDs.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "getEntity",
+      "description": "Retrieve the full configuration of a single Page, Feature, Track Event, or guide by its exact ID. Returns URL rules for Pages, element rules and Page context for Features, event rules for Track Events, and ordered steps, polls, and interactive elements for guides. Doesn't return usage metrics.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listCustomObjects",
+      "description": "List the custom event properties designated as business objects. Returns each object's underlying field and kind, customer-facing display name and description when configured, and the date it was promoted to an object.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "getSegment",
+      "description": "Retrieve the full definition and details for a single saved segment by ID.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "createSegment",
+      "description": "Create a new saved segment in Pendo."
+    },
+    {
+      "name": "updateSegment",
+      "description": "Update an existing saved segment's definition or name."
+    },
+    {
+      "name": "deleteSegment",
+      "description": "Delete a saved segment by ID.",
+      "annotations": {
+        "destructiveHint": true
+      }
+    },
+    {
+      "name": "accountMetadataSchema",
+      "description": "View the available metadata fields for accounts, such as ARR, industry, renewal date, or product tier. Returns field names, types (for example, boolean or string), and a historical flag indicating whether the field supports historical (event-time) filtering.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "visitorMetadataSchema",
+      "description": "View the available metadata fields for visitors, such as job title, CRM fields, region, or role. Returns field names, types (for example, boolean or string), and a historical flag indicating whether the field supports historical (event-time) filtering.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listAccounts",
+      "description": "List or search accounts. You can list accounts matching an inline or saved segment, or search for accounts without providing an App ID.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listVisitors",
+      "description": "List visitors matching an inline or saved segment.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "buildPendoSegment",
+      "description": "Build an inline AND/OR segment definition from visitor or account metadata, product usage (Pages, Features, Track Events), guide interactions, or existing segment membership, for use as an input to other tools.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "visitorActivity",
+      "description": "Return a chronological activity timeline for one visitor, with available developer console and network logs interleaved with product activity.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "productAreaMemberActivity",
+      "description": "Return all Pages, Features, and Track Events belonging to a product area, including those with zero activity in the date range.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listProductAreas",
+      "description": "List all product areas for a subscription, including their IDs, names, and descriptions. Supports optional fuzzy search and pagination.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listCountables",
+      "description": "List or search Pages, Features, and Track Events. For Features, you can provide a Page ID to restrict results to Features associated with that Page.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "entityUsage",
+      "description": "Retrieve usage metrics for a single Page, Feature, or Track Event, broken down by visitor or account. You can also request visitor or account metadata fields to include with each result row.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "entityUsageTimeSeries",
+      "description": "Retrieve usage metrics for a single Page, Feature, or Track Event, bucketed by day, week, or month. Use the optional minEvents input to count only visitors who generated at least that many events on the entity within each bucket.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "eventPropertyAnalytics",
+      "description": "Analyze the values of an event property for a Page, Feature, or Track Event as a breakdown or time series, with optional grouping and filtering.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "aggregateEntityUsage",
+      "description": "Rank all Pages, Features, or Track Events of a given type by usage.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "appUsage",
+      "description": "Retrieve app-level usage metrics, broken down by visitor or account. Optionally return requested visitor or account metadata fields with each row.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "appUsageTimeSeries",
+      "description": "Retrieve app-level usage metrics over time, bucketed by day, week, or month. Use the optional minEvents input to count only visitors who generated at least that many events within each bucket.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "productEngagementScore",
+      "description": "View product health using Pendo's Product Engagement Score (PES) for adoption, stickiness, and growth. Supports custom configurations for user base, stickiness calculations, and event filters.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "queryFunnel",
+      "description": "Calculate an ordered two- or three-step funnel for visitors or objects. Funnel steps can use Pages, Features, and Track Events.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "acquisitionTrend",
+      "description": "Measure first-time visitors or accounts by period.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "cohortRetentionCurve",
+      "description": "Build a retention curve for an app, Page, Feature, Track Event, or product area.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "agentAnalyticsKeyMetrics",
+      "description": "Retrieve key aggregate metrics for an AI agent's conversations, including prompt volume, visitor and account counts, rage prompt rates, and retention.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listAiAgents",
+      "description": "Retrieve a list of all AI agents you have access to. Often used as the first step to get Agent IDs for use with other Agent Analytics tools.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listUseCases",
+      "description": "Retrieve conversation clustering analysis for an AI agent, grouping prompts and conversations by semantic topic.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listAiAgentIssues",
+      "description": "Retrieve detected issues in AI agent conversations.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "agentAnalyticsIssueAnalysis",
+      "description": "Retrieve issue diagnoses, flagged response tool and model usage, and visitor prompt content for the events of a specific detected issue cluster.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "agentAnalyticsUseCaseAnalysis",
+      "description": "Perform a detailed analysis of one emergent (automatically clustered) use case identified by listUseCases.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listTrackedIssues",
+      "description": "List user-defined tracked issues for an AI agent.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listTrackedUseCases",
+      "description": "List user-defined tracked use cases for an AI agent.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "agentAnalyticsConversationAnalysis",
+      "description": "Perform a detailed analysis of selected AI agent conversations.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "agentAnalyticsTrackedIssueAnalysis",
+      "description": "Perform a detailed analysis of one tracked issue, including sampled visitor prompts and tool or model usage.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "agentAnalyticsTrackedUseCaseAnalysis",
+      "description": "Perform a detailed analysis of one tracked use case.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "commandCenterApps",
+      "description": "List the Command Center SaaS portfolio, covering both managed and discovered apps, with each app's cost, estimated cost, license count, owner, renewal date, category, AI and shadow-IT signals, admin notes, IT governance status, active-user count, license usage, and potential annual savings from unused licenses.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "updateCommandCenterApp",
+      "description": "Update an app's license count, annual cost, renewal date, or notes (individually or several at once) for a single managed or discovered app."
+    },
+    {
+      "name": "resolveBusinessObject",
+      "description": "Resolve a business object.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listBusinessObjectMetadata",
+      "description": "List business object metadata.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "objectAnalyticsActiveCount",
+      "description": "Return active-object metrics for a business object.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "objectAnalyticsBreakdown",
+      "description": "Return a breakdown of analytics for a business object.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "objectAnalyticsTimeSeries",
+      "description": "Track engagement with a business object over time, grouped into daily, weekly, or monthly buckets. By default, engagement is measured as average time per object.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "objectEventBreakdown",
+      "description": "Return object-related event activity breakdowns for a business object.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listGuides",
+      "description": "List, filter, and optionally retrieve full content for in-app guides, including IDs, names, states, types, and scheduling.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "guidePollResponses",
+      "description": "Analyze poll responses collected in a guide.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "guideEffectivenessMetrics",
+      "description": "Return dashboard-consistent guide engagement, completion, and goal-adoption rates, with filtering and segment comparison.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "aggregateGuideMetrics",
+      "description": "Rank guides by views, completions, dismissals, unique visitors, unique accounts, or views per user. You can restrict results by guide IDs, current status, guide type, activation method, product area, guide category, Page, or app.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "guideUsage",
+      "description": "Break down usage of a single guide by visitor or account, or inspect each guide step's visitor count and time on step.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listGuideCategories",
+      "description": "Return the guide-category tree for a subscription.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listGuideOrdering",
+      "description": "Return guide display-order rules for an application.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "guideSetState",
+      "description": "Change the state of a guide, such as publishing a draft, staging a guide for review, or making an active guide inactive."
+    },
+    {
+      "name": "guideSetSegment",
+      "description": "Update the audience segment targeting for a guide."
+    },
+    {
+      "name": "listGuideExperiments",
+      "description": "List A/B experiments configured on guides, including their status and configuration.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listSurveys",
+      "description": "List available surveys, including their names, types, and IDs.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "surveyScores",
+      "description": "Return NPS, CSAT, PMF, and UMUX scores by survey and type.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "surveyResponses",
+      "description": "Return per-visitor responses for a single survey, including individual answers, response distributions per question, and each visitor's most recent answer.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "sessionReplayList",
+      "description": "Returns links to replays for specific visitors or behaviors. Default filters: minimum duration 120 seconds, minimum activity 5%. Exclude list behavior options available. Supports event property filtering.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "sessionReplaySummarize",
+      "description": "Summarize session replay data.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "devlogEvents",
+      "description": "Retrieve raw development logs for a visitor or session, including HTTP request and response details, log levels, messages, and stack traces so you can see exactly what happened technically during the experience.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "getFeedbackItems",
+      "description": "Retrieve raw customer feedback items that match specific filters, including the original title, description, status, and creation date, along with associated account and visitor details.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "getFeedbackInsights",
+      "description": "Retrieve extracted feedback insights from customer feedback that match specific filters, including summaries, explanations, and supporting quotes.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "generateFeedbackTopics",
+      "description": "Generate AI-clustered topics from customer feedback that matches specific filters, with each topic including a name, description, and count of related insights.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "getIdeas",
+      "description": "Retrieve product ideas that match specific filters. Each item includes a title, description, and status.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "createFeedbackItem",
+      "description": "Create a new feedback item in Listen."
+    },
+    {
+      "name": "createIdeaItem",
+      "description": "Create a new idea in Listen."
+    },
+    {
+      "name": "updateIdeaItem",
+      "description": "Update an existing Listen idea."
+    },
+    {
+      "name": "updateFeedbackItem",
+      "description": "Update an existing feedback item."
+    },
+    {
+      "name": "linkIdeaAndFeedback",
+      "description": "Associate an existing idea with an existing feedback item."
+    },
+    {
+      "name": "unlinkIdeaFeedback",
+      "description": "Remove the association between an idea and a feedback item."
+    },
+    {
+      "name": "listOrchestrateJourneys",
+      "description": "List Orchestrate journeys in a subscription, optionally filtered by status (draft, review, scheduled, active, paused, completed, or disabled). Use it to find a Journey ID before requesting configuration, steps, or performance.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "getOrchestrateJourney",
+      "description": "Retrieve full configuration for a single journey by ID, including audience, goal, scheduling, and email settings.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "getOrchestrateJourneySteps",
+      "description": "Retrieve the ordered step graph for a journey, including each step's type (message, condition, or exit), position, and linked email or guide.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "getOrchestrateJourneyMetrics",
+      "description": "Retrieve journey-level performance, including visitors entered, visitors completed, and goal attainment for journeys with a goal.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listOrchestrateEmails",
+      "description": "List Orchestrate email campaigns, both standalone and journey-linked (Listen and Sentiment survey emails excluded). Supports optional filters for status, app, or name.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "getOrchestrateEmail",
+      "description": "Retrieve full configuration for a single email by ID, including subject, provider, audience, schedule, and (for journey-linked emails) its Journey ID.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "getOrchestrateEmailMetrics",
+      "description": "Retrieve performance metrics for a single email, including delivery, unique opens, unique clicks, bounces, unsubscribes, and spam complaints, matching the Orchestrate email overview.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "getOrchestrateEmailVisitors",
+      "description": "Retrieve per-visitor email engagement data for an Orchestrate email.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "listOrchestrateJourneyTemplates",
+      "description": "List the available journey templates you can use to create new journeys.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "createOrchestrateJourneyFromTemplate",
+      "description": "Create a new draft journey in Orchestrate from an existing template."
+    },
+    {
+      "name": "createOrchestrateJourneyFromJson",
+      "description": "Create a new draft journey in Orchestrate from a full JSON journey definition."
+    },
+    {
+      "name": "setOrchestrateJourneySchedule",
+      "description": "Set or update the schedule for a journey, including its start and end dates."
+    },
+    {
+      "name": "updateOrchestrateEmailContent",
+      "description": "Update HTML content for eligible journey email steps."
+    }
+  ]
+}

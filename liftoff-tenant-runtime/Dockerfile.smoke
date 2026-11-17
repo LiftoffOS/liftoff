@@ -1,0 +1,69 @@
+# C.1 — Post-deploy smoke runner image.
+#
+# Built once and pushed to Artifact Registry; Cloud Build's smoke step
+# references it via _SMOKE_IMAGE so we pay zero install latency per deploy.
+#
+# Contents:
+#   * Node 20 (matches runtime)
+#   * The TR agent-test-harness CLI source (tools/agent-test-harness/)
+#   * The published @liftoffos/agent-test-scenarios package
+#   * ts-node + tsx for running the .ts CLI directly
+#   * gcloud SDK for IAM impersonation + ID token fetch
+#
+# Build + push:
+#   docker build -f Dockerfile.smoke -t \
+#     us-west1-docker.pkg.dev/YOUR_CONTROL_PROJECT/smoke/runner:latest .
+#   docker push us-west1-docker.pkg.dev/.../runner:latest
+#
+# Refresh cadence: rebuild when (a) the scenarios package bumps minor
+# version or (b) the harness CLI gains new flags. Tag with the scenarios
+# package version for traceability.
+
+FROM google/cloud-sdk:slim AS base
+
+# Node 20 (Debian backports — apt-get install nodejs is too old)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+  && apt-get install -y nodejs \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /smoke
+
+# The runner .ts files are executed via ts-node. The image ships no @types/node
+# (minimal dep set), so run ts-node transpile-only (no type-check) with explicit
+# CJS compiler options — the scenarios package is CommonJS. Full type-checking is
+# done in the TR repo's own build, not here.
+ENV TS_NODE_TRANSPILE_ONLY=1
+ENV TS_NODE_COMPILER_OPTIONS='{"module":"commonjs","target":"es2022","esModuleInterop":true,"skipLibCheck":true}'
+
+# Auth for @liftoffos/* from Artifact Registry (see .npmrc). ARTIFACT_REGISTRY_TOKEN
+# is a short-lived AR access token passed by the image build via --build-arg
+# (gcloud auth print-access-token on the build SA, which holds artifactregistry.reader
+# on npm-packages-dev). The ENV re-export is required because .npmrc reads it from
+# process.env and Docker ARG values aren't on env by default.
+ARG ARTIFACT_REGISTRY_TOKEN=""
+ENV ARTIFACT_REGISTRY_TOKEN=${ARTIFACT_REGISTRY_TOKEN}
+COPY .npmrc ./
+
+# Use a minimal package.json that lists only the deps the smoke runner
+# needs (scenarios + ts-node + typescript). Reusing the TR repo's full
+# package.json would pull in the entire runtime dep tree (anchor SDK,
+# anthropic SDK, postgres clients, etc.) and bloat the image.
+COPY tools/agent-test-harness/smoke-package.json ./package.json
+RUN npm install --omit=dev --omit=optional --no-audit --no-fund \
+  && npm cache clean --force
+
+# Copy ONLY the harness CLI source — not the whole src/ tree. The
+# image ships BOTH tr-runner.ts (hits /api/internal/test-harness/run-agent)
+# and pb-runner.ts (hits /api/internal/test-harness/run-chat) so a single
+# image serves both repos' cloudbuild.yaml post-deploy-smoke steps. The
+# entrypoint script picks which to run based on --mode=<tr|pb>.
+COPY tools/agent-test-harness/ ./tools/agent-test-harness/
+COPY tools/agent-test-harness/smoke-rollback.sh ./tools/
+
+# Make the wrapper scripts executable.
+RUN chmod +x ./tools/agent-test-harness/smoke-entrypoint.sh \
+  && chmod +x ./tools/smoke-rollback.sh
+
+# Unified entrypoint dispatches to tr-runner or pb-runner based on
+# --mode=tr|pb. All other CLI flags pass through unchanged.
+ENTRYPOINT ["/smoke/tools/agent-test-harness/smoke-entrypoint.sh"]

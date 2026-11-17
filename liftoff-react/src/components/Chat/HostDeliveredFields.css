@@ -1,0 +1,46 @@
+/* Values delivered to this surface and kept out of the model's context.
+   Styled as a quiet aside rather than a message: it is not something the team
+   said, and drawing it as a bubble would read as one. */
+
+.host-delivered {
+  margin: 8px 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--color-border-strong, #d0d5dd);
+  background: var(--color-surface-subtle, #f8f9fb);
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.host-delivered__header {
+  color: var(--color-text-secondary, #667085);
+  margin-bottom: 6px;
+}
+
+.host-delivered__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.host-delivered__item {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 2px 0;
+}
+
+.host-delivered__path {
+  color: var(--color-text-secondary, #667085);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.host-delivered__value {
+  word-break: break-all;
+}
+
+.host-delivered__link {
+  color: var(--color-link, #175cd3);
+  word-break: break-all;
+}

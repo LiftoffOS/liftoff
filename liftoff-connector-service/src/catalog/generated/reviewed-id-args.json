@@ -1,0 +1,2549 @@
+{
+  "declarations": {
+    "activecampaign": {
+      "add_contact_to_automation": [
+        "automation_id"
+      ],
+      "manage_contact_tag": [
+        "contact_id"
+      ],
+      "manage_list_subscription": [
+        "list_id"
+      ],
+      "remove_contact_from_automation": [
+        "automation_id"
+      ]
+    },
+    "airtable": {
+      "update_record": [
+        "recordId"
+      ]
+    },
+    "apollo": {
+      "add_contacts_to_sequence": [
+        "contact_ids",
+        "sequence_id"
+      ],
+      "update_contact": [
+        "contact_id"
+      ]
+    },
+    "asana": {
+      "add_task_comment": [
+        "task_gid"
+      ],
+      "delete_section": [
+        "id"
+      ],
+      "delete_task": [
+        "task_gid"
+      ],
+      "update_project": [
+        "id"
+      ],
+      "update_section": [
+        "id"
+      ],
+      "update_task": [
+        "task_gid"
+      ]
+    },
+    "atlassian_confluence": {
+      "update_page": [
+        "id"
+      ]
+    },
+    "attio": {
+      "delete_company": [
+        "id"
+      ],
+      "delete_person": [
+        "id"
+      ],
+      "update_company": [
+        "id"
+      ],
+      "update_deal": [
+        "id"
+      ],
+      "update_person": [
+        "id"
+      ],
+      "update_task": [
+        "id"
+      ]
+    },
+    "bamboohr": {
+      "assign_employees_to_break_policy": [
+        "id"
+      ],
+      "close_goal": [
+        "goalId"
+      ],
+      "create_application_comment": [
+        "applicationId"
+      ],
+      "create_employee_training_record": [
+        "employeeId"
+      ],
+      "create_employees_onboarding_experiences": [
+        "employeeId"
+      ],
+      "create_goal_comment": [
+        "goalId"
+      ],
+      "create_project_task": [
+        "projectId"
+      ],
+      "delete_break": [
+        "id"
+      ],
+      "delete_break_policy": [
+        "id"
+      ],
+      "delete_company_file": [
+        "fileId"
+      ],
+      "delete_compensation_benchmark": [
+        "id"
+      ],
+      "delete_compensation_planning_cycles": [
+        "id"
+      ],
+      "delete_compensation_planning_cycles_admins": [
+        "id"
+      ],
+      "delete_compensation_planning_cycles_approvals_employee": [
+        "id",
+        "employeeId"
+      ],
+      "delete_compensation_planning_cycles_employees": [
+        "id"
+      ],
+      "delete_employee": [
+        "id"
+      ],
+      "delete_employee_file": [
+        "id",
+        "fileId"
+      ],
+      "delete_employee_table_row": [
+        "id",
+        "rowId"
+      ],
+      "delete_employee_training_record": [
+        "employeeTrainingRecordId"
+      ],
+      "delete_goal": [
+        "goalId"
+      ],
+      "delete_goal_comment": [
+        "goalId",
+        "commentId"
+      ],
+      "delete_location": [
+        "id"
+      ],
+      "delete_new_hire_packets": [
+        "id"
+      ],
+      "delete_project": [
+        "id"
+      ],
+      "delete_shift_differential": [
+        "id"
+      ],
+      "delete_task": [
+        "id"
+      ],
+      "delete_time_tracking_hour_record": [
+        "id"
+      ],
+      "delete_training_category": [
+        "trainingCategoryId"
+      ],
+      "delete_training_type": [
+        "trainingTypeId"
+      ],
+      "delete_webhook": [
+        "id"
+      ],
+      "reopen_goal": [
+        "goalId"
+      ],
+      "replace_breaks_for_break_policy": [
+        "id"
+      ],
+      "scheduling_delete_schedule": [
+        "id"
+      ],
+      "scheduling_delete_shift": [
+        "id"
+      ],
+      "scheduling_update_schedule": [
+        "id"
+      ],
+      "scheduling_update_shift": [
+        "id"
+      ],
+      "send_employee_verification_lifecycle_email_by_user": [
+        "userId"
+      ],
+      "set_break_policy_employees": [
+        "id"
+      ],
+      "sync_break_policy": [
+        "id"
+      ],
+      "unassign_employees_from_break_policy": [
+        "id"
+      ],
+      "update_alert_configurations": [
+        "id"
+      ],
+      "update_break": [
+        "id"
+      ],
+      "update_break_policy": [
+        "id"
+      ],
+      "update_company_file": [
+        "fileId"
+      ],
+      "update_compensation_planning_cycles": [
+        "id"
+      ],
+      "update_compensation_planning_cycles_approvals": [
+        "id"
+      ],
+      "update_compensation_planning_cycles_budgets_breakdown": [
+        "id"
+      ],
+      "update_compensation_planning_cycles_budgets_guidelines": [
+        "id"
+      ],
+      "update_compensation_planning_cycles_change_comm_template": [
+        "id"
+      ],
+      "update_compensation_planning_cycles_complete": [
+        "id"
+      ],
+      "update_compensation_planning_cycles_launch": [
+        "id"
+      ],
+      "update_employee": [
+        "id"
+      ],
+      "update_employee_dependent": [
+        "id"
+      ],
+      "update_employee_file": [
+        "id",
+        "fileId"
+      ],
+      "update_employee_training_record": [
+        "employeeTrainingRecordId"
+      ],
+      "update_employee_verification": [
+        "employeeId",
+        "verificationId"
+      ],
+      "update_goal_comment": [
+        "goalId",
+        "commentId"
+      ],
+      "update_goal_milestone_progress": [
+        "goalId",
+        "milestoneId"
+      ],
+      "update_goal_progress": [
+        "goalId"
+      ],
+      "update_goal_sharing": [
+        "goalId"
+      ],
+      "update_goal_v1": [
+        "goalId"
+      ],
+      "update_goal_v1_1": [
+        "goalId"
+      ],
+      "update_list_field_values": [
+        "listFieldId"
+      ],
+      "update_location": [
+        "id"
+      ],
+      "update_new_hire_packet_gtky_answer_visibility": [
+        "id"
+      ],
+      "update_new_hire_packets": [
+        "id"
+      ],
+      "update_project": [
+        "id"
+      ],
+      "update_shift_differential": [
+        "id"
+      ],
+      "update_table_row": [
+        "id",
+        "rowId"
+      ],
+      "update_table_row_v1_1": [
+        "id",
+        "rowId"
+      ],
+      "update_task": [
+        "id"
+      ],
+      "update_time_off_request_status": [
+        "id"
+      ],
+      "update_training_category": [
+        "trainingCategoryId"
+      ],
+      "update_training_type": [
+        "trainingTypeId"
+      ],
+      "update_webhook": [
+        "id"
+      ],
+      "upload_employee_file": [
+        "id"
+      ],
+      "upload_employee_photo": [
+        "employeeId"
+      ]
+    },
+    "bitbucket": {
+      "create_issue_comment": [
+        "issue_id"
+      ],
+      "update_issue": [
+        "issue_id"
+      ]
+    },
+    "box": {
+      "delete_file": [
+        "id"
+      ],
+      "delete_folder": [
+        "id"
+      ],
+      "update_file": [
+        "id"
+      ]
+    },
+    "brevo": {
+      "update_email_campaign": [
+        "campaign_id"
+      ],
+      "upsert_email_template": [
+        "templateId"
+      ]
+    },
+    "cal_com": {
+      "cancel_booking": [
+        "bookingUid"
+      ],
+      "decline_booking": [
+        "bookingUid"
+      ],
+      "reschedule_booking": [
+        "bookingUid"
+      ]
+    },
+    "calendly": {
+      "cancel_event": [
+        "event_uuid"
+      ]
+    },
+    "clicksend": {
+      "add_contact_to_list": [
+        "list_id"
+      ]
+    },
+    "clickup": {
+      "add_tag_to_task": [
+        "task_id"
+      ],
+      "create_task_comment": [
+        "task_id"
+      ],
+      "update_task": [
+        "task_id"
+      ]
+    },
+    "datadog": {
+      "update_monitor": [
+        "monitor_id"
+      ]
+    },
+    "deel": {
+      "accept_contract_amendment": [
+        "contract_id",
+        "amendment_id"
+      ],
+      "activate_the_401_k_integration_for_the_legal_entity_v_2026_01_01": [
+        "id"
+      ],
+      "add_note_to_an_application_v_2026_01_01": [
+        "application_id"
+      ],
+      "assign_cost_centers_to_an_employment_contract_v_2026_01_01": [
+        "contract_id"
+      ],
+      "associate_application_with_an_interview_plan_stage_v_2026_01_01": [
+        "application_id"
+      ],
+      "clean_up_plan_for_a_given_legal_entity_v_2026_01_01": [
+        "id"
+      ],
+      "clone_group": [
+        "id"
+      ],
+      "confirm_contract_amendment": [
+        "contract_id",
+        "amendment_id"
+      ],
+      "create_401_k_plan_for_legal_entity_v_2026_01_01": [
+        "legal_entity_id"
+      ],
+      "create_candidate_tags_v_2026_02_27": [
+        "candidate_id"
+      ],
+      "create_compliance_document_acknowledgement": [
+        "document_id"
+      ],
+      "create_contract_amendment": [
+        "contract_id"
+      ],
+      "create_contract_amendment_amendments": [
+        "contract_id"
+      ],
+      "create_contract_document": [
+        "contract_id"
+      ],
+      "create_contract_invitation": [
+        "contract_id"
+      ],
+      "create_contract_milestone": [
+        "contract_id"
+      ],
+      "create_contract_off_cycle_payment": [
+        "contract_id"
+      ],
+      "create_contract_signature": [
+        "contract_id"
+      ],
+      "create_contract_task": [
+        "contract_id"
+      ],
+      "create_contract_task_review": [
+        "contract_id",
+        "task_id"
+      ],
+      "create_contract_termination": [
+        "contract_id"
+      ],
+      "create_gp_worker_bank": [
+        "worker_id"
+      ],
+      "create_gp_worker_termination": [
+        "worker_id"
+      ],
+      "create_worker_case_required_document": [
+        "worker_id",
+        "case_id"
+      ],
+      "delete_a_worker_relation_type_v_2026_01_01": [
+        "type_id"
+      ],
+      "delete_bank_details": [
+        "id"
+      ],
+      "delete_contract_adjustment": [
+        "id"
+      ],
+      "delete_contract_amendment": [
+        "contract_id",
+        "amendment_id"
+      ],
+      "delete_contract_custom_field": [
+        "contract_id",
+        "id"
+      ],
+      "delete_contract_milestone": [
+        "contract_id",
+        "milestone_id"
+      ],
+      "delete_contract_task": [
+        "contract_id",
+        "task_id"
+      ],
+      "delete_contract_termination": [
+        "contract_id"
+      ],
+      "delete_group": [
+        "id"
+      ],
+      "delete_invoice_adjustment": [
+        "id"
+      ],
+      "delete_legal_entity": [
+        "id"
+      ],
+      "delete_organization_structure_by_external_id": [
+        "external_id"
+      ],
+      "delete_person_custom_field": [
+        "id"
+      ],
+      "delete_time_off_request": [
+        "time_off_id"
+      ],
+      "delete_time_tracking_shift_by_external_id": [
+        "external_id"
+      ],
+      "delete_time_tracking_shift_rate_by_external_id": [
+        "external_id"
+      ],
+      "delete_timesheet_by_id": [
+        "id"
+      ],
+      "delete_timesheets_preset": [
+        "id"
+      ],
+      "delete_webhook": [
+        "id"
+      ],
+      "delete_worker_access_token": [
+        "worker_id"
+      ],
+      "delete_worker_relation_profile_by_external_id": [
+        "profileId"
+      ],
+      "delete_worker_relation_type": [
+        "typeId"
+      ],
+      "delete_worker_relation_type_by_external_id": [
+        "externalId"
+      ],
+      "enroll_an_employee_in_a_401_k_plan_v_2026_01_01": [
+        "plan_id"
+      ],
+      "get_contract_invitations": [
+        "contract_id"
+      ],
+      "patch_eor_bank_account": [
+        "bank_id"
+      ],
+      "put_contract_custom_field": [
+        "contract_id"
+      ],
+      "reject_contract": [
+        "contract_id"
+      ],
+      "review_time_tracking_timesheet": [
+        "timesheet_id"
+      ],
+      "sign_amendment": [
+        "amendment_id"
+      ],
+      "sign_contract_document": [
+        "contract_id"
+      ],
+      "sign_eor_amendment": [
+        "amendment_id"
+      ],
+      "sign_eor_contract_as_worker": [
+        "contract_id"
+      ],
+      "sign_worker_contract": [
+        "contract_id"
+      ],
+      "sync_cost_centers_for_legal_entity_v_2026_01_01": [
+        "legal_entity_id"
+      ],
+      "update_401_k_plan_v_2026_01_01": [
+        "plan_id"
+      ],
+      "update_an_existing_hris_org_structure_v_2026_01_01": [
+        "hris_org_structure_id"
+      ],
+      "update_bank_transfer_method": [
+        "id"
+      ],
+      "update_contract_adjustment": [
+        "id"
+      ],
+      "update_contract_amendment": [
+        "contract_id",
+        "amendment_id"
+      ],
+      "update_contract_employee_information": [
+        "contract_id"
+      ],
+      "update_eor_contract": [
+        "contract_id"
+      ],
+      "update_gp_worker_address": [
+        "worker_id"
+      ],
+      "update_gp_worker_bank": [
+        "worker_id",
+        "bank_id"
+      ],
+      "update_gp_worker_compensation": [
+        "worker_id"
+      ],
+      "update_gp_worker_employee_information": [
+        "worker_id"
+      ],
+      "update_gp_worker_pto_policy": [
+        "worker_id"
+      ],
+      "update_group": [
+        "id"
+      ],
+      "update_ic_contract": [
+        "contract_id"
+      ],
+      "update_invoice_adjustment": [
+        "id"
+      ],
+      "update_legal_entity": [
+        "id"
+      ],
+      "update_organization_role": [
+        "roleId"
+      ],
+      "update_organization_structure_by_external_id": [
+        "external_id"
+      ],
+      "update_person_department": [
+        "id"
+      ],
+      "update_person_working_location": [
+        "id"
+      ],
+      "update_task_by_id": [
+        "task_id"
+      ],
+      "update_team_custom_fields": [
+        "team_id"
+      ],
+      "update_time_off_request": [
+        "time_off_id"
+      ],
+      "update_time_tracking_shift_by_external_id": [
+        "external_id"
+      ],
+      "update_time_tracking_shift_rate_by_external_id": [
+        "external_id"
+      ],
+      "update_timesheet": [
+        "id"
+      ],
+      "update_timesheets_preset": [
+        "id"
+      ],
+      "update_webhook": [
+        "id"
+      ],
+      "update_worker_relation_type": [
+        "typeId"
+      ],
+      "update_worker_relation_type_by_external_id": [
+        "externalId"
+      ],
+      "upload_eor_worker_compliance_document": [
+        "document_id"
+      ],
+      "upload_vendor_bill_attachment": [
+        "vendor_bill_id"
+      ]
+    },
+    "documint": {
+      "update_template": [
+        "template_id"
+      ]
+    },
+    "docusign": {
+      "update_envelope": [
+        "id"
+      ],
+      "void_envelope": [
+        "id"
+      ]
+    },
+    "facebook": {
+      "update_post": [
+        "post_id"
+      ]
+    },
+    "factorial": {
+      "delete_resources_api_public_webhook_subscriptions": [
+        "id"
+      ],
+      "delete_resources_ats_applications": [
+        "id"
+      ],
+      "delete_resources_ats_candidates": [
+        "id"
+      ],
+      "delete_resources_ats_feedbacks": [
+        "id"
+      ],
+      "delete_resources_ats_job_postings": [
+        "id"
+      ],
+      "delete_resources_ats_questions": [
+        "id"
+      ],
+      "delete_resources_attendance_edit_timesheet_requests": [
+        "id"
+      ],
+      "delete_resources_attendance_overtime_requests": [
+        "id"
+      ],
+      "delete_resources_attendance_shifts": [
+        "id"
+      ],
+      "delete_resources_contracts_compensations": [
+        "id"
+      ],
+      "delete_resources_contracts_contract_versions": [
+        "id"
+      ],
+      "delete_resources_custom_fields_fields": [
+        "id"
+      ],
+      "delete_resources_documents_documents": [
+        "id"
+      ],
+      "delete_resources_finance_cost_centers": [
+        "id"
+      ],
+      "delete_resources_it_management_it_assets": [
+        "id"
+      ],
+      "delete_resources_locations_locations": [
+        "id"
+      ],
+      "delete_resources_payroll_employees_identifiers": [
+        "id"
+      ],
+      "delete_resources_payroll_integrations_base_codes": [
+        "id"
+      ],
+      "delete_resources_payroll_supplements": [
+        "id"
+      ],
+      "delete_resources_performance_review_owners": [
+        "id"
+      ],
+      "delete_resources_performance_review_process_targets": [
+        "id"
+      ],
+      "delete_resources_performance_review_processes": [
+        "id"
+      ],
+      "delete_resources_posts_comments": [
+        "id"
+      ],
+      "delete_resources_posts_groups": [
+        "id"
+      ],
+      "delete_resources_posts_posts": [
+        "id"
+      ],
+      "delete_resources_project_management_budget_strategies": [
+        "id"
+      ],
+      "delete_resources_project_management_planned_records": [
+        "id"
+      ],
+      "delete_resources_project_management_subprojects": [
+        "id"
+      ],
+      "delete_resources_project_management_time_records": [
+        "id"
+      ],
+      "delete_resources_shift_management_shifts": [
+        "id"
+      ],
+      "delete_resources_tasks_task_files": [
+        "id"
+      ],
+      "delete_resources_tasks_tasks": [
+        "id"
+      ],
+      "delete_resources_teams_memberships": [
+        "id"
+      ],
+      "delete_resources_teams_teams": [
+        "id"
+      ],
+      "delete_resources_time_planning_planning_versions": [
+        "id"
+      ],
+      "delete_resources_timeoff_allowance_incidences": [
+        "id"
+      ],
+      "delete_resources_timeoff_allowances": [
+        "id"
+      ],
+      "delete_resources_timeoff_blocked_periods": [
+        "id"
+      ],
+      "delete_resources_timeoff_leaves": [
+        "id"
+      ],
+      "delete_resources_timeoff_policies": [
+        "id"
+      ],
+      "delete_resources_timeoff_policy_assignments": [
+        "id"
+      ],
+      "delete_resources_trainings_categories": [
+        "id"
+      ],
+      "delete_resources_trainings_sessions": [
+        "id"
+      ],
+      "delete_resources_trainings_training_classes": [
+        "id"
+      ],
+      "delete_resources_trainings_trainings": [
+        "id"
+      ],
+      "delete_resources_work_schedule_overlap_periods": [
+        "id"
+      ],
+      "update_employee": [
+        "id"
+      ],
+      "update_resources_api_public_webhook_subscriptions": [
+        "id"
+      ],
+      "update_resources_ats_applications": [
+        "id"
+      ],
+      "update_resources_ats_candidates": [
+        "id"
+      ],
+      "update_resources_ats_feedbacks": [
+        "id"
+      ],
+      "update_resources_ats_job_postings": [
+        "id"
+      ],
+      "update_resources_ats_questions": [
+        "id"
+      ],
+      "update_resources_attendance_break_configurations": [
+        "id"
+      ],
+      "update_resources_attendance_edit_timesheet_requests": [
+        "id"
+      ],
+      "update_resources_attendance_overtime_requests": [
+        "id"
+      ],
+      "update_resources_attendance_shifts": [
+        "id"
+      ],
+      "update_resources_bookkeepers_management_incidences": [
+        "id"
+      ],
+      "update_resources_contracts_compensations": [
+        "id"
+      ],
+      "update_resources_contracts_contract_versions": [
+        "id"
+      ],
+      "update_resources_custom_fields_values": [
+        "id"
+      ],
+      "update_resources_documents_documents": [
+        "id"
+      ],
+      "update_resources_documents_folders": [
+        "id"
+      ],
+      "update_resources_employees_employees": [
+        "id"
+      ],
+      "update_resources_finance_accounts": [
+        "id"
+      ],
+      "update_resources_finance_contacts": [
+        "id"
+      ],
+      "update_resources_finance_tax_rates": [
+        "id"
+      ],
+      "update_resources_finance_tax_types": [
+        "id"
+      ],
+      "update_resources_integrations_syncable_sync_runs": [
+        "id"
+      ],
+      "update_resources_it_management_it_asset_models": [
+        "id"
+      ],
+      "update_resources_it_management_it_assets": [
+        "id"
+      ],
+      "update_resources_locations_locations": [
+        "id"
+      ],
+      "update_resources_locations_work_areas": [
+        "id"
+      ],
+      "update_resources_payroll_employees_identifiers": [
+        "id"
+      ],
+      "update_resources_payroll_family_situations": [
+        "id"
+      ],
+      "update_resources_payroll_integrations_base_codes": [
+        "id"
+      ],
+      "update_resources_payroll_supplements": [
+        "id"
+      ],
+      "update_resources_performance_review_visibility_settings": [
+        "id"
+      ],
+      "update_resources_posts_comments": [
+        "id"
+      ],
+      "update_resources_posts_groups": [
+        "id"
+      ],
+      "update_resources_posts_posts": [
+        "id"
+      ],
+      "update_resources_project_management_budget_strategies": [
+        "id"
+      ],
+      "update_resources_project_management_planned_records": [
+        "id"
+      ],
+      "update_resources_project_management_project_tasks": [
+        "id"
+      ],
+      "update_resources_project_management_projects": [
+        "id"
+      ],
+      "update_resources_project_management_subprojects": [
+        "id"
+      ],
+      "update_resources_tasks_tasks": [
+        "id"
+      ],
+      "update_resources_teams_memberships": [
+        "id"
+      ],
+      "update_resources_teams_teams": [
+        "id"
+      ],
+      "update_resources_time_planning_planning_versions": [
+        "id"
+      ],
+      "update_resources_time_settings_break_configurations": [
+        "id"
+      ],
+      "update_resources_timeoff_allowance_incidences": [
+        "id"
+      ],
+      "update_resources_timeoff_allowances": [
+        "id"
+      ],
+      "update_resources_timeoff_blocked_periods": [
+        "id"
+      ],
+      "update_resources_timeoff_leave_types": [
+        "id"
+      ],
+      "update_resources_timeoff_leaves": [
+        "id"
+      ],
+      "update_resources_timeoff_policies": [
+        "id"
+      ],
+      "update_resources_timeoff_policy_assignments": [
+        "id"
+      ],
+      "update_resources_trainings_sessions": [
+        "id"
+      ],
+      "update_resources_trainings_training_classes": [
+        "id"
+      ],
+      "update_resources_trainings_training_memberships": [
+        "id"
+      ],
+      "update_resources_trainings_trainings": [
+        "id"
+      ],
+      "update_resources_work_schedule_overlap_periods": [
+        "id"
+      ],
+      "update_resources_work_schedule_schedules": [
+        "id"
+      ]
+    },
+    "figma": {
+      "add_comment": [
+        "comment_id"
+      ]
+    },
+    "folk": {
+      "update_company": [
+        "company_id"
+      ]
+    },
+    "follow_up_boss": {
+      "update_deal": [
+        "id"
+      ]
+    },
+    "freshdesk": {
+      "reply_ticket": [
+        "ticket_id"
+      ],
+      "update_ticket": [
+        "ticket_id"
+      ]
+    },
+    "google_slides": {
+      "update_presentation": [
+        "presentationId"
+      ]
+    },
+    "greenhouse": {
+      "apply_candidate_tag": [
+        "candidate_id",
+        "candidate_tag_id"
+      ],
+      "create_candidate_note": [
+        "candidate_id"
+      ]
+    },
+    "gusto": {
+      "contractors_updatecontractor": [
+        "contractor_id"
+      ],
+      "departments_addpeopletodepartment": [
+        "department_uuid"
+      ],
+      "departments_deletedepartment": [
+        "department_uuid"
+      ],
+      "departments_removeemployees": [
+        "department_uuid"
+      ],
+      "departments_updatedepartment": [
+        "department_uuid"
+      ],
+      "employees_deleteonboardingemployee": [
+        "employee_id"
+      ],
+      "employees_updateemployee": [
+        "employee_id"
+      ],
+      "garnishments_update": [
+        "garnishment_id"
+      ],
+      "locations_updatelocation": [
+        "location_id"
+      ],
+      "payrolls_prepareforupdate": [
+        "payroll_id"
+      ],
+      "payrolls_updatebyid": [
+        "payroll_id"
+      ],
+      "terminate_employee": [
+        "id"
+      ],
+      "update_employee": [
+        "id"
+      ]
+    },
+    "hibob": {
+      "submit_time_off": [
+        "id"
+      ]
+    },
+    "hubspot": {
+      "delete_contact": [
+        "id"
+      ],
+      "update_contact": [
+        "id"
+      ],
+      "update_deal": [
+        "id"
+      ]
+    },
+    "instantly": {
+      "update_campaign": [
+        "id"
+      ],
+      "update_lead": [
+        "id"
+      ]
+    },
+    "intercom": {
+      "add_tag_to_contact": [
+        "id",
+        "contact_id"
+      ],
+      "assign_conversation": [
+        "conversation_id"
+      ],
+      "close_conversation": [
+        "conversation_id"
+      ],
+      "reply_to_conversation": [
+        "conversation_id"
+      ],
+      "upsert_company": [
+        "company_id"
+      ]
+    },
+    "lemlist": {
+      "add_variables_to_lead": [
+        "leadId"
+      ],
+      "pause_campaign": [
+        "campaignId"
+      ],
+      "update_campaign": [
+        "campaignId"
+      ]
+    },
+    "linear": {
+      "archive_issue": [
+        "id"
+      ],
+      "assign_issue": [
+        "id"
+      ],
+      "update_issue": [
+        "id"
+      ]
+    },
+    "mailchimp": {
+      "add_member_to_list": [
+        "list_id"
+      ],
+      "send_campaign": [
+        "campaign_id"
+      ]
+    },
+    "mesh": {
+      "archive_contact": [
+        "contact_ids"
+      ],
+      "merge_contacts": [
+        "contact_ids"
+      ],
+      "restore_contact": [
+        "contact_ids"
+      ],
+      "updateContact": [
+        "contact_id"
+      ],
+      "updateGroup": [
+        "group_id"
+      ]
+    },
+    "microsoft_contacts": {
+      "delete_contact": [
+        "id"
+      ],
+      "delete_contact_folder": [
+        "id"
+      ],
+      "update_contact": [
+        "id"
+      ]
+    },
+    "microsoft_dynamics": {
+      "update_case": [
+        "case_id"
+      ],
+      "update_lead": [
+        "lead_id"
+      ],
+      "update_opportunity": [
+        "opportunity_id"
+      ]
+    },
+    "microsoft_excel": {
+      "add_table": [
+        "table_id"
+      ],
+      "add_table_column": [
+        "table_id"
+      ],
+      "add_table_row": [
+        "table_id"
+      ],
+      "apply_table_filter": [
+        "table_id"
+      ],
+      "apply_table_sort": [
+        "table_id"
+      ]
+    },
+    "microsoft_onedrive": {
+      "copy_item": [
+        "item_id"
+      ],
+      "delete_item": [
+        "item_id"
+      ],
+      "invite_user_to_drive_item": [
+        "item_id",
+        "user_id",
+        "drive_id"
+      ],
+      "move_item": [
+        "itemId"
+      ],
+      "update_drive_item_metadata": [
+        "item_id",
+        "drive_id"
+      ]
+    },
+    "microsoft_onenote": {
+      "delete_page": [
+        "id"
+      ],
+      "update_page": [
+        "id"
+      ]
+    },
+    "microsoft_outlook_calendar": {
+      "delete_event": [
+        "id"
+      ],
+      "update_calendar": [
+        "id"
+      ],
+      "update_event": [
+        "id"
+      ]
+    },
+    "microsoft_outlook_mail": {
+      "reply_to_message": [
+        "message_id"
+      ]
+    },
+    "microsoft_planner": {
+      "delete_bucket": [
+        "id"
+      ],
+      "delete_task": [
+        "id"
+      ],
+      "update_bucket": [
+        "id"
+      ],
+      "update_task": [
+        "id"
+      ]
+    },
+    "microsoft_sharepoint": {
+      "create_list_item": [
+        "listId"
+      ],
+      "delete_drive_item": [
+        "id"
+      ],
+      "delete_list": [
+        "listId"
+      ],
+      "delete_list_item": [
+        "id"
+      ],
+      "update_drive_item": [
+        "id"
+      ],
+      "update_list_item": [
+        "id"
+      ]
+    },
+    "microsoft_teams": {
+      "delete_channel": [
+        "channelId"
+      ],
+      "update_message": [
+        "messageId"
+      ]
+    },
+    "microsoft_todo": {
+      "delete_task": [
+        "id"
+      ],
+      "delete_task_list": [
+        "id"
+      ],
+      "update_task": [
+        "id"
+      ],
+      "update_task_list": [
+        "id"
+      ]
+    },
+    "monday": {
+      "move_item_to_group": [
+        "item_id",
+        "group_id"
+      ],
+      "update_column_value": [
+        "column_id"
+      ]
+    },
+    "namely": {
+      "companyresources_deletefolderbyid": [
+        "id"
+      ],
+      "companyresources_deleteresourcebyid": [
+        "id"
+      ],
+      "companyresources_updatefoldername": [
+        "id"
+      ],
+      "deactivate_profile": [
+        "id"
+      ],
+      "homefeed_createeventcomment": [
+        "id"
+      ],
+      "homefeed_createeventlike": [
+        "id"
+      ],
+      "homefeed_deleteannouncement": [
+        "id"
+      ],
+      "jobsinfo_updatejobtitle": [
+        "id"
+      ],
+      "jobsinfo_updatelabel": [
+        "id"
+      ],
+      "profilefields_updatefieldinsection": [
+        "id"
+      ],
+      "profilefields_updatefieldinsection_sections": [
+        "id"
+      ],
+      "profiles_updateprofilewithnewjobtitle": [
+        "id"
+      ],
+      "update_profile": [
+        "id"
+      ]
+    },
+    "northflank": {
+      "update_project": [
+        "projectId"
+      ]
+    },
+    "notion": {
+      "move_page": [
+        "id"
+      ],
+      "update_database": [
+        "id"
+      ],
+      "update_page": [
+        "id"
+      ]
+    },
+    "oracle_hcm": {
+      "create_communicateuicampaigndetails_goals_responsechoices": [
+        "GoalId"
+      ],
+      "create_hcmcontacts_citizenships_citizenshipsdff": [
+        "CitizenshipId"
+      ],
+      "create_hcmcontacts_ethnicities_ethnicitiesdff": [
+        "EthnicityId"
+      ],
+      "create_hcmcontacts_passports_passportsddf": [
+        "PassportId"
+      ],
+      "create_hcmcontacts_passports_passportsdff": [
+        "PassportId"
+      ],
+      "create_hcmcontacts_phones_phonesdff": [
+        "PhoneId"
+      ],
+      "create_hcmcontacts_religions_religionsdff": [
+        "ReligionId"
+      ],
+      "create_journeys_contacts": [
+        "JourneyId"
+      ],
+      "create_journeys_events": [
+        "JourneyId"
+      ],
+      "create_journeys_notes": [
+        "JourneyId"
+      ],
+      "create_journeys_properties": [
+        "JourneyId"
+      ],
+      "create_journeys_tasks": [
+        "JourneyId"
+      ],
+      "create_journeys_tasks_documents": [
+        "JourneyId",
+        "JourneyTaskId"
+      ],
+      "create_journeys_tasks_notifications": [
+        "JourneyId",
+        "JourneyTaskId"
+      ],
+      "create_journeys_tasks_properties": [
+        "JourneyId",
+        "JourneyTaskId"
+      ],
+      "create_journeys_tasktypes": [
+        "JourneyId"
+      ],
+      "create_journeys_tasktypes_properties": [
+        "JourneyId"
+      ],
+      "create_salaries_salarycomponents": [
+        "SalaryId"
+      ],
+      "create_salaries_salarypayratecomponents": [
+        "SalaryId"
+      ],
+      "create_salaries_salarysimplecomponents": [
+        "SalaryId"
+      ],
+      "create_workers_citizenships_citizenshipsdff": [
+        "CitizenshipId"
+      ],
+      "create_workers_ethnicities_ethnicitiesdff": [
+        "EthnicityId"
+      ],
+      "create_workers_passports_passportsddf": [
+        "PassportId"
+      ],
+      "create_workers_phones_phonesdff": [
+        "PhoneId"
+      ],
+      "create_workers_photos_photosdff": [
+        "PhotoId"
+      ],
+      "create_workers_religions_religionsdff": [
+        "ReligionId"
+      ],
+      "delete_communicateuicampaigndetails_goals": [
+        "GoalId"
+      ],
+      "delete_communicateuicampaigndetails_goals_responsechoices": [
+        "GoalId"
+      ],
+      "delete_communicateuiemployeeeventquestions_questionnaireresponses": [
+        "Id"
+      ],
+      "delete_communicateuiemployeeeventquestions_questionnaireresponses_questionresponses": [
+        "Id"
+      ],
+      "delete_communicateuiemployeeeventquestions_questionnaireresponses_questionresponses_answerlargeobject": [
+        "Id"
+      ],
+      "delete_emps_photo_image": [
+        "ImageId"
+      ],
+      "delete_hcmcontacts_citizenships": [
+        "CitizenshipId"
+      ],
+      "delete_hcmcontacts_ethnicities": [
+        "EthnicityId"
+      ],
+      "delete_hcmcontacts_passports": [
+        "PassportId"
+      ],
+      "delete_hcmcontacts_phones": [
+        "PhoneId"
+      ],
+      "delete_hcmcontacts_religions": [
+        "ReligionId"
+      ],
+      "delete_journeys": [
+        "JourneyId"
+      ],
+      "delete_journeys_backgroundimage": [
+        "JourneyId"
+      ],
+      "delete_journeys_croppedbackgroundimage": [
+        "JourneyId"
+      ],
+      "delete_journeys_tasks": [
+        "JourneyId",
+        "JourneyTaskId"
+      ],
+      "delete_journeys_tasks_documents": [
+        "JourneyId",
+        "JourneyTaskId"
+      ],
+      "delete_journeys_tasks_documents_filecontents": [
+        "JourneyId",
+        "JourneyTaskId"
+      ],
+      "delete_journeys_tasks_notes": [
+        "JourneyId",
+        "JourneyTaskId"
+      ],
+      "delete_publicworkers_assignments_allreports_photo": [
+        "AssignmentId"
+      ],
+      "delete_publicworkers_assignments_directreports_photo": [
+        "AssignmentId"
+      ],
+      "delete_publicworkers_assignments_managers_photo": [
+        "AssignmentId"
+      ],
+      "delete_publicworkers_assignments_representatives_photo": [
+        "AssignmentId"
+      ],
+      "delete_publicworkers_photos_photo": [
+        "PhotoId"
+      ],
+      "delete_recruitingcandidates_citizenships": [
+        "CitizenshipId"
+      ],
+      "delete_recruitingcandidates_education": [
+        "EducationId"
+      ],
+      "delete_recruitingcandidates_education_activitysummary": [
+        "EducationId"
+      ],
+      "delete_recruitingcandidates_education_comments": [
+        "EducationId"
+      ],
+      "delete_recruitingcandidates_education_description": [
+        "EducationId"
+      ],
+      "delete_recruitingcandidates_education_reimbursements": [
+        "EducationId"
+      ],
+      "delete_recruitingcandidates_languages": [
+        "LanguageId"
+      ],
+      "delete_recruitingcandidates_languages_comments": [
+        "LanguageId"
+      ],
+      "delete_recruitingcandidates_skills": [
+        "SkillId"
+      ],
+      "delete_recruitingcandidates_skills_comments": [
+        "SkillId"
+      ],
+      "delete_recruitingcandidates_skills_description": [
+        "SkillId"
+      ],
+      "delete_recruitingcecandidates_attachments": [
+        "Id"
+      ],
+      "delete_recruitingcecandidates_candidateextrainformation_datarows_attributes": [
+        "AttributeId"
+      ],
+      "delete_recruitingcecandidates_candidatepiidata": [
+        "Id"
+      ],
+      "delete_recruitingcecandidates_citizenships": [
+        "CitizenshipId"
+      ],
+      "delete_recruitingceinterviewscheduledetails_interviews_candidatenotes": [
+        "InterviewId"
+      ],
+      "delete_recruitingceinterviewscheduledetails_interviews_locationdetails": [
+        "InterviewId"
+      ],
+      "delete_recruitingceinterviewscheduledetails_interviews_postscheduledetails": [
+        "InterviewId"
+      ],
+      "delete_recruitingcejobapplicationdrafts_attachments": [
+        "Id"
+      ],
+      "delete_recruitingcejobrequisitions_worklocationsfacet": [
+        "Id"
+      ],
+      "delete_recruitingcesites_settings": [
+        "SettingKey"
+      ],
+      "delete_recruitingcethemes_customheaders_settings": [
+        "SettingKey"
+      ],
+      "delete_recruitingcethemes_customwidgets_settings": [
+        "SettingKey"
+      ],
+      "delete_recruitingicejobrequisitions_worklocationsfacet": [
+        "Id"
+      ],
+      "delete_recruitingjobapplications_education_activitysummary": [
+        "EducationId"
+      ],
+      "delete_recruitingjobapplications_education_comments": [
+        "EducationId"
+      ],
+      "delete_recruitingjobapplications_education_description": [
+        "EducationId"
+      ],
+      "delete_recruitingjobapplications_education_reimbursements": [
+        "EducationId"
+      ],
+      "delete_recruitingjobapplications_languages_comments": [
+        "LanguageId"
+      ],
+      "delete_recruitingjobrequisitions_languages": [
+        "LanguageId"
+      ],
+      "delete_recruitingjobrequisitions_skills": [
+        "SkillId"
+      ],
+      "delete_recruitingjobsitecandidates_attachments": [
+        "Id"
+      ],
+      "delete_recruitingjobsitecandidates_certifications": [
+        "CertificationId"
+      ],
+      "delete_recruitingjobsitecandidates_certifications_comments": [
+        "CertificationId"
+      ],
+      "delete_recruitingjobsitecandidates_certifications_restrictions": [
+        "CertificationId"
+      ],
+      "delete_recruitingjobsitecandidates_citizenships": [
+        "CitizenshipId"
+      ],
+      "delete_recruitingjobsitecandidates_educations": [
+        "EducationId"
+      ],
+      "delete_recruitingjobsitecandidates_educations_activitysummary": [
+        "EducationId"
+      ],
+      "delete_recruitingjobsitecandidates_educations_comments": [
+        "EducationId"
+      ],
+      "delete_recruitingjobsitecandidates_educations_description": [
+        "EducationId"
+      ],
+      "delete_recruitingjobsitecandidates_educations_reimbursements": [
+        "EducationId"
+      ],
+      "delete_recruitingjobsitecandidates_languages": [
+        "LanguageId"
+      ],
+      "delete_recruitingjobsitecandidates_languages_comments": [
+        "LanguageId"
+      ],
+      "delete_recruitingjobsitecandidates_phones": [
+        "PhoneId"
+      ],
+      "delete_recruitingjobsitecandidates_skills": [
+        "SkillId"
+      ],
+      "delete_recruitingjobsitecandidates_skills_comments": [
+        "SkillId"
+      ],
+      "delete_recruitingjobsitecandidates_skills_description": [
+        "SkillId"
+      ],
+      "delete_recruitingmyattachments": [
+        "Id"
+      ],
+      "delete_recruitingoppmktgigdetails_benefits": [
+        "BenefitId"
+      ],
+      "delete_recruitingoppmktgigdetails_benefits_description": [
+        "BenefitId"
+      ],
+      "delete_recruitinguiquestionnaires_questionnaireresponses_questionresponses_answerlargeobject": [
+        "Id"
+      ],
+      "delete_recruitinguiquestionnaires_questionnaireresponses_questionresponses_questionresponseattachments": [
+        "Id"
+      ],
+      "delete_recruitinguiquestionnaires_questionnaireresponses_questionresponses_questionresponseattachments_filecontents": [
+        "Id"
+      ],
+      "delete_salaries": [
+        "SalaryId"
+      ],
+      "delete_salaries_salarycomponents": [
+        "SalaryId"
+      ],
+      "delete_salaries_salarypayratecomponents": [
+        "SalaryId"
+      ],
+      "delete_salaries_salarysimplecomponents": [
+        "SalaryId"
+      ],
+      "delete_talentpersonprofiles_publicskills_endorsements": [
+        "EndorsementId"
+      ],
+      "delete_talentpersonprofiles_tags": [
+        "TagId"
+      ],
+      "delete_workers_citizenships": [
+        "CitizenshipId"
+      ],
+      "delete_workers_ethnicities": [
+        "EthnicityId"
+      ],
+      "delete_workers_messages": [
+        "MessageId"
+      ],
+      "delete_workers_passports": [
+        "PassportId"
+      ],
+      "delete_workers_phones": [
+        "PhoneId"
+      ],
+      "delete_workers_photos": [
+        "PhotoId"
+      ],
+      "delete_workers_photos_photo": [
+        "PhotoId"
+      ],
+      "delete_workers_religions": [
+        "ReligionId"
+      ],
+      "do_duplicatejourney_journeys": [
+        "JourneyId"
+      ],
+      "do_findbyadvancedsearchfornudgeexecutionchanneldetail_nudgeplanexecutions_nudges": [
+        "NudgeId"
+      ],
+      "do_togglefavourite_journeys": [
+        "JourneyId"
+      ],
+      "replace_communicateuiemployeeeventquestions_questionnaireresponses_questionresponses_answerlargeobject": [
+        "Id"
+      ],
+      "replace_emps_photo_image": [
+        "ImageId"
+      ],
+      "replace_journeys_backgroundimage": [
+        "JourneyId"
+      ],
+      "replace_journeys_croppedbackgroundimage": [
+        "JourneyId"
+      ],
+      "replace_journeys_tasks_documents_filecontents": [
+        "JourneyId",
+        "JourneyTaskId"
+      ],
+      "replace_journeys_tasks_notes": [
+        "JourneyId",
+        "JourneyTaskId"
+      ],
+      "replace_publicworkers_assignments_allreports_photo": [
+        "AssignmentId"
+      ],
+      "replace_publicworkers_assignments_directreports_photo": [
+        "AssignmentId"
+      ],
+      "replace_publicworkers_assignments_managers_photo": [
+        "AssignmentId"
+      ],
+      "replace_publicworkers_assignments_representatives_photo": [
+        "AssignmentId"
+      ],
+      "replace_publicworkers_photos_photo": [
+        "PhotoId"
+      ],
+      "replace_recruitingcandidates_education_activitysummary": [
+        "EducationId"
+      ],
+      "replace_recruitingcandidates_education_comments": [
+        "EducationId"
+      ],
+      "replace_recruitingcandidates_education_description": [
+        "EducationId"
+      ],
+      "replace_recruitingcandidates_education_reimbursements": [
+        "EducationId"
+      ],
+      "replace_recruitingcandidates_languages_comments": [
+        "LanguageId"
+      ],
+      "replace_recruitingcandidates_skills_comments": [
+        "SkillId"
+      ],
+      "replace_recruitingcandidates_skills_description": [
+        "SkillId"
+      ],
+      "replace_recruitingceinterviewscheduledetails_interviews_candidatenotes": [
+        "InterviewId"
+      ],
+      "replace_recruitingceinterviewscheduledetails_interviews_locationdetails": [
+        "InterviewId"
+      ],
+      "replace_recruitingceinterviewscheduledetails_interviews_postscheduledetails": [
+        "InterviewId"
+      ],
+      "replace_recruitingjobapplications_education_activitysummary": [
+        "EducationId"
+      ],
+      "replace_recruitingjobapplications_education_comments": [
+        "EducationId"
+      ],
+      "replace_recruitingjobapplications_education_description": [
+        "EducationId"
+      ],
+      "replace_recruitingjobapplications_education_reimbursements": [
+        "EducationId"
+      ],
+      "replace_recruitingjobapplications_languages_comments": [
+        "LanguageId"
+      ],
+      "replace_recruitingjobsitecandidates_certifications_comments": [
+        "CertificationId"
+      ],
+      "replace_recruitingjobsitecandidates_certifications_restrictions": [
+        "CertificationId"
+      ],
+      "replace_recruitingjobsitecandidates_educations_activitysummary": [
+        "EducationId"
+      ],
+      "replace_recruitingjobsitecandidates_educations_comments": [
+        "EducationId"
+      ],
+      "replace_recruitingjobsitecandidates_educations_description": [
+        "EducationId"
+      ],
+      "replace_recruitingjobsitecandidates_educations_reimbursements": [
+        "EducationId"
+      ],
+      "replace_recruitingjobsitecandidates_languages_comments": [
+        "LanguageId"
+      ],
+      "replace_recruitingjobsitecandidates_skills_comments": [
+        "SkillId"
+      ],
+      "replace_recruitingjobsitecandidates_skills_description": [
+        "SkillId"
+      ],
+      "replace_recruitingoppmktgigdetails_benefits_description": [
+        "BenefitId"
+      ],
+      "replace_recruitinguiquestionnaires_questionnaireresponses_questionresponses_answerlargeobject": [
+        "Id"
+      ],
+      "replace_recruitinguiquestionnaires_questionnaireresponses_questionresponses_questionresponseattachments_filecontents": [
+        "Id"
+      ],
+      "replace_workers_photos_photo": [
+        "PhotoId"
+      ],
+      "update_communicateuicampaigndetails_goals": [
+        "GoalId"
+      ],
+      "update_communicateuicampaigndetails_goals_responsechoices": [
+        "GoalId"
+      ],
+      "update_communicateuiemployeeeventquestions_questionnaireresponses": [
+        "Id"
+      ],
+      "update_communicateuiemployeeeventquestions_questionnaireresponses_questionresponses": [
+        "Id"
+      ],
+      "update_hcmcontacts_citizenships": [
+        "CitizenshipId"
+      ],
+      "update_hcmcontacts_citizenships_citizenshipsdff": [
+        "CitizenshipId"
+      ],
+      "update_hcmcontacts_ethnicities": [
+        "EthnicityId"
+      ],
+      "update_hcmcontacts_ethnicities_ethnicitiesdff": [
+        "EthnicityId"
+      ],
+      "update_hcmcontacts_passports": [
+        "PassportId"
+      ],
+      "update_hcmcontacts_passports_passportsddf": [
+        "PassportId"
+      ],
+      "update_hcmcontacts_passports_passportsdff": [
+        "PassportId"
+      ],
+      "update_hcmcontacts_phones": [
+        "PhoneId"
+      ],
+      "update_hcmcontacts_phones_phonesdff": [
+        "PhoneId"
+      ],
+      "update_hcmcontacts_religions": [
+        "ReligionId"
+      ],
+      "update_hcmcontacts_religions_religionsdff": [
+        "ReligionId"
+      ],
+      "update_journeys": [
+        "JourneyId"
+      ],
+      "update_journeys_properties": [
+        "JourneyId"
+      ],
+      "update_journeys_tasks": [
+        "JourneyId",
+        "JourneyTaskId"
+      ],
+      "update_journeys_tasks_documents": [
+        "JourneyId",
+        "JourneyTaskId"
+      ],
+      "update_journeys_tasks_notifications": [
+        "JourneyId",
+        "JourneyTaskId",
+        "JourneyTaskNotificationId"
+      ],
+      "update_journeys_tasks_properties": [
+        "JourneyId"
+      ],
+      "update_journeys_tasktypes": [
+        "JourneyId"
+      ],
+      "update_journeys_tasktypes_properties": [
+        "JourneyId"
+      ],
+      "update_learnerlearningrecords_activelearnercomments_likes": [
+        "likeId"
+      ],
+      "update_learnerlearningrecords_activelearnercomments_replies_likes": [
+        "likeId"
+      ],
+      "update_learnerlearningrecords_completiondetails_selectedcourseofferings_activelearnercomments_likes": [
+        "likeId"
+      ],
+      "update_learnerlearningrecords_completiondetails_selectedcourseofferings_activelearnercomments_replies_likes": [
+        "likeId"
+      ],
+      "update_learnerlearningrecords_selectedcourseofferings_activelearnercomments_likes": [
+        "likeId"
+      ],
+      "update_learnerlearningrecords_selectedcourseofferings_activelearnercomments_replies_likes": [
+        "likeId"
+      ],
+      "update_recruitingcandidates_citizenships": [
+        "CitizenshipId"
+      ],
+      "update_recruitingcandidates_education": [
+        "EducationId"
+      ],
+      "update_recruitingcandidates_languages": [
+        "LanguageId"
+      ],
+      "update_recruitingcandidates_skills": [
+        "SkillId"
+      ],
+      "update_recruitingcecandidates_attachments": [
+        "Id"
+      ],
+      "update_recruitingcecandidates_candidateextrainformation_datarows_attributes": [
+        "AttributeId"
+      ],
+      "update_recruitingcecandidates_candidatepiidata": [
+        "Id"
+      ],
+      "update_recruitingcecandidates_citizenships": [
+        "CitizenshipId"
+      ],
+      "update_recruitingcejobapplicationdrafts_attachments": [
+        "Id"
+      ],
+      "update_recruitingcejobrequisitions_worklocationsfacet": [
+        "Id"
+      ],
+      "update_recruitingcesites_settings": [
+        "SettingKey"
+      ],
+      "update_recruitingcesites_talentcommunitysignup": [
+        "Id"
+      ],
+      "update_recruitingcesites_talentcommunitysignup_translations": [
+        "Id"
+      ],
+      "update_recruitingcethemes_customheaders_settings": [
+        "SettingKey"
+      ],
+      "update_recruitingcethemes_customwidgets_settings": [
+        "SettingKey"
+      ],
+      "update_recruitingicejobrequisitions_worklocationsfacet": [
+        "Id"
+      ],
+      "update_recruitingjobrequisitions_skills": [
+        "SkillId"
+      ],
+      "update_recruitingjobsitecandidates_attachments": [
+        "Id"
+      ],
+      "update_recruitingjobsitecandidates_certifications": [
+        "CertificationId"
+      ],
+      "update_recruitingjobsitecandidates_citizenships": [
+        "CitizenshipId"
+      ],
+      "update_recruitingjobsitecandidates_educations": [
+        "EducationId"
+      ],
+      "update_recruitingjobsitecandidates_languages": [
+        "LanguageId"
+      ],
+      "update_recruitingjobsitecandidates_phones": [
+        "PhoneId"
+      ],
+      "update_recruitingjobsitecandidates_skills": [
+        "SkillId"
+      ],
+      "update_recruitingoppmktgigdetails_benefits": [
+        "BenefitId"
+      ],
+      "update_recruitinguiquestionnaires_questionnaireresponses": [
+        "Id"
+      ],
+      "update_recruitinguiquestionnaires_questionnaireresponses_questionresponses": [
+        "Id"
+      ],
+      "update_recruitinguiquestionnaires_questionnaireresponses_questionresponses_questionresponseattachments": [
+        "Id"
+      ],
+      "update_salaries": [
+        "SalaryId"
+      ],
+      "update_salaries_salarycomponents": [
+        "SalaryId"
+      ],
+      "update_salaries_salarypayratecomponents": [
+        "SalaryId"
+      ],
+      "update_salaries_salarysimplecomponents": [
+        "SalaryId"
+      ],
+      "update_talentpersonprofiles_publicskills_endorsements": [
+        "EndorsementId"
+      ],
+      "update_talentpersonprofiles_tags": [
+        "TagId"
+      ],
+      "update_worker": [
+        "id"
+      ],
+      "update_workers_citizenships": [
+        "CitizenshipId"
+      ],
+      "update_workers_citizenships_citizenshipsdff": [
+        "CitizenshipId"
+      ],
+      "update_workers_ethnicities": [
+        "EthnicityId"
+      ],
+      "update_workers_ethnicities_ethnicitiesdff": [
+        "EthnicityId"
+      ],
+      "update_workers_messages": [
+        "MessageId"
+      ],
+      "update_workers_passports": [
+        "PassportId"
+      ],
+      "update_workers_passports_passportsddf": [
+        "PassportId"
+      ],
+      "update_workers_phones": [
+        "PhoneId"
+      ],
+      "update_workers_phones_phonesdff": [
+        "PhoneId"
+      ],
+      "update_workers_photos": [
+        "PhotoId"
+      ],
+      "update_workers_photos_photosdff": [
+        "PhotoId"
+      ],
+      "update_workers_religions": [
+        "ReligionId"
+      ],
+      "update_workers_religions_religionsdff": [
+        "ReligionId"
+      ]
+    },
+    "pagerduty": {
+      "merge_incidents": [
+        "id"
+      ]
+    },
+    "paypal": {
+      "send_invoice": [
+        "invoice_id"
+      ]
+    },
+    "personio": {
+      "delete_company_absence_periods": [
+        "id"
+      ],
+      "delete_company_attendances": [
+        "id"
+      ],
+      "delete_company_attendances_projects": [
+        "id"
+      ],
+      "delete_company_time_offs": [
+        "id"
+      ],
+      "update_company_attendances": [
+        "id"
+      ],
+      "update_company_attendances_projects": [
+        "id"
+      ],
+      "update_company_employees": [
+        "employee_id"
+      ],
+      "update_employee": [
+        "id"
+      ]
+    },
+    "rippling": {
+      "delete_object_categories": [
+        "id"
+      ],
+      "update_object_categories": [
+        "id"
+      ],
+      "update_supergroups_group_id_exclusion_members": [
+        "group_id"
+      ],
+      "update_supergroups_group_id_inclusion_members": [
+        "group_id"
+      ],
+      "update_worker": [
+        "id"
+      ]
+    },
+    "salesforce": {
+      "add_contact_to_campaign": [
+        "contact_id",
+        "campaign_id"
+      ],
+      "add_lead_to_campaign": [
+        "lead_id",
+        "campaign_id"
+      ],
+      "add_opportunity_line_item": [
+        "opportunity_id"
+      ],
+      "apply_lead_assignment_rules": [
+        "lead_id"
+      ],
+      "associate_contact_to_account": [
+        "account_id",
+        "contact_id"
+      ],
+      "clone_opportunity": [
+        "opportunity_id"
+      ],
+      "clone_record": [
+        "record_id"
+      ],
+      "complete_task": [
+        "task_id"
+      ],
+      "delete_account": [
+        "account_id"
+      ],
+      "delete_campaign": [
+        "campaign_id"
+      ],
+      "delete_contact": [
+        "contact_id"
+      ],
+      "delete_lead": [
+        "lead_id"
+      ],
+      "delete_note": [
+        "note_id"
+      ],
+      "delete_opportunity": [
+        "opportunity_id"
+      ],
+      "remove_from_campaign": [
+        "campaign_id"
+      ],
+      "send_email_from_template": [
+        "recipient_id"
+      ],
+      "update_account": [
+        "account_id"
+      ],
+      "update_campaign": [
+        "campaign_id"
+      ],
+      "update_contact": [
+        "contact_id"
+      ],
+      "update_lead": [
+        "lead_id"
+      ],
+      "update_note": [
+        "note_id"
+      ],
+      "update_opportunity": [
+        "opportunity_id"
+      ],
+      "update_task": [
+        "task_id"
+      ]
+    },
+    "sap_successfactors": {
+      "update_compensation": [
+        "id"
+      ],
+      "update_employee_time": [
+        "id"
+      ],
+      "update_employment": [
+        "id"
+      ],
+      "update_job": [
+        "id"
+      ],
+      "update_pay_component": [
+        "id"
+      ],
+      "update_person": [
+        "id"
+      ],
+      "update_personal": [
+        "id"
+      ],
+      "update_user": [
+        "id"
+      ]
+    },
+    "saperly": {
+      "assign_number_connection": [
+        "id",
+        "connectionId"
+      ],
+      "delete_connection": [
+        "id"
+      ],
+      "end_call": [
+        "id"
+      ],
+      "release_number": [
+        "id"
+      ],
+      "set_caller_id_name": [
+        "id"
+      ],
+      "set_sms_sender": [
+        "id",
+        "smsSenderId"
+      ],
+      "transfer_call": [
+        "id"
+      ],
+      "update_connection": [
+        "id"
+      ]
+    },
+    "tally": {
+      "update_form": [
+        "formId"
+      ]
+    },
+    "telegram": {
+      "edit_message": [
+        "message_id"
+      ],
+      "forward_message": [
+        "message_id"
+      ]
+    },
+    "ticktick": {
+      "complete_task": [
+        "task_id"
+      ],
+      "update_project": [
+        "projectId"
+      ],
+      "update_task": [
+        "taskId"
+      ]
+    },
+    "todoist": {
+      "complete_task": [
+        "task_id"
+      ],
+      "update_task": [
+        "task_id"
+      ]
+    },
+    "ukg_ready": {
+      "update_employee": [
+        "id"
+      ]
+    },
+    "warp": {
+      "archive_custom_worker_field": [
+        "id"
+      ],
+      "archive_custom_worker_field_option": [
+        "id"
+      ],
+      "delete_custom_worker_field_option": [
+        "id"
+      ],
+      "delete_worker": [
+        "id"
+      ],
+      "extend_offer_deadline": [
+        "id"
+      ],
+      "invite_worker": [
+        "id"
+      ],
+      "resend_offer": [
+        "id"
+      ],
+      "update_custom_worker_field": [
+        "id"
+      ],
+      "update_custom_worker_field_option": [
+        "id"
+      ],
+      "update_department": [
+        "id"
+      ],
+      "update_workplace": [
+        "id"
+      ],
+      "void_offer": [
+        "id"
+      ]
+    },
+    "whatsapp": {
+      "send_message": [
+        "message_id"
+      ]
+    },
+    "woocommerce": {
+      "delete_product": [
+        "product_id"
+      ],
+      "update_customer": [
+        "id"
+      ],
+      "update_order_status": [
+        "order_id"
+      ],
+      "update_product": [
+        "product_id"
+      ]
+    },
+    "workday": {
+      "update_worker": [
+        "id"
+      ]
+    },
+    "xero": {
+      "update_invoice": [
+        "id"
+      ]
+    },
+    "youtube": {
+      "subscribe_channel": [
+        "channelId"
+      ],
+      "update_video": [
+        "videoId"
+      ]
+    },
+    "zendesk": {
+      "update_ticket": [
+        "id"
+      ],
+      "update_user": [
+        "id"
+      ]
+    },
+    "zoho": {
+      "convert_lead": [
+        "lead_id"
+      ],
+      "delete_contact": [
+        "contact_id"
+      ],
+      "delete_deal": [
+        "deal_id"
+      ],
+      "update_deal": [
+        "deal_id"
+      ]
+    },
+    "zoho_bigin": {
+      "add_tags_to_records": [
+        "record_id"
+      ],
+      "delete_attachment": [
+        "attachment_id"
+      ],
+      "delete_note": [
+        "note_id"
+      ],
+      "delete_records": [
+        "ids"
+      ],
+      "update_note": [
+        "note_id"
+      ],
+      "update_records": [
+        "record_id"
+      ],
+      "update_related_records": [
+        "record_id"
+      ]
+    },
+    "zoho_books": {
+      "delete_invoice": [
+        "invoice_id"
+      ],
+      "email_estimate": [
+        "estimate_id"
+      ],
+      "email_invoice": [
+        "invoice_id"
+      ],
+      "mark_invoice_as_sent": [
+        "invoice_id"
+      ],
+      "update_bill": [
+        "bill_id"
+      ],
+      "update_contact": [
+        "contact_id"
+      ],
+      "update_estimate": [
+        "estimate_id"
+      ],
+      "update_invoice": [
+        "invoice_id"
+      ],
+      "update_item": [
+        "item_id"
+      ],
+      "void_invoice": [
+        "invoice_id"
+      ]
+    },
+    "zoho_desk": {
+      "update_account": [
+        "account_id"
+      ],
+      "update_ticket": [
+        "ticket_id"
+      ],
+      "upload_ticket_attachment": [
+        "ticketId"
+      ]
+    },
+    "zoho_inventory": {
+      "create_customer_payment": [
+        "customer_id"
+      ],
+      "delete_contact": [
+        "contact_id"
+      ],
+      "delete_invoice": [
+        "invoice_id"
+      ],
+      "delete_item": [
+        "item_id"
+      ],
+      "delete_package": [
+        "package_id"
+      ],
+      "email_invoice": [
+        "invoice_id"
+      ]
+    },
+    "zoho_invoice": {
+      "create_customer_payment": [
+        "customer_id"
+      ],
+      "delete_contact": [
+        "contact_id"
+      ],
+      "delete_invoice": [
+        "invoice_id"
+      ],
+      "email_estimate": [
+        "estimate_id"
+      ],
+      "email_invoice": [
+        "invoice_id"
+      ],
+      "mark_invoice_as_sent": [
+        "invoice_id"
+      ],
+      "mark_invoice_as_void": [
+        "invoice_id"
+      ],
+      "update_contact": [
+        "contact_id"
+      ]
+    }
+  },
+  "rejected": {
+    "activecampaign": [
+      "track_event"
+    ],
+    "apify": [
+      "run_actor",
+      "run_actor_get_items"
+    ],
+    "browseai": [
+      "run_robot"
+    ],
+    "clay": [
+      "run_subroutine",
+      "run_subroutine_direct",
+      "run_subroutine_no_mapping"
+    ],
+    "facebook": [
+      "get_post"
+    ],
+    "follow_up_boss": [
+      "apply_action_plan"
+    ],
+    "sendgrid": [
+      "send_email_from_template"
+    ],
+    "zoho": [
+      "update_account"
+    ]
+  }
+}

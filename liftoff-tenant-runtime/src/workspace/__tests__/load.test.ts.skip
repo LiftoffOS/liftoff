@@ -1,0 +1,62 @@
+/**
+ * R5 TE-ADD-008: load test — ACCEPTANCE CRITERIA ONLY. NOT IMPLEMENTED.
+ *
+ * This file is the specification, not the test. The body below throws; it has
+ * never measured anything, and nothing has ever run it.
+ *
+ * It is kept because the numbers are the one part of this that somebody
+ * actually decided. Everything built around it was scaffolding with no
+ * implementation underneath:
+ *   - `load-test.yml`, the workflow meant to run this, was never created;
+ *   - `.github/workflows/load-test-deadline.yml`, a daily job that polled for
+ *     runs of that workflow, therefore failed every day and was removed — it
+ *     also claimed to alert SecOps and contained no notification of any kind;
+ *   - `docs/runbooks/load-test-procedure.md`, referenced below, was never
+ *     written.
+ *
+ * Recorded as residual risk 5 in docs/security-posture.md. Implementing this
+ * needs a target environment, a runner wired to the criteria, and an owner who
+ * acts on a regression — not another wrapper around a throw.
+ *
+ * Named `.ts.skip` so Jest cannot collect it; `LOAD_TEST=1` gates it a second
+ * time.
+ *
+ * Acceptance criteria (R5 deadline: within 30 days of GA):
+ *   - 30 concurrent threads per tenant × 5 test tenants
+ *   - p99 turn-start latency < 2000 ms
+ *   - p99 workspace-create latency < 500 ms
+ *   - Disk quota enforcement at 400 MB per workspace prevents /tmp from
+ *     exceeding 80%
+ *
+ * Run manually from a workstation with Cloud Run reachability + TEST_TENANT_DB_URL:
+ *
+ *   LOAD_TEST=1 npx jest --testPathPattern=load.test.ts.skip \
+ *                         --testNamePattern='concurrent load'
+ */
+import crypto from 'crypto';
+
+const SKIP = !process.env.LOAD_TEST;
+const describeLoad = SKIP ? describe.skip : describe;
+
+describeLoad('R5 TE-ADD-008: concurrent load test', () => {
+  const CONCURRENT_THREADS_PER_TENANT = 30;
+  const TEST_TENANT_COUNT = 5;
+  const P99_TURN_START_MS = 2000;
+  const P99_WORKSPACE_CREATE_MS = 500;
+  const DISK_QUOTA_MB = 400;
+  const TMPFS_USAGE_CAP_PCT = 80;
+
+  it('meets acceptance criteria', async () => {
+    // Implementation placeholder: drive N concurrent streamChatTurn calls
+    // across the leased test tenant pool, collect p99 latencies, assert caps.
+    // docs/runbooks/load-test-procedure.md was never written.
+    void CONCURRENT_THREADS_PER_TENANT;
+    void TEST_TENANT_COUNT;
+    void P99_TURN_START_MS;
+    void P99_WORKSPACE_CREATE_MS;
+    void DISK_QUOTA_MB;
+    void TMPFS_USAGE_CAP_PCT;
+    void crypto;
+    throw new Error('load test not yet implemented — opt-in via LOAD_TEST=1');
+  });
+});

@@ -1,0 +1,107 @@
+name: OU-native grep gate
+
+# Pre-merge gate per the implementation plan §Migration B. Fails the build if
+# any code path still references the dropped USD-allocation symbols, or if any
+# customer-facing surface SUMs the raw cost_usd column instead of the
+# bucket-rated customer_cost_usd.
+#
+# Path exemptions are documented inline next to the rule so future readers can
+# reason about each one. Add a new exemption only if the file is genuinely
+# ops-only (not surfaced to a customer) AND the raw cost_usd usage is
+# load-bearing (e.g. reconciling against an external vendor invoice).
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  grep-gate:
+    name: Forbidden symbols
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install ripgrep
+        # ubuntu-latest runners do not bundle `rg`. Install before any grep
+        # step — without this the next `rg --version` exits 127 and every
+        # gate below silently never runs, defeating the purpose of the
+        # workflow (it just fails infra-style instead of catching the
+        # forbidden symbols it was designed to catch).
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
+      - name: ripgrep available?
+        run: rg --version
+
+      - name: No references to dropped USD-allocation symbols
+        run: |
+          set -euo pipefail
+          # Path exemptions:
+          #   migrations/                         — historical migrations
+          #     (138, 144, 181, 182, 184, 185, 186, 207) legitimately mention
+          #     the dropped columns/table; they're append-only history.
+          #   src/**/__tests__/                   — test fixtures may still
+          #     reference legacy field names while we keep backwards-compat
+          #     behavior in the boundary layer.
+          #   src/billing/billing-controls-internal-router.ts — the
+          #     subscription-activated handler accepts the legacy
+          #     `monthlyAllocationUsd` body field for ONE deploy cycle (plan
+          #     §"PR 1 deploy order — three sub-deploys") so a not-yet-redeployed
+          #     liftoff-billing pod doesn't 400. REMOVE this exemption when
+          #     Deploy C lands and the dual-shape branch is taken out.
+          if rg -n --type ts --type sql \
+               --glob '!migrations/**' \
+               --glob '!src/**/__tests__/**' \
+               --glob '!src/**/*.test.ts' \
+               --glob '!src/billing/billing-controls-internal-router.ts' \
+               'monthly_allocation_usd|ou_pricing|monthlyAllocationUsd|OU_PRICE_USD|costToOus' \
+               src 2>/dev/null; then
+            echo "::error::Forbidden symbol present — see plan §Migration B."
+            exit 1
+          fi
+
+      - name: No SUM(cost_usd) in customer-facing surfaces
+        # Allowed forms in customer-facing surfaces:
+        #   SUM(cost_usd) AS cost_usd        — preserves the raw model cost as
+        #     `rawModelCostUsd` for ops/debug visibility while customer_cost_usd
+        #     drives the displayed amount. The PCRE2 negative lookahead exempts
+        #     this exact alias and only this alias.
+        # Path exemptions:
+        #   src/cost-attribution/ingestion/*-billing-reconciler.ts — reconciles
+        #     wholesale spend against vendor (Anthropic/OpenAI) invoices.
+        #     Reconciliation is on raw cost_usd by definition.
+        run: |
+          set -euo pipefail
+          if rg -nP --type ts --type sql \
+               --glob '!src/cost-attribution/ingestion/*-billing-reconciler.ts' \
+               'SUM\(cost_usd\)(?!\s+AS\s+cost_usd\b)' \
+               src/cost-attribution \
+               src/insights \
+               src/internal-agents \
+               src/external-agents 2>/dev/null; then
+            echo "::error::Customer-facing surface aggregates raw cost_usd — must SUM customer_cost_usd (or alias as 'AS cost_usd' to preserve raw for ops debug)."
+            exit 1
+          fi
+
+      - name: Insights providers sum the resolved column, not a hard-coded one
+        # The rule above forbids the RAW column. This one forbids the other
+        # literal in the six workspace cost providers, which is what keeps the
+        # rule above meaningful.
+        #
+        # Those providers now read `SUM(${costColumn()})`. costColumn() returns
+        # customer_cost_usd under a billing provider and cost_usd without one,
+        # because a deployment that charges nobody books every call at
+        # customer_cost_usd = 0 and would report $0 against a real vendor bill
+        # (see src/insights/cost-column.ts).
+        #
+        # Without this rule, a provider written tomorrow with a hard-coded
+        # SUM(customer_cost_usd) would pass both gates and read zero forever on
+        # every self-hosted deployment — the exact defect, reintroduced, with
+        # the ratchet watching the wrong column.
+        run: |
+          set -euo pipefail
+          if rg -nP --type ts \
+               'SUM\((?:customer_cost_usd|cost_usd)\)(?!\s+AS\s+cost_usd\b)' \
+               src/insights/data-providers 2>/dev/null; then
+            echo "::error::An insights cost provider hard-codes a cost column — use SUM(\${costColumn()}) (src/insights/cost-column.ts)."
+            exit 1
+          fi

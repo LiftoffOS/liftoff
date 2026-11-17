@@ -1,0 +1,103 @@
+{
+  "name": "app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "VITE_DEV_BYPASS_ONBOARDING_GATE=true VITE_DISABLE_MSW=true vite",
+    "dev:mock": "VITE_DEV_BYPASS_ONBOARDING_GATE=true vite",
+    "dev:onboarding": "VITE_DISABLE_MSW=true vite",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && node scripts/generate-spa-routes.mjs && vite build && node scripts/verify/css-closure.mjs && node scripts/verify/browser-capabilities.mjs && node scripts/precompress.mjs",
+    "sitemap": "node scripts/generate-sitemap.mjs",
+    "lint": "eslint . --max-warnings=0",
+    "verify:visual": "node scripts/verify/index.mjs",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "prepare": "husky",
+    "verify:browser-capabilities": "node scripts/verify/browser-capabilities.mjs"
+  },
+  "dependencies": {
+    "@stripe/react-stripe-js": "^6.3.0",
+    "@stripe/stripe-js": "^9.3.1",
+    "@tanstack/react-query": "^5.95.2",
+    "@tiptap/core": "^3.20.4",
+    "@tiptap/extension-mention": "^3.23.1",
+    "@tiptap/extension-placeholder": "^3.20.4",
+    "@tiptap/pm": "^3.20.4",
+    "@tiptap/react": "^3.20.4",
+    "@tiptap/starter-kit": "^3.20.4",
+    "@tiptap/suggestion": "^3.20.4",
+    "@xyflow/react": "^12.10.2",
+    "firebase": "^12.18.0",
+    "fuse.js": "^7.3.0",
+    "highlight.js": "^11.11.1",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-helmet-async": "^3.0.0",
+    "react-markdown": "^10.1.0",
+    "react-router": "^8.3.0",
+    "recharts": "^3.8.1",
+    "rehype-autolink-headings": "^7.1.0",
+    "rehype-highlight": "^7.0.2",
+    "rehype-raw": "^7.0.0",
+    "rehype-sanitize": "^6.0.0",
+    "rehype-slug": "^6.0.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@storybook/addon-a11y": "^10.6.1",
+    "@storybook/addon-vitest": "^10.6.2",
+    "@storybook/react-vite": "^10.6.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^5.2.0",
+    "@vitest/coverage-v8": "^4.1.11",
+    "axe-core": "^4.13.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^16.5.0",
+    "husky": "^9.1.7",
+    "jest-axe": "^10.0.0",
+    "jsdom": "^29.1.1",
+    "lint-staged": "^16.4.0",
+    "msw": "^2.15.0",
+    "pixelmatch": "^7.2.0",
+    "playwright": "^1.63.0",
+    "pngjs": "^7.0.0",
+    "storybook": "^10.3.3",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.0",
+    "vite": "^7.3.7",
+    "vite-plugin-svgr": "^5.2.0",
+    "vitest": "^4.1.1"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1",
+    "websocket-driver": "0.7.5",
+    "qs": "^6.16.0",
+    "@grpc/grpc-js": "^1.14.5"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix"
+    ]
+  }
+}

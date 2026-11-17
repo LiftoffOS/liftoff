@@ -1,0 +1,242 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx vitest run --coverage
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  lighthouse:
+    name: Lighthouse CI
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build the app
+        run: npm run build
+      - name: Run Lighthouse CI
+        run: npx --yes @lhci/cli@0.13.x autorun --config=./lighthouserc.cjs
+        # Don't fail the workflow on Lighthouse warnings — they are advisory.
+        continue-on-error: true
+
+  bundle-size:
+    name: Bundle Size
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build the app
+        run: npm run build 2>&1 | tee build-output.txt
+      - name: Check critical-path bundle size
+        run: |
+          # We budget the CRITICAL PATH — the JS + CSS a visitor downloads on
+          # first load, before any lazy route — NOT the sum of every chunk in
+          # dist/. The old cap summed all raw code bytes, so it grew with every
+          # lazy route we added and actively penalised code-splitting, while
+          # saying nothing about real load performance. This app is already
+          # well split (heavy deps like charts/editors/animation are lazy), so
+          # the number that matters is the first-load payload.
+          #
+          # The critical path = the entry <script type=module> plus everything
+          # Vite statically preloads for it (<link rel=modulepreload>) and the
+          # head stylesheet, read straight from the built dist/index.html. We
+          # read the HTML, not the Vite manifest, because the build chain's
+          # css-closure step deletes the manifest. Measured GZIPPED — what
+          # actually crosses the wire.
+          #
+          # Threshold is set with generous headroom over the observed value and
+          # should be tuned toward ~1.3x the real first-load figure (printed in
+          # the job summary) once a couple of CI runs confirm it. This gate is
+          # advisory (the job only runs on PRs); its job is to catch a heavy
+          # dependency accidentally landing on the initial route, not to
+          # micro-police kilobytes.
+          CRIT_LIMIT_KB=350
+
+          HTML=dist/index.html
+          ASSETS=$(grep -oE '/assets/[A-Za-z0-9._-]+\.(js|css)' "$HTML" | sort -u)
+          if [ -z "$ASSETS" ]; then
+            echo "::error::No /assets/*.{js,css} references found in $HTML — the build output shape changed; refusing to pass a zero-byte critical path."
+            exit 1
+          fi
+
+          CRIT_BYTES=0
+          for a in $ASSETS; do
+            f="dist${a}"
+            [ -f "$f" ] || continue
+            CRIT_BYTES=$(( CRIT_BYTES + $(gzip -c "$f" | wc -c) ))
+          done
+          CRIT_KB=$(( CRIT_BYTES / 1024 ))
+
+          # Informational only (never gated): total code across all chunks and
+          # the largest single chunk. These help spot trends without failing CI.
+          TOTAL_JS_KB=$(find dist -name '*.js' -exec du -k {} + | awk '{s+=$1} END {print s+0}')
+          TOTAL_SIZE=$(du -sh dist/ | cut -f1)
+
+          {
+            echo "## Bundle Size"
+            echo ""
+            echo "**Critical path (first-load JS + CSS, gzipped): ${CRIT_KB} KB / ${CRIT_LIMIT_KB} KB budget**"
+            echo ""
+            echo "_Informational (not gated):_"
+            echo "- Total JS across all chunks: ${TOTAL_JS_KB} KB (grows with every lazy route — not a load-time metric)"
+            echo "- Total dist/ (includes static media, CDN-cached): ${TOTAL_SIZE}"
+            echo ""
+            echo '```'
+            echo "Critical-path assets (gzipped):"
+            for a in $ASSETS; do
+              f="dist${a}"
+              [ -f "$f" ] && echo "  $(( $(gzip -c "$f" | wc -c) / 1024 )) KB  $a"
+            done
+            echo ""
+            echo "Largest chunks (raw):"
+            du -sh dist/assets/*.js 2>/dev/null | sort -rh | head -8
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "Critical-path first-load: ${CRIT_KB} KB gzipped (budget ${CRIT_LIMIT_KB} KB)"
+          if [ "$CRIT_KB" -gt "$CRIT_LIMIT_KB" ]; then
+            echo "::error::Critical-path bundle ${CRIT_KB} KB gzipped exceeds ${CRIT_LIMIT_KB} KB budget. This is first-load JS+CSS — check whether a heavy dependency landed on the initial route instead of a lazy chunk."
+            exit 1
+          fi
+
+  docker-scan:
+    name: Container Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret
+          severity: CRITICAL,HIGH
+          # Blocking gate: known CVEs and committed secrets fail the build. If a
+          # fixable finding can't be resolved immediately, baseline it in a
+          # repo-root .trivyignore (Trivy reads it automatically).
+          exit-code: 1
+          ignore-unfixed: true
+      # Advisory: Dockerfile / IaC hardening best-practices. Reported, not blocking.
+      - name: Trivy — misconfiguration (advisory)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: misconfig
+          severity: CRITICAL,HIGH
+          exit-code: 0
+
+  pr-title:
+    name: PR Title
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    # The action reads the PR via the REST API. Without this the job token has
+    # no pull-requests scope and every run dies on "Resource not accessible by
+    # integration" before it ever looks at the title.
+    permissions:
+      pull-requests: read
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+
+  notify-failure:
+    name: Slack Notify
+    if: github.ref == 'refs/heads/main' && failure()
+    needs: [lint, test, build, bundle-size, docker-scan]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve Slack user
+        id: slack-user
+        run: |
+          SLACK_ID=$(echo '${{ vars.SLACK_USER_MAP }}' | python3 -c "import json,sys; m=json.load(sys.stdin); print(m.get('${{ github.actor }}',''))")
+          echo "id=$SLACK_ID" >> $GITHUB_OUTPUT
+          if [ -n "$SLACK_ID" ]; then
+            echo "mention=<@$SLACK_ID>" >> $GITHUB_OUTPUT
+          else
+            echo "mention=${{ github.actor }}" >> $GITHUB_OUTPUT
+          fi
+      - name: Post to #ci-alerts
+        run: |
+          curl -s -X POST -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"channel\":\"#ci-alerts\",\"text\":\":red_circle: *CI failed on main* — <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.repository }}>\\nCommit: \`${{ github.sha }}\` by ${{ steps.slack-user.outputs.mention }}\"}" \
+            https://slack.com/api/chat.postMessage
+      - name: DM the author
+        if: steps.slack-user.outputs.id != ''
+        run: |
+          curl -s -X POST -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"channel\":\"${{ steps.slack-user.outputs.id }}\",\"text\":\":red_circle: Your commit broke CI on *${{ github.repository }}* main\\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View failed run>\"}" \
+            https://slack.com/api/chat.postMessage

@@ -1,0 +1,103 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # federate to GCP (WIF) so npm ci can read @liftoffos/* from Artifact Registry
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: npm
+      # Authenticate to GCP via keyless Workload Identity Federation, then mint a
+      # short-lived Artifact Registry token for .npmrc (${ARTIFACT_REGISTRY_TOKEN}).
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
+          service_account: YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Artifact Registry npm token
+        run: |
+          TOKEN="$(gcloud auth print-access-token)"
+          echo "::add-mask::$TOKEN"
+          echo "ARTIFACT_REGISTRY_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run lint:rls
+      - run: npm test
+      - name: Contract coverage gate
+        run: node -e "import('@liftoffos/contract-tests').then(m => m.runCliCoverageGate())"
+
+  # Every migration, applied to an empty Postgres, in order.
+  #
+  # The suite above has no database, so until this existed a migration's SQL ran
+  # for the first time in the billing-migrate Cloud Run Job — after the images
+  # were built, minutes into a deploy, with the whole pending batch in one
+  # transaction behind it.
+  #
+  # The class it catches cannot fail in a live database at all: a migration
+  # referencing an object a LATER migration creates applies fine everywhere the
+  # earlier one is already recorded, and only breaks where the order matters —
+  # standing up a new environment, or a restore. Migration 008 carried such a
+  # reference for four months.
+  verify-migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: billing_verify
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: npm
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
+          service_account: YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Artifact Registry npm token
+        run: |
+          TOKEN="$(gcloud auth print-access-token)"
+          echo "::add-mask::$TOKEN"
+          echo "ARTIFACT_REGISTRY_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+      - run: npm ci
+      - name: Apply every migration to an empty database
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/billing_verify
+        run: bash scripts/ci/verify-migrations.sh
+
+  partition-baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Next 3 months of partitions in migrations baseline
+        # Uses the vendored copy of the validator. The previous version curled it
+        # from raw.githubusercontent of the PRIVATE infra repo, which 404s (no auth)
+        # and left "404: Not Found" as the script -> exit 127. Keep in sync with
+        # LiftoffOS/Liftoff-Infrastructure-GCP:scripts/ci/validate-partition-baseline.sh.
+        run: bash scripts/ci/validate-partition-baseline.sh migrations 'billing_audit_log_y%Y_m%m'

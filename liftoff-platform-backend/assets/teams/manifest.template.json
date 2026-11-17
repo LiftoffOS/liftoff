@@ -1,0 +1,45 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "{{APP_VERSION}}",
+  "id": "{{BOT_APP_ID}}",
+  "developer": {
+    "name": "Liftoff",
+    "websiteUrl": "https://example.com",
+    "privacyUrl": "https://example.com/privacy",
+    "termsOfUseUrl": "https://example.com/terms"
+  },
+  "name": {
+    "short": "Liftoff",
+    "full": "Liftoff"
+  },
+  "description": {
+    "short": "Chat with your Liftoff AI teams in Microsoft Teams.",
+    "full": "Liftoff is an AI workforce management platform that enables companies to design and deploy AI agents to run their core business functions autonomously alongside their human workforce."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#FB411F",
+  "bots": [
+    {
+      "botId": "{{BOT_APP_ID}}",
+      "scopes": [
+        "personal",
+        "team",
+        "groupchat"
+      ],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+    "{{VALID_DOMAIN}}"
+  ]
+}
+

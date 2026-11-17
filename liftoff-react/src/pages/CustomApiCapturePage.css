@@ -1,0 +1,36 @@
+/* The capture page's own two pieces.
+ *
+ * Everything else on this screen is the shared connector-screen vocabulary
+ * (`agent-connector__content`, `agent-connector-step*`), the same set the OAuth
+ * consent page uses. `.agent-connector` is a full-height centring flex ROW that
+ * expects one `__content` child, so a page that puts its heading, text and
+ * fields straight into it gets them laid out side by side across the viewport.
+ */
+
+/* Both rules below are written as a PAIR of classes on the one element, not as
+ * a single class. What they override lives in another stylesheet
+ * (`AgentConnector.css`, `connectionModals.css`), each of which Vite emits as
+ * its own chunk, so the order the browser applies them in is the order the
+ * chunks happen to load. Between two single-class selectors that order decides
+ * the winner; two classes beat one whatever the order. This is the form the
+ * OAuth consent page already uses for the same reason.
+ *
+ * The credential field is the Connect modal's, and there it is sized by the
+ * modal. Here the step centres its children, which would otherwise shrink the
+ * box to its own content and leave a key being typed into a stub. The modal's
+ * bottom margin goes too: the step's gap already separates it. */
+.connection-modal__fields.custom-api-capture__field {
+  width: 100%;
+  max-width: 350px;
+  margin-bottom: 0;
+}
+
+/* Cancel and Connect sit side by side, as they do in the Connect modal. The
+ * shared actions class is an inline grid, which is right for one button and
+ * puts a pair in a column. */
+.agent-connector-step__actions.custom-api-capture__actions {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-3);
+  justify-content: center;
+}

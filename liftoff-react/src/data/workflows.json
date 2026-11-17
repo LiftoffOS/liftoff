@@ -1,0 +1,142 @@
+{
+  "families": [
+    {
+      "id": "intake",
+      "name": "Intake",
+      "status": "active",
+      "owner": "Sarah Chen",
+      "automationCoverage": 84,
+      "reviewRate": 16,
+      "exceptionRate": 2.1,
+      "lastUpdated": "2024-01-14T10:00:00Z",
+      "systemsTouched": ["CRM", "Email", "Web Forms"],
+      "outcome": "Qualified leads captured"
+    },
+    {
+      "id": "qualification",
+      "name": "Qualification",
+      "status": "active",
+      "owner": "Michael Park",
+      "automationCoverage": 72,
+      "reviewRate": 28,
+      "exceptionRate": 4.2,
+      "lastUpdated": "2024-01-13T14:00:00Z",
+      "systemsTouched": ["CRM", "Data Enrichment", "Scoring Engine"],
+      "outcome": "Lead score and tier assigned"
+    },
+    {
+      "id": "routing",
+      "name": "Routing",
+      "status": "active",
+      "owner": "Jennifer Liu",
+      "automationCoverage": 91,
+      "reviewRate": 9,
+      "exceptionRate": 1.8,
+      "lastUpdated": "2024-01-12T09:00:00Z",
+      "systemsTouched": ["CRM", "Calendar", "Assignment Rules"],
+      "outcome": "Lead assigned to rep/team"
+    },
+    {
+      "id": "scheduling",
+      "name": "Scheduling",
+      "status": "active",
+      "owner": "David Kim",
+      "automationCoverage": 68,
+      "reviewRate": 32,
+      "exceptionRate": 5.1,
+      "lastUpdated": "2024-01-14T16:00:00Z",
+      "systemsTouched": ["Calendar", "Email", "SMS"],
+      "outcome": "Meeting scheduled"
+    },
+    {
+      "id": "handoff",
+      "name": "Handoff",
+      "status": "active",
+      "owner": "Sarah Chen",
+      "automationCoverage": 79,
+      "reviewRate": 21,
+      "exceptionRate": 3.4,
+      "lastUpdated": "2024-01-13T11:00:00Z",
+      "systemsTouched": ["CRM", "Slack", "Email"],
+      "outcome": "Lead transferred to sales"
+    },
+    {
+      "id": "follow-through",
+      "name": "Follow-through",
+      "status": "active",
+      "owner": "Michael Park",
+      "automationCoverage": 65,
+      "reviewRate": 35,
+      "exceptionRate": 4.8,
+      "lastUpdated": "2024-01-14T14:00:00Z",
+      "systemsTouched": ["CRM", "Email", "Calendar"],
+      "outcome": "Engagement maintained"
+    },
+    {
+      "id": "onboarding",
+      "name": "Post-sale Onboarding",
+      "status": "planned",
+      "owner": "Unassigned",
+      "automationCoverage": 0,
+      "reviewRate": 0,
+      "exceptionRate": 0,
+      "lastUpdated": null,
+      "systemsTouched": [],
+      "outcome": "Customer successfully onboarded"
+    },
+    {
+      "id": "recovery",
+      "name": "Recovery / Save",
+      "status": "planned",
+      "owner": "Unassigned",
+      "automationCoverage": 0,
+      "reviewRate": 0,
+      "exceptionRate": 0,
+      "lastUpdated": null,
+      "systemsTouched": [],
+      "outcome": "At-risk customer retained"
+    }
+  ],
+  "stageMap": {
+    "intake": {
+      "stages": ["Inbound", "Capture", "Validate", "Enrich"],
+      "description": "Capture and validate inbound demand"
+    },
+    "qualification": {
+      "stages": ["Score", "Tier", "Prioritize", "Route-ready"],
+      "description": "Assess fit and assign priority"
+    },
+    "routing": {
+      "stages": ["Match", "Assign", "Notify", "Confirm"],
+      "description": "Route to appropriate team/rep"
+    },
+    "scheduling": {
+      "stages": ["Propose", "Negotiate", "Confirm", "Remind"],
+      "description": "Schedule meetings and calls"
+    },
+    "handoff": {
+      "stages": ["Package", "Transfer", "Acknowledge", "Complete"],
+      "description": "Hand off to sales/success team"
+    },
+    "follow-through": {
+      "stages": ["Monitor", "Engage", "Escalate", "Close"],
+      "description": "Ensure engagement and follow-up"
+    }
+  },
+  "governanceSummary": {
+    "autonomous": ["Standard lead capture", "Basic enrichment", "Simple routing", "Automated reminders"],
+    "requiresApproval": ["Enterprise tier changes", "Pricing exceptions", "Compliance waivers"],
+    "requiresReview": ["Low confidence decisions", "Unusual patterns", "Policy exceptions"],
+    "outOfBounds": ["Customer commitments", "Contract terms", "Financial guarantees"]
+  },
+  "exceptionTaxonomy": [
+    { "id": "missing-info", "name": "Missing Information", "count": 23 },
+    { "id": "conflicting-data", "name": "Conflicting Account Data", "count": 12 },
+    { "id": "low-confidence", "name": "Low-confidence Qualification", "count": 8 },
+    { "id": "routing-ambiguity", "name": "Routing Ambiguity", "count": 6 },
+    { "id": "integration-failure", "name": "Integration Failure", "count": 4 },
+    { "id": "policy-conflict", "name": "Policy Conflict", "count": 3 },
+    { "id": "customer-unresponsive", "name": "Customer Unresponsive", "count": 15 },
+    { "id": "system-unavailable", "name": "Downstream System Unavailable", "count": 2 }
+  ]
+}

@@ -1,0 +1,166 @@
+/* Rendered markdown, shared by every surface that shows model-authored text.
+   Sizing and colour are inherited from the surface, so a compact panel and a
+   full-width report both read as themselves; only the internal rhythm,
+   emphasis, and code treatment live here. */
+
+.markdown {
+  min-width: 0;
+}
+
+.markdown > :first-child {
+  margin-top: 0;
+}
+
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown p {
+  margin: 0 0 var(--space-3);
+}
+
+/* Bold and italic emphasis. The app body sets
+   `font-variation-settings: "opsz" 32, "wght" 320`, which on a variable font
+   overrides plain `font-weight` — a <strong> styled with weight alone renders
+   identical to the text around it, so `**bold**` silently does nothing.
+   Restate both axes. */
+.markdown strong,
+.markdown b {
+  font-weight: 600;
+  font-variation-settings: "opsz" 32, "wght" 600;
+  color: var(--color-black);
+}
+
+.markdown em,
+.markdown i {
+  font-style: italic;
+}
+
+.markdown ul,
+.markdown ol {
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-5);
+}
+
+.markdown li {
+  margin-bottom: var(--space-1);
+}
+
+.markdown li:last-child {
+  margin-bottom: 0;
+}
+
+.markdown li > ul,
+.markdown li > ol {
+  margin: var(--space-1) 0 0;
+}
+
+/* A list item whose content is wrapped in a paragraph (any item in a list with
+   a blank line in it) would otherwise carry the paragraph's bottom margin and
+   double the gap between items. An item that genuinely holds two paragraphs
+   keeps the gap between them. */
+.markdown li > p {
+  margin: 0 0 var(--space-2);
+}
+
+.markdown li > p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  font-size: 1em;
+  font-weight: 600;
+  font-variation-settings: "opsz" 32, "wght" 600;
+  color: var(--color-black);
+  line-height: 1.4;
+  margin: var(--space-4) 0 var(--space-2);
+}
+
+/* Identifiers, ids, filenames, and tool names — the reason this text carries
+   backticks at all. Set apart so a long id reads as one object rather than as
+   a run of characters in the middle of a sentence. */
+.markdown code {
+  font-family: var(--font-mono, ui-monospace, "SF Mono", monospace);
+  font-size: 0.875em;
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.35em;
+  /* Ids and URLs are long and unbreakable; wrapping mid-token beats a panel
+     that scrolls sideways. */
+  overflow-wrap: anywhere;
+}
+
+.markdown pre {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+
+.markdown pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  overflow-wrap: normal;
+  white-space: pre;
+}
+
+.markdown blockquote {
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--border-medium);
+  color: var(--color-gray-400);
+}
+
+.markdown a {
+  color: var(--color-accent);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.markdown a:hover {
+  text-decoration: underline;
+}
+
+.markdown hr {
+  margin: var(--space-4) 0;
+  border: none;
+  border-top: 1px solid var(--border-light);
+}
+
+/* Tables (GFM). Own scroll container so a wide table never widens the panel. */
+.markdown table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 0 0 var(--space-3);
+}
+
+.markdown th,
+.markdown td {
+  border: 1px solid var(--border-light);
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+}
+
+.markdown th {
+  background: var(--color-gray-50);
+  font-weight: 600;
+  font-variation-settings: "opsz" 32, "wght" 600;
+  color: var(--color-black);
+}
+
+/* Inline variant: the markdown continues a sentence that started outside it,
+   so it contributes no block boxes of its own. */
+.markdown--inline {
+  display: inline;
+}

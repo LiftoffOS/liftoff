@@ -1,0 +1,17 @@
+# Migration runner image — invoked as a Cloud Run Job by the
+# billing-migrate trigger. Runs node-pg-migrate against the `billing`
+# database using the billing_migrate role (the only role with DDL privilege).
+FROM node:20-alpine
+# psql, for the billing-psql break-glass job which runs this image with its CMD
+# overridden (see terraform/projects/platform-control/billing_psql.tf). Alpine
+# ships neither a postgres client nor bash, so without this the job's container
+# cannot start at all: "Application failed to start ... exec likely failed".
+RUN apk add --no-cache postgresql-client
+ARG ARTIFACT_REGISTRY_TOKEN
+WORKDIR /app
+COPY package.json package-lock.json* .npmrc ./
+RUN ARTIFACT_REGISTRY_TOKEN="${ARTIFACT_REGISTRY_TOKEN}" npm ci --omit=dev
+COPY migrations ./migrations
+COPY scripts/migrate-entrypoint.sh ./scripts/
+RUN chmod +x /app/scripts/migrate-entrypoint.sh
+CMD ["/app/scripts/migrate-entrypoint.sh"]

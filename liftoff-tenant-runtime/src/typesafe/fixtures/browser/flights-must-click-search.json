@@ -1,0 +1,139 @@
+{
+  "set": {
+    "id": "browser_step",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "page": {
+    "url": "https://fixture.test/flights",
+    "title": "Fixture",
+    "w": 756,
+    "h": 413,
+    "text": "Flight search\nFrom\nTo\nDate\nSearch flights",
+    "scroll": {
+      "y": 0,
+      "height": 413
+    },
+    "actions": [
+      {
+        "node": 1,
+        "role": "textbox",
+        "label": "From",
+        "rect": {
+          "x": 68.671875,
+          "y": 88.4375,
+          "w": 153,
+          "h": 21
+        },
+        "kind": "fill",
+        "value": "ZRH",
+        "id": "e1"
+      },
+      {
+        "node": 1,
+        "role": "textbox",
+        "label": "Open From",
+        "rect": {
+          "x": 68.671875,
+          "y": 88.4375,
+          "w": 153,
+          "h": 21
+        },
+        "kind": "click",
+        "value": "ZRH",
+        "id": "e2"
+      },
+      {
+        "node": 2,
+        "role": "textbox",
+        "label": "To",
+        "rect": {
+          "x": 242.328125,
+          "y": 88.4375,
+          "w": 153,
+          "h": 21
+        },
+        "kind": "fill",
+        "value": "LHR",
+        "id": "e3"
+      },
+      {
+        "node": 2,
+        "role": "textbox",
+        "label": "Open To",
+        "rect": {
+          "x": 242.328125,
+          "y": 88.4375,
+          "w": 153,
+          "h": 21
+        },
+        "kind": "click",
+        "value": "LHR",
+        "id": "e4"
+      },
+      {
+        "node": 3,
+        "role": "textbox",
+        "label": "Date",
+        "rect": {
+          "x": 429.53125,
+          "y": 88.4375,
+          "w": 153,
+          "h": 21
+        },
+        "kind": "fill",
+        "value": "2026-10-03",
+        "id": "e5"
+      },
+      {
+        "node": 3,
+        "role": "textbox",
+        "label": "Open Date",
+        "rect": {
+          "x": 429.53125,
+          "y": 88.4375,
+          "w": 153,
+          "h": 21
+        },
+        "kind": "click",
+        "value": "2026-10-03",
+        "id": "e6"
+      },
+      {
+        "node": 4,
+        "role": "button",
+        "label": "Search flights",
+        "rect": {
+          "x": 582.53125,
+          "y": 88.4375,
+          "w": 96.765625,
+          "h": 21
+        },
+        "kind": "click",
+        "value": "",
+        "id": "e7"
+      },
+      {
+        "id": "wait",
+        "kind": "wait",
+        "label": "Wait for the page to update"
+      }
+    ],
+    "marker": null,
+    "page_key": null,
+    "guards": {},
+    "omitted_actions": 0,
+    "fingerprint": "090ee5def0d6af8bcae49f5202e316699fe7d245e07a7a81990ce52e0d4bec56"
+  },
+  "goal": "Search flights from ZRH to LHR on 2026-10-03",
+  "history": [],
+  "expect": {
+    "operation": {
+      "choice": "CLICK"
+    },
+    "click_target": {
+      "label": "Search flights"
+    }
+  },
+  "note": "Every field already holds the requested value; submitting is the step, not retyping."
+}

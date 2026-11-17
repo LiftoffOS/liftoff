@@ -1,0 +1,16 @@
+{
+  "name": "@liftoffos/turn-bounds",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "One bound policy for a model turn: when the rounds are spent, the window is full, or the deadline has passed \u2014 and what a missing window may and may not decide.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "set": {
+    "id": "ask_check",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "ask": {
+      "kind": "question",
+      "text": "Which sheet should I write the weekly summary to?"
+    },
+    "contract": {
+      "kind": "step",
+      "stepId": "s3",
+      "description": "Append the weekly summary row to the sheet.",
+      "toolName": "google_sheets-2a1b__append_row"
+    },
+    "known": {
+      "inputs": "{\"week\": \"2026-W38\"}",
+      "recentToolResults": "[{\"name\": \"crm__list_closed_deals\", \"success\": true, \"result\": {\"count\": 4}}]",
+      "stepOutputs": "{\"s1\": {\"deals\": 4}}"
+    },
+    "setting": "important"
+  },
+  "expect": {
+    "answerable_from_context": {
+      "choice": "no",
+      "min": 0.5
+    }
+  },
+  "note": "Nothing the run holds names a sheet."
+}

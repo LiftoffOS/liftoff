@@ -1,0 +1,29 @@
+.wave-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  display: none; /* Hidden for now */
+}
+
+.wave-svg {
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 160%;
+  height: 160%;
+  min-width: 1440px;
+}
+
+.wave-line {
+  stroke-linecap: round;
+}
+
+.wave-group {
+  transform-origin: center center;
+}

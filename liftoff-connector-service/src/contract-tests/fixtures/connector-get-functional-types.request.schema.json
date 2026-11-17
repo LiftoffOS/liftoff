@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/connector-get-functional-types.request.schema.json",
+  "title": "ConnectorGetFunctionalTypesRequest",
+  "description": "Request body for POST /api/connectors/functional-types — returns the set of connector types that are functional end-to-end (OAuth + MCP wired). Optionally scoped to a single tenant via tenantContext; an empty body returns the platform-wide list.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "tenantContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tenantId": { "type": "string", "minLength": 1 },
+        "workflowId": { "type": "string" },
+        "agentId": { "type": "string" },
+        "actorId": { "type": "string" }
+      }
+    },
+    "idempotencyKey": { "type": "string", "minLength": 1 }
+  }
+}

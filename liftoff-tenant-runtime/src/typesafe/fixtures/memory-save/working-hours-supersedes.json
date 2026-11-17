@@ -1,0 +1,37 @@
+{
+  "set": {
+    "id": "memory_save",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "content": "Since September Priya works 8am to 4pm CET; she no longer works 9 to 5.",
+    "layer": "individual",
+    "requestedTags": [
+      "agent-initiated"
+    ],
+    "contract": {
+      "kind": "instructions",
+      "instructions": "Every Monday, read the CRM for last week's closed deals, append one summary row to the Sales tracking sheet, and notify #sales-ops when done. Route billing questions to the finance team.",
+      "role": "You are the Sales Ops assistant for Acme."
+    },
+    "neighbours": [
+      {
+        "neighbour": 0,
+        "id": "n-hours",
+        "content": "Priya works 9am to 5pm CET."
+      }
+    ],
+    "aboutPerson": {
+      "accountId": "acc-priya",
+      "facet": "working_hours"
+    }
+  },
+  "expect": {
+    "relation_0": {
+      "choice": "supersedes",
+      "min": 0.8
+    }
+  },
+  "note": "A newer observation of the same facet beside an older one. Pins SUPERSEDE_T."
+}

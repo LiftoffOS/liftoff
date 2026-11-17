@@ -1,0 +1,108 @@
+{
+  "connectorType": "coupler",
+  "harvestedAt": "2026-09-15",
+  "source": "vendor_oss",
+  "sourceUrl": "https://github.com/railsware/coupler-io-mcp-server/tree/550ec75cb48bbbe0be286577b30c3a32f9bb0eea",
+  "tools": [
+    {
+      "name": "get-data",
+      "description": "Get data from a Coupler.io data flow run. Make sure to first query a sample of 5 rows from `data` table, e.g. `SELECT * from data LIMIT 5`, and then run the `get-schema` tool, to better understand the structure. The `get-schema` tool will return the JSON-encoded schema of the `data` table. When visualizing the data, do not try to read any files or fetch any URLs, just generate a static page and use the data you get from the tools.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "dataflowId": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "description": "The ID of the data flow with a successful run"
+          },
+          "executionId": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "description": "The ID of the last successful run (execution) of the data flow."
+          },
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^SELECT.*?",
+            "description": "The SQL query to run on the data flow sqlite file."
+          }
+        },
+        "required": [
+          "dataflowId",
+          "executionId",
+          "query"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get-schema",
+      "description": "Get data table schema from a Coupler.io data flow. Get column names from `columnName` properties in column definitions. Example: {\"columns\":[{\"key\":\"Row Updated At.0\",\"label\":\"Row Updated At\",\"schema\":{\"type\":\"string\"},\"typeOptions\":{},\"columnName\":\"col_0\"},{\"key\":\"Dimension: Source.0\",\"label\":\"Dimension: Source\",\"schema\":{\"type\":\"string\"},\"typeOptions\":{},\"columnName\":\"col_1\"}]}. Here the columns are `col_0` and `col_1`.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "dataflowId": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "description": "The ID of the data flow with a successful run"
+          },
+          "executionId": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "description": "The ID of the last successful run (execution) of the data flow."
+          }
+        },
+        "required": [
+          "dataflowId",
+          "executionId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list-dataflows",
+      "description": "List my Coupler.io data flows. Use this to get the ID (uuid format) of a data flow by its name.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get-dataflow",
+      "description": "Get a Coupler.io data flow by ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "dataflowId": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "description": "The ID of the data flow with a successful run."
+          }
+        },
+        "required": [
+          "dataflowId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    }
+  ]
+}

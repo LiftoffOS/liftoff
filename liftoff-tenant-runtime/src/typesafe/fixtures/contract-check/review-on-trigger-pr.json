@@ -1,0 +1,40 @@
+{
+  "set": {
+    "id": "contract_check",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "contract": {
+      "kind": "step",
+      "stepId": "s7",
+      "description": "Post the review findings as a pull request review on the pull request that woke the run.",
+      "toolName": "github-dd4c4689__create_pull_request_review"
+    },
+    "trigger": {
+      "source": "github",
+      "entity": {
+        "repository": "acme/webapp",
+        "number": "42"
+      }
+    },
+    "calls": [
+      {
+        "call": 0,
+        "tool": "github-dd4c4689__create_pull_request_review",
+        "arguments": "{\"owner\": \"acme\", \"repo\": \"webapp\", \"pullNumber\": 42, \"event\": \"COMMENT\", \"body\": \"Two findings: the retry loop never backs off, and the test asserts the mock rather than the output.\"}"
+      }
+    ],
+    "recent": [
+      "github-dd4c4689__pull_request_read",
+      "github-dd4c4689__get_pull_request_diff"
+    ]
+  },
+  "expect": {
+    "relation_0": {
+      "choice": "within",
+      "min": 0.6
+    }
+  },
+  "note": "The declared step, on the pull request that woke the run."
+}

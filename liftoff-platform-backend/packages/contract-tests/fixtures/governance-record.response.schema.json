@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/governance-record.response.schema.json",
+  "title": "GovernanceRecordResponse",
+  "description": "Response from POST /api/governance/record. Always 202 Accepted; caller does not block.",
+  "type": "object",
+  "required": ["accepted"],
+  "additionalProperties": false,
+  "properties": {
+    "accepted": { "const": true }
+  }
+}

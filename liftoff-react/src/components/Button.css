@@ -1,0 +1,127 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 14px 28px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  font-variation-settings: "opsz" 32, "wght" 320;
+  text-decoration: none;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-out);
+  white-space: nowrap;
+}
+
+.btn--sm {
+  padding: 10px 20px;
+  font-size: 12px;
+}
+
+/* Primary - accent color CTA */
+.btn--primary {
+  background: var(--color-accent);
+  color: var(--color-white);
+  border-color: var(--color-accent);
+}
+
+.btn--primary:hover {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+/* Outline - transparent with border */
+.btn--outline {
+  background: transparent;
+  color: var(--color-black);
+  border-color: var(--border-medium);
+}
+
+.btn--outline:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-300);
+}
+
+/* Secondary - dark background */
+.btn--secondary {
+  background: var(--color-black);
+  color: var(--color-white);
+  border-color: var(--color-black);
+}
+
+.btn--secondary:hover {
+  background: #2a2a2a;
+  border-color: #2a2a2a;
+}
+
+/* Destructive - red CTA for irreversible actions (delete account, etc.) */
+.btn--destructive {
+  background: #c0392b;
+  color: var(--color-white);
+  border-color: #c0392b;
+}
+
+.btn--destructive:hover {
+  background: #a93225;
+  border-color: #a93225;
+}
+
+/* Text - ghost button for low-emphasis secondary actions (e.g. "Maybe Later") */
+.btn--text {
+  background: transparent;
+  color: var(--color-gray-400);
+  border-color: transparent;
+  font-weight: 500;
+  padding: 14px 24px;
+}
+
+.btn--text:hover {
+  background: var(--color-gray-50);
+  color: var(--color-black);
+  border-color: var(--border-medium);
+}
+
+/* No focus ring on buttons. */
+.btn:focus-visible {
+  outline: none;
+}
+
+/* Disabled state - subtle, still inviting */
+.btn--disabled,
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+
+.btn--disabled:hover,
+.btn:disabled:hover {
+  transform: none;
+}
+
+/* Loading state */
+.btn--loading {
+  pointer-events: none;
+  position: relative;
+}
+
+.btn__text--hidden {
+  visibility: hidden;
+}
+
+.btn__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}

@@ -1,0 +1,121 @@
+/* CollapsibleSection — extracted from AgentUpdatePage Advanced Settings pattern */
+
+.collapsible-section {
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: 0;
+}
+
+.collapsible-section--disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* Header button — no font: inherit, no font overrides.
+   The <h2> inside gets its font from the global h1-h6 rule. */
+.collapsible-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.collapsible-section__header:hover:not(:disabled) {
+  background: var(--color-gray-50);
+}
+
+.collapsible-section__header:disabled {
+  cursor: default;
+}
+
+.collapsible-section__header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* Title — uses <h2> so it inherits font-family, font-weight: 400,
+   font-variation-settings: "opsz" 32, "wght" 320, letter-spacing,
+   and line-height from the global h1-h6 rule in index.css.
+   Only font-size is overridden here. DO NOT set font-weight —
+   the thin rendering comes from font-variation-settings "wght" 320. */
+.collapsible-section__title {
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  margin: 0;
+}
+
+.collapsible-section__title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  text-align: left;
+}
+
+.collapsible-section__summary {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Chevron — matches .agent-update__collapsible-icon */
+.collapsible-section__chevron {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--color-gray-400);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.collapsible-section__chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Content — matches .agent-update__collapsible-content */
+.collapsible-section__content {
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* Circular checkbox — for first-time setup flows */
+.collapsible-section__check {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-300);
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.collapsible-section__check--done {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.collapsible-section__check-icon {
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}

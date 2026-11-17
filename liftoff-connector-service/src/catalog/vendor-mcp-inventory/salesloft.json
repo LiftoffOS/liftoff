@@ -1,0 +1,125 @@
+{
+  "connectorType": "salesloft",
+  "harvestedAt": "2026-09-15",
+  "source": "oauth_scopes",
+  "sourceUrl": "https://help.salesloft.com/s/article/Salesloft-MCP-Server",
+  "tools": [
+    {
+      "name": "account_by_id",
+      "description": "Data about a company/account including name, description, domain, etc. as well as references (by URL) to the associated User who owns an Account, User that created the Account, etc.",
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "httpMethod": "GET",
+      "path": "https://developers.salesloft.com/docs/api/accounts-show/"
+    },
+    {
+      "name": "conversation_by_id",
+      "description": "Detailed conversation data including participants, messages, etc.",
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "httpMethod": "GET",
+      "path": "https://developers.salesloft.com/docs/api/conversations-find-one-extensive/"
+    },
+    {
+      "name": "conversation_recording_by_id",
+      "description": "Audio/video recording data for conversations.",
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "httpMethod": "GET",
+      "path": "https://developers.salesloft.com/docs/api/conversations-find-one-conversation-recording/"
+    },
+    {
+      "name": "current_team",
+      "description": "Given the provided auth context, returns data about the Salesloft Team with which the end-user is associated.",
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "httpMethod": "GET",
+      "path": "https://developers.salesloft.com/docs/api/team-index/"
+    },
+    {
+      "name": "current_user",
+      "description": "Given provided auth context, returns data about the Salesloft User who is interacting with the MCP client.",
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "httpMethod": "GET",
+      "path": "https://developers.salesloft.com/docs/api/me-index/"
+    },
+    {
+      "name": "opportunity_by_id",
+      "description": "Data about deals from CRM.",
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "httpMethod": "GET",
+      "path": "https://developers.salesloft.com/docs/api/opportunities-show/"
+    },
+    {
+      "name": "person_by_id",
+      "description": "People includes records like contacts or leads that are stored in Salesloft.",
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "httpMethod": "GET",
+      "path": "https://developers.salesloft.com/docs/api/people-show/"
+    },
+    {
+      "name": "search_accounts",
+      "description": "Salesloft ID, Account Name, Account OwnerID… [Account Fields + Account Custom Fields].",
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "httpMethod": "GET",
+      "path": "https://developers.salesloft.com/docs/api/accounts-index/"
+    },
+    {
+      "name": "search_conversations",
+      "description": "ID, title, duration, creation_date, account details and person details.",
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "httpMethod": "GET",
+      "path": "https://developers.salesloft.com/docs/api/conversations-find-all/"
+    },
+    {
+      "name": "search_opportunities",
+      "description": "Opportunity data like opportunity name, type, amount, stage, account name.",
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "httpMethod": "GET",
+      "path": "https://developers.salesloft.com/docs/api/opportunities-index/"
+    },
+    {
+      "name": "search_people",
+      "description": "ID, first_name, last_name, email, job_title.",
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "httpMethod": "GET",
+      "path": "https://developers.salesloft.com/docs/api/people-index/"
+    },
+    {
+      "name": "search_users",
+      "description": "List of Users ID, guID, name and email.",
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "httpMethod": "GET",
+      "path": "https://developers.salesloft.com/docs/api/users-index/"
+    },
+    {
+      "name": "user_by_id",
+      "description": "User ID, guID, name and email.",
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "httpMethod": "GET",
+      "path": "https://developers.salesloft.com/docs/api/users-show/"
+    }
+  ]
+}

@@ -1,0 +1,517 @@
+.onboarding {
+  position: fixed;
+  inset: 0;
+  background: var(--color-white);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  font-family: var(--font-sans);
+  color: var(--color-black);
+  overflow-y: auto;
+}
+
+/* Frosted-glass layer in front of the per-step background image but behind
+ * everything else. Negative z-index keeps it under the normal-flow content
+ * without touching any child's positioning. .onboarding establishes its own
+ * stacking context (z-index 100 + position fixed) so z-index: -1 here is
+ * clamped within that context — the layer can't escape behind the page. */
+.onboarding::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.onboarding--cover {
+  background: url('/backgrounds/bg-01.webp') center / cover no-repeat;
+}
+
+/* Step 0 keeps the welcome artwork crisp — no frosted overlay. */
+.onboarding--cover::before {
+  display: none;
+}
+
+/* Backgrounds on workspace_name and persona are commented out until we
+ * settle on the per-step artwork. Keeping only welcome, plan, and all_set
+ * with backgrounds avoids the inconsistent "some pages have art, some
+ * don't" feel across the hire_gallery / hire_confirm / payment /
+ * provisioning steps that intentionally stay clean. */
+/*
+.onboarding--step-workspace_name {
+  background: url('/backgrounds/bg-02.webp') center / cover no-repeat;
+}
+
+.onboarding--step-persona {
+  background: url('/backgrounds/bg-04.webp') center / cover no-repeat;
+}
+*/
+
+.onboarding--step-plan {
+  background: url('/backgrounds/bg-24.webp') center / cover no-repeat;
+}
+
+/* ---------- Body ---------- */
+.onboarding__body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-10) var(--space-8);
+}
+
+/* The .onboarding--step-hire_gallery rules that lived here sized the embedded
+   AgentExplorePage inside the wizard shell. The hire left onboarding (ADR-050),
+   so no step carries that modifier class and the gallery is only ever rendered
+   by its own route, with its own layout. */
+
+.onboarding__content {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.onboarding__content--wide {
+  max-width: 880px;
+}
+
+.onboarding__content--centered {
+  align-items: center;
+  text-align: center;
+}
+
+/* ---------- Skip (plan step, onboarding only) ---------- */
+/* Mirrors .back-button on the opposite corner: same offsets, same z-index,
+   same responsive override, so the two pieces of chrome sit symmetrically.
+   Text rather than an icon because "Skip" has no unambiguous glyph.
+   Positions against .onboarding (position: fixed; inset: 0) — .onboarding__content
+   establishes no containing block, so this resolves to the same ancestor the
+   back button does. */
+.onboarding__skip {
+  position: absolute;
+  top: var(--space-6);
+  right: var(--space-6);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 var(--space-4);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-full, 9999px);
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-out);
+  color: var(--color-gray-400);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.onboarding__skip:hover {
+  color: var(--color-black);
+  background: var(--color-gray-100);
+}
+
+@media (max-width: 768px) {
+  .onboarding__skip {
+    top: var(--space-4);
+    right: var(--space-4);
+  }
+}
+
+/* ---------- Step 2: Workspace name input ---------- */
+.onboarding-name-input {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+}
+
+.onboarding-name-input__field {
+  width: 100%;
+  padding: 14px 64px 14px 64px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: 9999px;
+  outline: none;
+  text-align: center;
+  transition: border-color 0.15s ease;
+}
+
+.onboarding-name-input__field::placeholder {
+  color: var(--color-gray-400);
+}
+
+.onboarding-name-input__field:focus {
+  border-color: var(--color-accent);
+}
+
+.onboarding-name-input__count {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.onboarding__title {
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.32px;
+  color: var(--color-black);
+  font-variation-settings: "opsz" 32, "wght" 320;
+  font-feature-settings: 'blwf' on;
+  margin: 0;
+}
+
+.onboarding__subtitle {
+  font-size: var(--text-base);
+  font-weight: 400;
+  line-height: 1.6;
+  color: rgba(64, 64, 64, 0.6);
+  letter-spacing: -0.01em;
+  font-variation-settings: "opsz" 32, "wght" 320;
+  font-feature-settings: 'blwf' on;
+  margin: var(--space-2) 0 0;
+}
+
+@media (max-width: 768px) {
+  .onboarding__title {
+    font-size: 24px;
+    letter-spacing: -0.24px;
+  }
+}
+
+/* ---------- Step actions ---------- */
+.onboarding__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+/* ---------- Step 1: Welcome ---------- */
+.onboarding-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 24px;
+  width: 100%;
+  max-width: 700px;
+  padding: 48px 64px;
+}
+
+.onboarding-welcome__title {
+  font-size: 48px;
+  font-weight: 400;
+  line-height: 56px;
+  letter-spacing: -0.48px;
+  color: var(--color-black);
+  max-width: 700px;
+  font-variation-settings: "opsz" 32, "wght" 320;
+  font-feature-settings: 'blwf' on;
+  margin: 0;
+  opacity: 0;
+  animation: onboarding-fade-up 1.2s ease-out 0.2s forwards;
+}
+
+.onboarding-welcome__subtitle {
+  font-size: var(--text-lg);
+  font-weight: 400;
+  line-height: 1.6;
+  color: rgba(64, 64, 64, 0.6);
+  max-width: 620px;
+  letter-spacing: -0.01em;
+  font-variation-settings: "opsz" 32, "wght" 320;
+  font-feature-settings: 'blwf' on;
+  margin: 0;
+  opacity: 0;
+  animation: onboarding-fade-up 1.2s ease-out 0.8s forwards;
+}
+
+.onboarding-welcome__cta {
+  margin-top: 8px;
+  opacity: 0;
+  animation: onboarding-fade-up 1.2s ease-out 1.4s forwards;
+}
+
+.onboarding-welcome__cta .btn {
+  padding: 20px 32px;
+  height: 60px;
+}
+
+@media (max-width: 768px) {
+  .onboarding-welcome {
+    gap: 20px;
+    padding: 32px 24px;
+  }
+
+  .onboarding-welcome__title {
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -0.32px;
+    max-width: 280px;
+  }
+
+  .onboarding-welcome__subtitle {
+    font-size: var(--text-base);
+  }
+
+  .onboarding-welcome__cta .btn {
+    padding: 14px 24px;
+    height: auto;
+  }
+}
+
+@keyframes onboarding-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Step 2: Role selection ---------- */
+.onboarding-roles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+.onboarding-role,
+.onboarding-role *,
+.onboarding-plan,
+.onboarding-plan * {
+  transition: none !important;
+}
+
+.onboarding-role {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-white);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--color-black);
+}
+
+.onboarding-role:hover {
+  background: var(--color-gray-50);
+}
+
+.onboarding-role--selected,
+.onboarding-role--selected:hover {
+  border-color: var(--color-accent);
+  background: rgba(255, 107, 0, 0.04);
+}
+
+.onboarding-role__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-white);
+}
+
+.onboarding-role__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.onboarding-role__icon--generalist   { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+.onboarding-role__icon--customer     { background: linear-gradient(135deg, #10b981 0%, #047857 100%); }
+.onboarding-role__icon--operations   { background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); }
+.onboarding-role__icon--talent       { background: linear-gradient(135deg, #8b5cf6 0%, #5b21b6 100%); }
+.onboarding-role__icon--engineering  { background: linear-gradient(135deg, #ec4899 0%, #9d174d 100%); }
+.onboarding-role__icon--other        { background: linear-gradient(135deg, #64748b 0%, #334155 100%); }
+
+.onboarding-role__label {
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+
+/* ---------- Step 3: Pricing — reuses .pricing-plan-card from PricingPage.css ---------- */
+.onboarding__content .pricing-page__plans-grid {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* Constrain section content width inside onboarding so it matches the cards above,
+   even though the section background still spans edge-to-edge of the viewport. */
+.onboarding .pricing-page__section-inner {
+  max-width: 880px;
+}
+
+
+/* ---------- Step 4: Payment ---------- */
+.onboarding-payment {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.onboarding-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.onboarding-field__label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-sm);
+  color: var(--color-gray-400);
+}
+
+.onboarding-field__input {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  font-family: inherit;
+  background: var(--color-white);
+  color: var(--color-black);
+  transition: border-color 0.15s ease;
+}
+
+.onboarding-field__input:focus {
+  outline: none;
+  border-color: var(--color-black);
+}
+
+.onboarding-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.onboarding-payment__notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+}
+
+/* ---------- Step 5: Invites ---------- */
+.onboarding-invites__textarea {
+  width: 100%;
+  min-height: 110px;
+  padding: 12px 20px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  outline: none;
+  resize: vertical;
+  line-height: 1.5;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.onboarding-invites__textarea::placeholder {
+  color: var(--color-gray-400);
+}
+
+.onboarding-invites__textarea:focus-visible {
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+
+/* Skip-invite confirmation modal */
+.onboarding-skip-modal__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0 0 var(--space-2);
+  text-align: center;
+}
+
+.onboarding-skip-modal__description {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin: 0 auto var(--space-5);
+  max-width: 300px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.onboarding-skip-modal__actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+/* Dev-only bypass under the payment panel — only renders on /dev/onboarding
+ * (previewMode is true). Lets you skip to the invite step when the real
+ * /subscribe call would 409 because the test tenant already has an active
+ * subscription. Styled like the gray-400 text-link pattern. */
+.onboarding__dev-bypass {
+  margin-top: var(--space-3);
+  display: flex;
+  justify-content: center;
+}
+
+.onboarding__dev-bypass-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  cursor: pointer;
+  font-variation-settings: "opsz" 32, "wght" 320;
+}
+
+.onboarding__dev-bypass-link:hover {
+  color: var(--color-black);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 720px) {
+  .onboarding__header,
+  .onboarding__body,
+  .onboarding__footer {
+    padding-left: var(--space-5);
+    padding-right: var(--space-5);
+  }
+
+  .onboarding__title {
+    font-size: var(--text-3xl);
+  }
+
+  .onboarding-roles,
+  .onboarding-plans {
+    grid-template-columns: 1fr;
+  }
+
+  .onboarding-field-row {
+    grid-template-columns: 1fr;
+  }
+}

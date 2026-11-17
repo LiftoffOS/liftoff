@@ -1,0 +1,128 @@
+[
+  {
+    "tool": "post_folders",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "companyresources_deleteresourcebyid",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "companyresources_updatefoldername",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "companyresources_deletefolderbyid",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "post_events",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "homefeed_deleteannouncement",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "homefeed_createeventcomment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "homefeed_createeventlike",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "homefeed_likeeventcomment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "homefeed_deleteeventcommentlike",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "homefeed_removeeventcomment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "homefeed_removeeventlike",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "jobsinfo_createjobtier",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "jobsinfo_updatelabel",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "jobsinfo_createjobtitle",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "jobsinfo_updatejobtitle",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "profilefields_createprofilefield",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "profilefields_updatefieldinsection",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "profilefields_updatefieldinsection_sections",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "post_profiles",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "profiles_updateprofilewithnewjobtitle",
+    "categories": [
+      "dataChanges"
+    ]
+  }
+]

@@ -1,0 +1,82 @@
+version: 2
+
+# Two streams, tuned in opposite directions.
+#
+# SECURITY updates are switched on in repository settings and are deliberately
+# NOT configured here. They bypass everything below by design: they ignore
+# `groups`, and `ignore` rules do not suppress them. They should arrive fast,
+# individually, and for any severity of version jump.
+#
+# VERSION updates are the noisy half, and every option here exists to keep them
+# quiet — grouped so one pull request carries a whole tier, cooled off so a
+# release is never taken on the day it ships, and majors excluded because a
+# major is a migration somebody schedules, not a pull request somebody merges.
+#
+# This replaced a configuration that produced 45 open Dependabot pull requests
+# across the org, nearly all of them majors and the oldest 110 days old, while
+# 90 security alerts sat unaddressed because security updates were disabled.
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+    # Never on release day. This is noise control and a supply-chain measure at
+    # once: a compromised publish is usually caught within days of going out.
+    cooldown:
+      semver-minor-days: 7
+      semver-patch-days: 3
+
+    # Majors are planned work. This does NOT weaken security cover: ignore
+    # rules do not apply to security updates, so a major that fixes a CVE
+    # still opens a pull request.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      # re2 ships a prebuilt binary per Node ABI. 1.26.x has none for the ABI
+      # this CI runs (linux-x64-115), so `npm ci` falls back to a node-gyp
+      # build and fails outright — and it takes every job down with it, Lint
+      # included. It did exactly that to a 23-package group update, where one
+      # uninstallable dependency blocked the other 22. Excluded from version
+      # updates until upstream publishes a matching prebuild.
+      #
+      # This does NOT hide its advisory: ignore rules do not apply to security
+      # updates, so re2 security fixes still open a pull request. They will
+      # keep failing to install until the prebuild exists, which is upstream's
+      # problem to solve and worth watching.
+      - dependency-name: "re2"
+      # @composio/core ships ESM only from 0.11 (dist/index.mjs). Jest here runs
+      # CommonJS, so every suite that reaches the adapter catalog dies with
+      # "Cannot use import statement outside a module" — it failed all three
+      # shards and took a 22-package group down with it, the same way re2 did.
+      # Moving to it is a Jest/transform migration somebody schedules, not a
+      # version bump. Security updates still surface: ignore does not apply
+      # to them.
+      - dependency-name: "@composio/core"
+      # The Claude Agent SDK version is PINNED and asserted in two places: the
+      # adapter header names it, and a contract document states it. Moving it
+      # means updating both and re-running the hook-contract certification, so
+      # an automated bump only ever arrives as a red test — it failed
+      # `the pinned SDK version` on two counts and took a 21-package group with
+      # it. Upgrades here are coordinated work. Security updates still surface.
+      - dependency-name: "@anthropic-ai/claude-agent-sdk"
+
+    # Split by blast radius rather than by package, so the auto-merge workflow
+    # can take the harmless tier and leave runtime dependencies to a human.
+    groups:
+      production:
+        dependency-type: "production"
+      development:
+        dependency-type: "development"
+
+  # Ungrouped, this was 16 of the 45 open pull requests — one per action, every
+  # week. There is no reason to review `actions/checkout` on its own.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns: ["*"]

@@ -1,0 +1,154 @@
+{
+  "activityLog": [
+    {
+      "id": "log-001",
+      "timestamp": "2024-01-15T09:32:00Z",
+      "type": "ai_action",
+      "action": "Auto-enriched company data",
+      "workItemId": "WI-2024-1847",
+      "customer": "Acme Corp",
+      "user": "AI System",
+      "details": "Added company size, revenue, and industry data from D&B"
+    },
+    {
+      "id": "log-002",
+      "timestamp": "2024-01-15T09:30:00Z",
+      "type": "human_action",
+      "action": "Approved routing decision",
+      "workItemId": "WI-2024-1850",
+      "customer": "NewTech Solutions",
+      "user": "Sarah Chen",
+      "details": "Approved enterprise routing with note: Strategic account"
+    },
+    {
+      "id": "log-003",
+      "timestamp": "2024-01-15T09:28:00Z",
+      "type": "approval",
+      "action": "Discount approved",
+      "workItemId": "WI-2024-1848",
+      "customer": "RetailMax",
+      "user": "Michael Park",
+      "details": "12% discount approved for 2-year term"
+    },
+    {
+      "id": "log-004",
+      "timestamp": "2024-01-15T09:15:00Z",
+      "type": "rule_change",
+      "action": "Policy updated",
+      "workItemId": null,
+      "customer": null,
+      "user": "Jennifer Liu",
+      "details": "Updated SLA threshold for scheduling workflow"
+    },
+    {
+      "id": "log-005",
+      "timestamp": "2024-01-15T09:00:00Z",
+      "type": "integration_event",
+      "action": "CRM sync completed",
+      "workItemId": null,
+      "customer": null,
+      "user": "System",
+      "details": "Synced 47 records from Salesforce"
+    },
+    {
+      "id": "log-006",
+      "timestamp": "2024-01-15T08:45:00Z",
+      "type": "exception_event",
+      "action": "Exception flagged",
+      "workItemId": "WI-2024-1845",
+      "customer": "GlobalFinance Ltd",
+      "user": "AI System",
+      "details": "Missing compliance documentation - escalated"
+    },
+    {
+      "id": "log-007",
+      "timestamp": "2024-01-15T08:30:00Z",
+      "type": "workflow_transition",
+      "action": "State changed",
+      "workItemId": "WI-2024-1840",
+      "customer": "Manufacturing Plus",
+      "user": "AI System",
+      "details": "Moved from Routing to Awaiting Approval"
+    },
+    {
+      "id": "log-008",
+      "timestamp": "2024-01-15T08:00:00Z",
+      "type": "integration_event",
+      "action": "New integration connected",
+      "workItemId": null,
+      "customer": null,
+      "user": "Admin",
+      "details": "HubSpot integration activated"
+    }
+  ],
+  "incidents": [
+    {
+      "id": "inc-001",
+      "timestamp": "2024-01-14T14:00:00Z",
+      "status": "resolved",
+      "summary": "CRM sync failure caused routing delays",
+      "affectedWorkItems": 23,
+      "rootCause": "API rate limit exceeded",
+      "impactedWorkflows": ["Intake", "Routing"],
+      "mitigation": "Implemented rate limiting with exponential backoff",
+      "resolvedBy": "David Kim",
+      "resolvedAt": "2024-01-14T16:30:00Z"
+    },
+    {
+      "id": "inc-002",
+      "timestamp": "2024-01-12T09:00:00Z",
+      "status": "resolved",
+      "summary": "Qualification model produced unexpected results",
+      "affectedWorkItems": 8,
+      "rootCause": "Training data drift detected",
+      "impactedWorkflows": ["Qualification"],
+      "mitigation": "Rolled back to previous model version, retraining scheduled",
+      "resolvedBy": "Sarah Chen",
+      "resolvedAt": "2024-01-12T11:00:00Z"
+    },
+    {
+      "id": "inc-003",
+      "timestamp": "2024-01-10T16:00:00Z",
+      "status": "investigating",
+      "summary": "Higher than expected exception rate in enterprise segment",
+      "affectedWorkItems": 15,
+      "rootCause": "Under investigation",
+      "impactedWorkflows": ["Qualification", "Routing"],
+      "mitigation": "Temporary human review for enterprise leads",
+      "resolvedBy": null,
+      "resolvedAt": null
+    }
+  ],
+  "accessLog": [
+    {
+      "id": "acc-001",
+      "timestamp": "2024-01-15T09:00:00Z",
+      "user": "john.doe@company.com",
+      "action": "login",
+      "details": "Successful login from 192.168.1.100"
+    },
+    {
+      "id": "acc-002",
+      "timestamp": "2024-01-15T08:45:00Z",
+      "user": "sarah.chen@company.com",
+      "action": "permission_change",
+      "details": "Granted approver role to michael.park@company.com"
+    },
+    {
+      "id": "acc-003",
+      "timestamp": "2024-01-14T17:00:00Z",
+      "user": "admin@company.com",
+      "action": "api_key_created",
+      "details": "New API key created for HubSpot integration"
+    }
+  ],
+  "summary": {
+    "totalEvents": 1847,
+    "aiActions": 1234,
+    "humanActions": 412,
+    "approvals": 98,
+    "exceptions": 73,
+    "incidents": 3,
+    "openIncidents": 1
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/outbox-envelope.schema.json",
+  "title": "OutboxEventEnvelope",
+  "description": "Shared Pub/Sub envelope published by the outbox worker (Phase 0f). Every new-service event is wrapped in this envelope. Consumers dedup on eventId.",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "schemaVersion",
+    "tenantId",
+    "occurredAt",
+    "sourceService",
+    "traceId",
+    "payload"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "eventId": { "type": "string", "format": "uuid" },
+    "eventType": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "tenantId": { "type": "string", "minLength": 1 },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "sourceService": {
+      "type": "string",
+      "enum": [
+        "liftoff-billing",
+        "liftoff-developer-proxy",
+        "liftoff-workforce-service",
+        "liftoff-platform-backend",
+        "liftoff-connector-service",
+        "liftoff-governance-engine",
+        "liftoff-tenant-runtime"
+      ]
+    },
+    "traceId": { "type": "string" },
+    "payload": {}
+  }
+}

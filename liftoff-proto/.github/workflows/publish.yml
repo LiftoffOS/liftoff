@@ -1,0 +1,78 @@
+name: Publish @liftoffos/proto-gen
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'liftoff/**'
+      - 'gen/**'
+      - 'buf.gen.yaml'
+      - 'package.json'
+  workflow_dispatch: {}
+
+concurrency:
+  group: publish-proto-gen
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish @liftoffos/proto-gen
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
+          service_account: YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com
+          token_format: access_token
+          access_token_lifetime: 600s
+          access_token_scopes: https://www.googleapis.com/auth/cloud-platform
+
+      - name: Configure npm for Artifact Registry
+        run: |
+          cat > .npmrc <<'EOF'
+          @liftoffos:registry=https://us-west1-npm.pkg.dev/YOUR_CONTROL_PROJECT_STAGING/npm-packages-dev/
+          //us-west1-npm.pkg.dev/YOUR_CONTROL_PROJECT_STAGING/npm-packages-dev/:always-auth=true
+          //us-west1-npm.pkg.dev/YOUR_CONTROL_PROJECT_STAGING/npm-packages-dev/:_authToken=${{ steps.auth.outputs.access_token }}
+          EOF
+
+      - uses: bufbuild/buf-action@v1
+        with:
+          setup_only: true
+
+      # Regenerate stubs from source; fail if they drift from what's committed.
+      - run: buf generate
+
+      - name: Verify no uncommitted gen diff
+        run: |
+          if ! git diff --quiet gen/; then
+            echo "Generated stubs drifted from committed copy. Run 'buf generate' locally and commit."
+            git diff gen/ | head -80
+            exit 1
+          fi
+
+      - run: npm run build
+
+      - name: Publish when version is new
+        run: |
+          set -e
+          LOCAL_VER=$(node -p "require('./package.json').version")
+          REGISTRY_VER=$(npm view @liftoffos/proto-gen version 2>/dev/null || echo "")
+          if [ "$LOCAL_VER" = "$REGISTRY_VER" ]; then
+            echo "::notice::@liftoffos/proto-gen@${LOCAL_VER} already published — skipping"
+            exit 0
+          fi
+          echo "Publishing @liftoffos/proto-gen@${LOCAL_VER} (registry: ${REGISTRY_VER:-none})"
+          npm publish --access restricted

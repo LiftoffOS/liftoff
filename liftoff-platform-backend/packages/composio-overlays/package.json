@@ -1,0 +1,41 @@
+{
+  "name": "@liftoffos/composio-overlays",
+  "version": "0.5.7",
+  "description": "Hand-authored Composio toolkit overlays: stable names, W1 work_inbox/ack tags, translations, canonical response/error shapes. Single source of truth consumed by connector-service (boot-time merge) and tenant-runtime (dispatch-time translation).",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist",
+    "test": "jest",
+    "sync:schemas": "ts-node scripts/sync-schemas.ts",
+    "validate:slugs": "ts-node scripts/validate-slugs.ts",
+    "validate:schemas": "ts-node scripts/validate-schemas.ts",
+    "scaffold:connector": "ts-node scripts/scaffold-connector.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LiftoffOS/liftoff.git",
+    "directory": "liftoff-platform-backend/packages/composio-overlays"
+  },
+  "author": "Liftoff",
+  "license": "Apache-2.0",
+  "peerDependencies": {
+    "@liftoffos/connector-types": "*",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@composio/core": "^0.18.1",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^22.20.4",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.4.12",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.3.3",
+    "zod": "^3.22.0"
+  }
+}

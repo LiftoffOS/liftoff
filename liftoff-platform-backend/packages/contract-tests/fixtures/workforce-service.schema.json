@@ -1,0 +1,227 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/workforce-service.schema.json",
+  "title": "WorkforceServiceContracts",
+  "description": "Request + response + SSE event + domain event envelopes for liftoff-workforce-service (CAIO + HRBP).",
+  "type": "object",
+  "$defs": {
+    "tenantContext": {
+      "type": "object",
+      "required": ["tenantId", "userId"],
+      "properties": {
+        "tenantId": { "type": "string", "minLength": 1 },
+        "userId": { "type": "string", "minLength": 1 },
+        "roles": { "type": "array", "items": { "type": "string" } },
+        "isolationTier": { "type": "string", "enum": ["standard", "enterprise"] }
+      }
+    },
+    "pagination": {
+      "type": "object",
+      "properties": {
+        "pageSize": { "type": "integer", "minimum": 1, "maximum": 200 },
+        "pageToken": { "type": "string" }
+      }
+    },
+    "planStatus": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "pending_approval",
+        "approved",
+        "provisioning",
+        "provisioning_waiting_for_oauth",
+        "completed",
+        "failed",
+        "canceled"
+      ]
+    },
+    "DraftPlanRequest": {
+      "type": "object",
+      "required": ["tenantContext", "objective"],
+      "properties": {
+        "tenantContext": { "$ref": "#/$defs/tenantContext" },
+        "objective": { "type": "string", "minLength": 1 },
+        "resumePlanId": { "type": "string" }
+      }
+    },
+    "DraftPlanResponse": {
+      "type": "object",
+      "required": ["planId", "sessionId", "streamUrl", "sessionExpiresAt"],
+      "properties": {
+        "planId": { "type": "string", "minLength": 1 },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "streamUrl": { "type": "string", "format": "uri" },
+        "sessionExpiresAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "CommitPlanRequest": {
+      "type": "object",
+      "required": ["tenantContext", "planId", "approverUserId"],
+      "properties": {
+        "tenantContext": { "$ref": "#/$defs/tenantContext" },
+        "planId": { "type": "string", "minLength": 1 },
+        "approverUserId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "CommitPlanResponse": {
+      "type": "object",
+      "required": ["plan", "capabilityTokenId"],
+      "properties": {
+        "plan": { "type": "object" },
+        "capabilityTokenId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "GetPlanRequest": {
+      "type": "object",
+      "required": ["tenantContext", "planId"],
+      "properties": {
+        "tenantContext": { "$ref": "#/$defs/tenantContext" },
+        "planId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "GetPlanResponse": {
+      "type": "object",
+      "required": ["plan"],
+      "properties": { "plan": { "type": "object" } }
+    },
+    "ListPlansRequest": {
+      "type": "object",
+      "required": ["tenantContext"],
+      "properties": {
+        "tenantContext": { "$ref": "#/$defs/tenantContext" },
+        "pagination": { "$ref": "#/$defs/pagination" },
+        "statusFilter": { "$ref": "#/$defs/planStatus" }
+      }
+    },
+    "ListPlansResponse": {
+      "type": "object",
+      "required": ["plans"],
+      "properties": {
+        "plans": { "type": "array", "items": { "type": "object" } },
+        "nextPageToken": { "type": "string" }
+      }
+    },
+    "ResumeStuckPlanRequest": {
+      "type": "object",
+      "required": ["planId", "operatorUserId", "reason"],
+      "properties": {
+        "planId": { "type": "string", "minLength": 1 },
+        "operatorUserId": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "ResumeStuckPlanResponse": {
+      "type": "object",
+      "required": ["plan"],
+      "properties": { "plan": { "type": "object" } }
+    },
+    "GetCAIOToolDefinitionsRequest": {
+      "type": "object",
+      "additionalProperties": false
+    },
+    "GetCAIOToolDefinitionsResponse": {
+      "type": "object",
+      "required": ["tools"],
+      "properties": {
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "description", "inputSchemaJson"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "description": { "type": "string" },
+              "inputSchemaJson": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "DraftPlanSseEvent": {
+      "type": "object",
+      "required": ["eventId", "planId", "kind", "occurredAt"],
+      "properties": {
+        "eventId": { "type": "string", "format": "uuid" },
+        "planId": { "type": "string", "minLength": 1 },
+        "occurredAt": { "type": "string", "format": "date-time" },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "session_started",
+            "message_delta",
+            "tool_call",
+            "agent_proposed",
+            "plan_ready_for_approval",
+            "session_ended",
+            "error"
+          ]
+        }
+      }
+    },
+    "ExportTenantDataRequest": {
+      "type": "object",
+      "required": ["tenantId", "scope", "requestedBy", "expiresAt", "authorizationHmac"],
+      "properties": {
+        "tenantId": { "type": "string", "minLength": 1 },
+        "subjectUserId": { "type": "string" },
+        "scope": { "type": "string", "enum": ["tenant", "user"] },
+        "requestedBy": { "type": "string", "minLength": 1 },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "authorizationHmac": { "type": "string", "pattern": "^[A-Fa-f0-9]+$" }
+      }
+    },
+    "ExportTenantDataResponse": {
+      "type": "object",
+      "required": ["recordType", "sequence", "record"],
+      "properties": {
+        "recordType": { "type": "string" },
+        "sequence": { "type": "string", "pattern": "^[0-9]+$" },
+        "record": { "type": "string" }
+      }
+    },
+    "DeleteTenantUserDataRequest": { "$ref": "#/$defs/ExportTenantDataRequest" },
+    "DeleteTenantUserDataResponse": {
+      "type": "object",
+      "required": ["recordsDeleted", "recordsPseudonymized", "auditReceiptId"],
+      "properties": {
+        "recordsDeleted": { "type": "string", "pattern": "^[0-9]+$" },
+        "recordsPseudonymized": { "type": "string", "pattern": "^[0-9]+$" },
+        "auditReceiptId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "EventEnvelope": {
+      "type": "object",
+      "required": [
+        "eventId",
+        "eventType",
+        "schemaVersion",
+        "tenantId",
+        "occurredAt",
+        "sourceService",
+        "traceId",
+        "payload"
+      ],
+      "properties": {
+        "eventId": { "type": "string", "format": "uuid" },
+        "eventType": {
+          "type": "string",
+          "enum": [
+            "workforce.plan.created",
+            "workforce.plan.committed",
+            "workforce.plan.provisioning_started",
+            "workforce.plan.completed",
+            "workforce.plan.failed",
+            "workforce.capability_token.consumed",
+            "workforce.capability_token.revoked"
+          ]
+        },
+        "schemaVersion": { "type": "integer", "minimum": 1 },
+        "tenantId": { "type": "string", "minLength": 1 },
+        "occurredAt": { "type": "string", "format": "date-time" },
+        "sourceService": { "type": "string", "const": "liftoff-workforce-service" },
+        "traceId": { "type": "string" },
+        "payload": {}
+      }
+    }
+  }
+}

@@ -1,0 +1,485 @@
+.sidebar {
+  width: 240px;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--color-white);
+  border-right: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+  transition: width var(--duration-base) var(--ease-out);
+}
+
+.sidebar--collapsed {
+  width: 48px;
+}
+
+.sidebar__header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.sidebar__logo {
+  color: var(--color-black);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.sidebar--collapsed .sidebar__logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  overflow: visible;
+}
+
+.sidebar--collapsed .sidebar__logo svg {
+  color: var(--color-black);
+}
+
+.sidebar__toggle {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--color-gray-400);
+  transition: all var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.sidebar__toggle:hover {
+  background: var(--color-gray-100);
+  color: var(--color-black);
+}
+
+.sidebar--collapsed .sidebar__header {
+  justify-content: center;
+}
+
+.sidebar--collapsed .sidebar__toggle {
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar__nav {
+  padding: 12px 8px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar__divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 8px 0;
+}
+
+/* The footer group holds a single fixed item, so it must not inherit the
+   scrolling list's behaviour. .sidebar__nav sets overflow-y: auto, which makes
+   overflow-x compute to auto as well, and the box then clips at its padding
+   box. The top list survives that because its 12px/8px padding keeps every
+   link's rounded background away from the edge; here padding is 0 and the 36px
+   link fills the box exactly, so the hover and active rounded rectangle gets
+   its corners shaved off. Nothing scrolls down here, so drop the clip. */
+.sidebar__nav--bottom {
+  padding: 0;
+  overflow: visible;
+}
+
+.sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* Fixed height matches the collapsed state (.sidebar--collapsed .sidebar__link)
+     so items don't drift vertically when toggling between expanded/icon-only. */
+  height: 36px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border-radius: var(--radius-md);
+  color: var(--color-gray-400);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 400;
+  text-decoration: none;
+  transition: all var(--duration-fast) var(--ease-out);
+  white-space: nowrap;
+}
+
+.sidebar__link:hover {
+  background: var(--color-gray-100);
+  color: var(--color-black);
+}
+
+.sidebar__link--active {
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+}
+
+.sidebar__link--active:hover {
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+}
+
+.sidebar__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  position: relative;
+}
+
+.sidebar__icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sidebar__icon-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  pointer-events: none;
+}
+
+.sidebar__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__logo-icon {
+  display: none;
+  overflow: visible;
+}
+
+.sidebar__logo-text {
+  display: block;
+  height: 15.5px;
+  width: auto;
+  overflow: visible;
+}
+
+.sidebar--collapsed .sidebar__label {
+  display: none;
+}
+
+.sidebar--collapsed .sidebar__logo-icon {
+  display: block;
+}
+
+.sidebar--collapsed .sidebar__logo-text {
+  display: none;
+}
+
+.sidebar--collapsed .sidebar__nav {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sidebar--collapsed .sidebar__link {
+  justify-content: center;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  margin: 0 auto;
+}
+
+/* Tooltip wraps each collapsed nav item / user button. Force the wrapper to
+   block so the inner link/button stretches to full sidebar width and its
+   justify-content: center actually centers the icon within the sidebar. */
+.sidebar .tooltip-wrapper {
+  display: block;
+}
+
+.sidebar__footer {
+  margin-top: auto;
+  padding: 8px;
+}
+
+.sidebar__user-wrapper {
+  position: relative;
+}
+
+.sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border-light);
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  text-align: left;
+}
+
+.sidebar__user:hover {
+  background: var(--color-gray-100);
+  color: var(--color-black);
+}
+
+.sidebar__user-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  min-width: 160px;
+  width: max-content;
+  margin-bottom: 4px;
+  padding: 4px;
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+}
+
+.sidebar__user-menu button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-gray-400);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  text-align: left;
+}
+
+.sidebar__user-menu button:hover {
+  background: var(--color-gray-100);
+  color: var(--color-black);
+}
+
+.sidebar__user-menu button svg {
+  color: currentColor;
+  flex-shrink: 0;
+}
+
+.sidebar__menu-label {
+  padding: 8px 12px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-gray-400);
+  letter-spacing: 0.5px;
+}
+
+.sidebar__menu-divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 8px 0;
+}
+
+.sidebar__user-menu button[aria-checked="true"] {
+  background: var(--color-gray-100);
+}
+
+.sidebar__menu-item--active {
+  background: var(--color-gray-100);
+}
+
+/* Workspace switcher items — use the same gap as regular menu items so the
+   text in switcher entries lines up with Help / Sign Out / Settings text. */
+.sidebar__user-menu button[role="menuitemradio"] {
+  gap: 12px;
+  padding-left: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__user-menu button[role="menuitemradio"] svg {
+  margin-right: 0;
+  width: 16px;
+}
+
+/* Items without checkmark need left padding to align with checked items */
+.sidebar__user-menu button[role="menuitemradio"][aria-checked="false"] {
+  padding-left: 40px;  /* 12px base + 16px icon + 12px gap */
+}
+
+.sidebar__avatar {
+  width: 36px;
+  height: 36px;
+  background: var(--color-accent);
+  color: var(--color-white);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.sidebar__avatar--image {
+  object-fit: cover;
+  background: var(--color-gray-200);
+}
+
+.sidebar__avatar--icon {
+  background: var(--color-gray-300);
+}
+
+.sidebar__avatar--icon svg {
+  color: var(--color-white);
+}
+
+.sidebar__user-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar__user-name {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-black);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__user-role {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}
+
+
+.sidebar--collapsed .sidebar__user {
+  justify-content: center;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  margin: 0 auto;
+}
+
+.sidebar--collapsed .sidebar__avatar {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+}
+
+.sidebar--collapsed .sidebar__user-info {
+  display: none;
+}
+
+.sidebar--collapsed .sidebar__user-menu {
+  left: 0;
+  bottom: 100%;
+  top: auto;
+  margin-bottom: 4px;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform var(--duration-base) var(--ease-out);
+    width: 280px;
+  }
+
+  .sidebar--collapsed {
+    width: 280px;
+  }
+
+  .sidebar--collapsed .sidebar__logo {
+    display: block;
+    width: auto;
+  }
+
+  .sidebar--collapsed .sidebar__header {
+    justify-content: space-between;
+  }
+
+  .sidebar--collapsed .sidebar__link {
+    justify-content: flex-start;
+    padding: 10px 12px;
+    width: auto;
+    height: auto;
+    margin: 0;
+  }
+
+  .sidebar--collapsed .sidebar__label {
+    display: block;
+  }
+
+  .sidebar--collapsed .sidebar__logo-icon {
+    display: none;
+  }
+
+  .sidebar--collapsed .sidebar__logo-text {
+    display: block;
+  }
+
+  .sidebar--collapsed .sidebar__user {
+    justify-content: flex-start;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 10px 12px;
+  }
+
+  .sidebar--collapsed .sidebar__user-info {
+    display: flex;
+  }
+
+  .sidebar--collapsed .sidebar__user-menu {
+    left: 0;
+    bottom: 100%;
+    margin-left: 0;
+    margin-bottom: 4px;
+    min-width: 280px;
+  }
+
+  .sidebar--collapsed .sidebar__toggle {
+    position: static;
+    transform: none;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    width: 28px;
+    height: 28px;
+  }
+
+  .sidebar__toggle {
+    display: none;
+  }
+
+  .sidebar--open {
+    transform: translateX(0);
+  }
+}

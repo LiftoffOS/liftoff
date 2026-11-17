@@ -1,0 +1,29 @@
+/* ActivatePage — thin additions on top of OAuthConsentPage.css (itself on
+   AgentConnector.css + ClaudeCodeConnector.css). */
+
+/* The code input and its button stack, input first, both at the subtext
+   column's width. Double-class specificity so this beats
+   .oauth-consent-page__actions' row layout. */
+.activate-page .activate-page__form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 320px;
+}
+
+/* A short code is read at a glance: larger, spaced, centered, and typed in
+   the same face the setup command is shown in. */
+.activate-page .activate-page__code {
+  width: 100%;
+  text-align: center;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: var(--text-xl, 1.25rem);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.activate-page .activate-page__code::placeholder {
+  letter-spacing: 0.18em;
+}

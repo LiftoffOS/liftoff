@@ -1,0 +1,231 @@
+syntax = "proto3";
+
+package liftoff.governance.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/liftoffos/liftoff-proto/governance/v1;governancev1";
+option java_multiple_files = true;
+option java_outer_classname = "GovernanceEngineProto";
+option java_package = "com.liftoffos.governance.v1";
+
+// GovernanceEngine — enforces agent action policies, HITL approval flows,
+// and audit recording for all tool executions.
+//
+// Every write operation executed by an agent MUST pass through Preflight
+// before execution and Record after. Authorize handles async approval gates
+// (HITL, compliance holds).
+//
+// NOTE: This file is the canonical proto scaffold. It will be moved to the
+// liftoff-proto when that repo is created. The buf toolchain
+// (buf.yaml, buf.gen.yaml) will be added at that point.
+service GovernanceEngine {
+  // Pre-execution policy check: evaluates HITL level, rate limits,
+  // connector permissions, and compliance rules for a proposed action.
+  rpc Preflight(PreflightRequest) returns (PreflightResponse);
+
+  // Request explicit authorization for an action that requires approval
+  // (e.g. HITL level >= CONFIRM). Returns immediately with a pending token;
+  // the caller polls or receives a webhook when the decision arrives.
+  rpc Authorize(AuthorizeRequest) returns (AuthorizeResponse);
+
+  // Record a completed (or failed) action for audit, compensation bookkeeping,
+  // and usage metering.
+  rpc Record(RecordRequest) returns (RecordResponse);
+
+  // List pending approval requests for a tenant or agent.
+  rpc ListApprovals(ListApprovalsRequest) returns (ListApprovalsResponse);
+}
+
+// ─── TenantContext ────────────────────────────────────────────────────────────
+
+// TenantContext is minted by Platform Backend as a short-lived signed JWT
+// and forwarded by tenant-runtime with every governance call.
+// The Governance Engine MUST derive tenant_id from the verified JWT claim —
+// never from a separate request-body field — per Phase 4A security requirement.
+// Duplicated here for proto independence until the liftoff-proto monorepo exists.
+message TenantContext {
+  string tenant_id = 1; // Extracted from verified JWT, not caller-supplied
+  string agent_id = 2; // Agent making the call
+  string invocation_id = 3; // Unique per agent invocation
+  string signed_jwt = 4; // Short-lived JWT signed by Platform Backend OIDC key (≤5 min TTL)
+}
+
+// ─── Preflight ────────────────────────────────────────────────────────────────
+
+message PreflightRequest {
+  // Tenant context (replaces flat tenant_id + agent_id; identity derived from JWT).
+  TenantContext tenant_context = 1;
+
+  // Tool/function being invoked (e.g. "send_email", "create_event").
+  string function_name = 3;
+
+  // Connector type (e.g. "google_mail", "slack").
+  string connector_type = 4;
+
+  // Tool-call arguments as a JSON object for policy evaluation.
+  google.protobuf.Struct action_payload = 5;
+
+  // Correlation ID for tracing through the full execution pipeline.
+  string correlation_id = 6;
+}
+
+message PreflightResponse {
+  // The verdict.
+  PreflightVerdict verdict = 1;
+
+  // If ALLOW: proceed immediately.
+  // If REQUIRE_APPROVAL: call Authorize and wait.
+  // If DENY: surface reason to agent/user.
+
+  // Human-readable reason (populated for REQUIRE_APPROVAL and DENY).
+  string reason = 2;
+
+  // HITL level assigned to this action (informational).
+  HitlLevel hitl_level = 3;
+
+  // If REQUIRE_APPROVAL: opaque token to pass to Authorize.
+  string approval_request_token = 4;
+
+  // Convenience boolean: true when verdict == ALLOW.
+  bool allowed = 5;
+
+  // Convenience boolean: true when verdict == REQUIRE_APPROVAL.
+  bool requires_hitl = 6;
+}
+
+enum PreflightVerdict {
+  PREFLIGHT_VERDICT_UNSPECIFIED = 0;
+  PREFLIGHT_VERDICT_ALLOW = 1;
+  PREFLIGHT_VERDICT_REQUIRE_APPROVAL = 2;
+  PREFLIGHT_VERDICT_DENY = 3;
+}
+
+enum HitlLevel {
+  HITL_LEVEL_UNSPECIFIED = 0;
+  HITL_LEVEL_NONE = 1;
+  HITL_LEVEL_NOTIFY = 2;
+  HITL_LEVEL_CONFIRM = 3;
+  HITL_LEVEL_BLOCK = 4;
+}
+
+// ─── Authorize ────────────────────────────────────────────────────────────────
+
+message AuthorizeRequest {
+  // Tenant context (replaces flat tenant_id + agent_id; identity derived from JWT).
+  TenantContext tenant_context = 1;
+
+  // Token returned by Preflight.approval_request_token.
+  string approval_request_token = 3;
+
+  // Human-readable summary of the action shown to the approver.
+  string action_summary = 4;
+
+  // Context as a JSON object (connector type, function, sanitised args).
+  google.protobuf.Struct action_payload = 5;
+
+  string correlation_id = 6;
+}
+
+message AuthorizeResponse {
+  // Unique ID for this approval request (for ListApprovals + polling).
+  string approval_id = 1;
+
+  // Current state of the approval.
+  ApprovalState state = 2;
+
+  // Populated when state == APPROVED or REJECTED.
+  string decided_by = 3;
+  string decision_notes = 4;
+
+  // ISO-8601 timestamp when the decision was made.
+  string decided_at = 5;
+}
+
+enum ApprovalState {
+  APPROVAL_STATE_UNSPECIFIED = 0;
+  APPROVAL_STATE_PENDING = 1;
+  APPROVAL_STATE_APPROVED = 2;
+  APPROVAL_STATE_REJECTED = 3;
+  APPROVAL_STATE_EXPIRED = 4;
+}
+
+// ─── Record ───────────────────────────────────────────────────────────────────
+
+message RecordRequest {
+  // Tenant context (replaces flat tenant_id + agent_id; identity derived from JWT).
+  TenantContext tenant_context = 1;
+
+  // Connector type and function that was executed.
+  string connector_type = 3;
+  string function_name = 4;
+
+  // Whether the action succeeded.
+  bool success = 5;
+
+  // Result data as a JSON object (for compensation snapshots).
+  google.protobuf.Struct result_data = 6;
+
+  // External entity ID created/modified (for compensation).
+  string entity_id = 7;
+
+  // If the action is compensable: snapshot used for rollback as a JSON object.
+  google.protobuf.Struct compensation_snapshot = 8;
+
+  // ISO-8601 timestamp when the action completed.
+  string completed_at = 9;
+
+  string correlation_id = 10;
+
+  // Human-readable error if success == false.
+  string error = 11;
+}
+
+message RecordResponse {
+  bool success = 1;
+  // Audit record ID assigned by the governance engine.
+  string audit_record_id = 2;
+  string error = 3;
+  // Event ID for downstream event correlation.
+  string event_id = 4;
+}
+
+// ─── ListApprovals ────────────────────────────────────────────────────────────
+
+message ListApprovalsRequest {
+  string tenant_id = 1;
+
+  // Optional: filter by agent.
+  string agent_id = 2;
+
+  // Optional: filter by state.
+  ApprovalState state = 3;
+
+  // Pagination cursor (opaque token from previous response).
+  string page_token = 4;
+
+  // Maximum number of approvals to return (default: 50, max: 200).
+  int32 page_size = 5;
+}
+
+message ListApprovalsResponse {
+  repeated ApprovalItem approvals = 1;
+  // Opaque pagination token; empty string means no more pages.
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message ApprovalItem {
+  string approval_id = 1;
+  string tenant_id = 2;
+  string agent_id = 3;
+  string function_name = 4;
+  string connector_type = 5;
+  string action_summary = 6;
+  ApprovalState state = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp decided_at = 9;
+  string decided_by = 10;
+  string decision_notes = 11;
+}

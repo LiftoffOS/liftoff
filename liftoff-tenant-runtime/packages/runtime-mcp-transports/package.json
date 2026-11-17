@@ -1,0 +1,31 @@
+{
+  "name": "@liftoffos/runtime-mcp-transports",
+  "version": "1.0.1",
+  "description": "MCP transport implementations for Liftoff platform services",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LiftoffOS/liftoff",
+    "directory": "liftoff-tenant-runtime/packages/runtime-mcp-transports"
+  },
+  "keywords": [
+    "mcp",
+    "transport",
+    "sse",
+    "http"
+  ],
+  "author": "Liftoff",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

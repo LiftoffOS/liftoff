@@ -1,0 +1,24 @@
+-- Drop the mirror of a control-plane column that nothing here ever read.
+--
+-- `agents.delegates` existed only to hold whatever platform-backend published
+-- in `runtime_config_updated.delegates`. This runtime wrote it on every agent
+-- create and update and never once selected it: not in prompt assembly, not in
+-- the tool catalog, not in any gate. The control plane validated it on write —
+-- the referenced external agent had to exist — so an operator filling it in had
+-- every reason to think they had granted an endpoint plus a credential and
+-- narrowed a tool surface. Nothing downstream looked.
+--
+-- External-agent delegation is really governed by a double-sided allowlist that
+-- requires the external agent to consent (`external_agents.allowed_internal_agent_ids`
+-- + the internal agent's own `integrations[]` + `collaboration_mode`), which is
+-- the mechanism the tool-gateway actually enforces.
+--
+-- Dropped control-plane-side in platform-backend migration 335, which also
+-- stopped publishing the field.
+--
+-- Safe against rollout ordering in both directions: the subscriber no longer
+-- reads `payload.delegates`, and an older revision that still writes the column
+-- would fail its INSERT — so this migration runs with the deploy that removes
+-- those writes, exactly as the platform-backend side does.
+
+ALTER TABLE agents DROP COLUMN IF EXISTS delegates;

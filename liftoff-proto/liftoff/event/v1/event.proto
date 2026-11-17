@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+// Canonical event envelope. Every domain event in the system is wrapped
+// in LiftoffEvent before being published to Pub/Sub or written to the
+// ledger.
+package liftoff.event.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+import "liftoff/event/v1/common.proto";
+
+// LiftoffEvent carries the payload plus routing / correlation metadata.
+// Every event has an EventType so subscribers can filter at the message
+// level before deserialising the payload.
+message LiftoffEvent {
+  // UUIDv7 (time-ordered) — sorts naturally by creation time.
+  string event_id = 1;
+
+  // When the event was produced. Source of truth — consumers ignore
+  // the Pub/Sub publish timestamp in favour of this.
+  google.protobuf.Timestamp created_at = 2;
+
+  // Routing category.
+  EventType event_type = 3;
+
+  // Which tenant/user the event belongs to. Always set except for
+  // infrastructure events (cluster-wide health, build events).
+  TenantContext tenant_context = 4;
+
+  // Trace this event end-to-end across services. Matches the OTel trace
+  // ID the producer was in when it emitted.
+  string correlation_id = 5;
+
+  // Typed payload — caller sets one of the oneof branches or an Any
+  // for third-party schemas.
+  google.protobuf.Any payload = 6;
+
+  // Which service produced this event. Used by the dead-letter router
+  // to requeue to the right subscription.
+  string source_service = 7;
+}
+
+// EventType categorises every event across the system. Add new values
+// at the end of the matching domain range. Never reuse a number.
+enum EventType {
+  EVENT_TYPE_UNSPECIFIED = 0;
+
+  // Governance engine (100-199)
+  EVENT_TYPE_GOVERNANCE_PREFLIGHT = 100;
+  EVENT_TYPE_GOVERNANCE_AUTHORIZED = 101;
+  EVENT_TYPE_GOVERNANCE_DENIED = 102;
+  EVENT_TYPE_GOVERNANCE_KILL_SWITCH_CHANGED = 103;
+  EVENT_TYPE_HITL_APPROVAL_REQUESTED = 110;
+  EVENT_TYPE_HITL_APPROVAL_RESOLVED = 111;
+  EVENT_TYPE_HITL_LATE_FEEDBACK = 112;
+
+  // Control plane (200-299)
+  EVENT_TYPE_TENANT_PROVISIONED = 200;
+  EVENT_TYPE_TENANT_SUSPENDED = 201;
+  EVENT_TYPE_TENANT_REACTIVATED = 202;
+  EVENT_TYPE_TENANT_DEPLOYMENT_APPROVED = 203;
+  EVENT_TYPE_TENANT_ENTITLEMENT_UPDATED = 204;
+  EVENT_TYPE_TENANT_MODEL_CONFIG_UPDATED = 205;
+  EVENT_TYPE_TENANT_PROMPT_BUNDLE_UPDATED = 206;
+  EVENT_TYPE_TENANT_FEATURE_FLAG_UPDATED = 207;
+  EVENT_TYPE_INTERNAL_AGENT_UPDATED = 210;
+
+  // Connectors (300-399)
+  EVENT_TYPE_CONNECTOR_CREDENTIALS_STORED = 300;
+  EVENT_TYPE_CONNECTOR_CREDENTIALS_REVOKED = 301;
+  EVENT_TYPE_CONNECTOR_EXECUTED = 310;
+  EVENT_TYPE_CONNECTOR_HEALTH_DEGRADED = 320;
+
+  // Runtime (400-499)
+  EVENT_TYPE_INVOCATION_STARTED = 400;
+  EVENT_TYPE_INVOCATION_COMPLETED = 401;
+  EVENT_TYPE_INVOCATION_FAILED = 402;
+  EVENT_TYPE_REFLECTION_COMPLETED = 410;
+}

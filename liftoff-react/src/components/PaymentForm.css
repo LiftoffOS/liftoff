@@ -1,0 +1,269 @@
+.payment-form__panel {
+  min-height: 80px;
+}
+
+.payment-form {
+  display: flex;
+  flex-direction: column;
+  /* --space-4 (16px) matches Stripe Payment Element's internal between-row
+   * gap so the toggle, promo row, mandate, and Subscribe button feel like
+   * continuations of the iframe rather than a separate section. */
+  gap: var(--space-4);
+}
+
+.payment-form__title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+}
+
+.payment-form__subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin: 0;
+}
+
+/* Wrapper for the global .loading-spinner inside the payment panel — keeps
+ * the vertical breathing room the old text loader had and horizontally
+ * centers the spinner. */
+.payment-form__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) 0;
+}
+
+.payment-form__error {
+  font-size: var(--text-sm);
+  color: var(--status-error);
+  background: var(--status-error-bg);
+  border: 1px solid var(--status-error-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.payment-form__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.payment-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.payment-form__field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+/* Matches Stripe Payment Element's internal label styling
+ * (font-size: 14px; font-weight: 400; color: #1e1e1e) so labels inside
+ * and outside the iframe read as one continuous form.
+ *
+ * Stripe's iframe doesn't inherit our app body's
+ * `font-variation-settings: "wght" 320` or `letter-spacing: -0.01em`
+ * cascade, so labels inside the iframe render as a true 400-weight with
+ * normal tracking. We override both here so the outside label visually
+ * matches — without these overrides the label appears noticeably lighter
+ * and tighter than Stripe's. */
+.payment-form__label {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-black);
+  font-variation-settings: "wght" 400;
+  letter-spacing: normal;
+}
+
+/* Wrapper for Stripe's iframe inputs — styled to match TextInput */
+.payment-form__stripe-wrap {
+  padding: 10px 20px;
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: 9999px;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.payment-form__stripe-wrap:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+
+.payment-form__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.payment-form__actions .btn {
+  width: 100%;
+}
+
+/* Text-link style matches .agents-empty__link in AgentsPage.css —
+ * gray-400, no underline, dims to black on hover. */
+.payment-form__promo-toggle {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  cursor: pointer;
+  font-variation-settings: "opsz" 32, "wght" 320;
+}
+
+.payment-form__promo-toggle:hover {
+  color: var(--color-black);
+}
+
+/* Promo row spans the same width as one half-column of Stripe's
+ * PaymentElement (country dropdown, expiry, cvc). Stripe's tabs layout
+ * uses a 2-column grid with a 12px column-gap (matching --space-3), so
+ * each column is calc(50% - 6px) of the form width. The promo row total
+ * (input + gap + Remove button) inherits that width, with the input
+ * stretching to fill whatever's left after the Remove button takes its
+ * natural width. */
+.payment-form__promo {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  width: calc(50% - var(--space-3) / 2);
+}
+
+.payment-form__promo-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Wraps the promo input so the validation check can sit absolutely
+ * positioned on the right edge. The wrap takes the full column width
+ * (.payment-form__promo-field is the flex column); the input inside
+ * fills that width via width: 100% below. */
+.payment-form__promo-input-wrap {
+  position: relative;
+}
+
+/* Validation spinner — shown during the debounced lookup so the wait isn't
+ * dead air. Mirrors .btn__spinner from Button.css (same size, same animation
+ * keyframe defined globally in index.css) but uses gray instead of accent
+ * since this isn't a primary action surface. Replaced by the green check
+ * the moment the lookup resolves.
+ *
+ * Vertical centering uses `top: calc(50% - 8px)` (half the 16px icon) instead
+ * of the `transform: translateY(-50%)` pattern used by the static check/cross
+ * icons below. The `spin` keyframe only declares a `to` state targeting
+ * `transform: rotate(360deg)`; setting `transform` on the base rule would be
+ * interpolated away by the animation, causing the spinner to drift toward the
+ * top of the input as it rotates. Keeping `transform` free for the rotation
+ * fixes it.
+ */
+.payment-form__promo-spinner {
+  position: absolute;
+  top: calc(50% - 8px);
+  right: 16px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-gray-400);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  pointer-events: none;
+}
+
+/* Green check rendered on the right edge of the input when the entered
+ * code matches the last successfully validated one. Sized at 16px and
+ * vertically centered against the 40-ish-px input height. The right
+ * offset matches the input's pill padding-right (20px) so the icon sits
+ * cleanly inside the pill without overlapping the typed text. */
+.payment-form__promo-check {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--status-success);
+  pointer-events: none;
+}
+
+/* Red cross mirror of the check above. Renders when the debounced lookup
+ * returns invalid — silent visual feedback so typed prefixes don't spam
+ * the toast queue while the user is still composing the code.
+ *
+ * Same `top: calc(50% - 8px)` centering trick as the spinner — the `spin`
+ * keyframe doesn't run here, but keeping the pattern consistent so a future
+ * animation never reintroduces the vertical-drift bug. */
+.payment-form__promo-cross {
+  position: absolute;
+  top: calc(50% - 8px);
+  right: 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--status-error);
+  pointer-events: none;
+}
+
+/* Inline error message below the promo input. Renders when the debounced
+ * lookup returns invalid — the red ✕ icon alone left users guessing why the
+ * code was rejected (unrecognized? wrong plan?). Specific copy is mapped
+ * from the backend error code in SubscribePaymentPanel. */
+.payment-form__promo-error {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 400;
+  font-variation-settings: "wght" 400;
+  letter-spacing: normal;
+  color: var(--status-error);
+}
+
+/* Mirrors the `.Input` rule in stripeAppearance.ts so typed text and
+ * placeholder visually match the Stripe-rendered fields above. As with
+ * the label above, we override `font-variation-settings` and
+ * `letter-spacing` so the app body's variable-font cascade doesn't make
+ * our input render lighter and tighter than Stripe's. */
+.payment-form__promo-input {
+  width: 100%;
+  /* Right padding reserves room for the validation check so the layout
+   * doesn't shift when the icon appears. Matches the icon's right offset
+   * (16px) + icon width (16px) + a small breathing gap. */
+  padding: 10px 40px 10px 20px;
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: 9999px;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  font-variation-settings: "wght" 400;
+  letter-spacing: normal;
+  color: var(--color-black);
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.payment-form__promo-input::placeholder {
+  color: rgba(64, 64, 64, 0.6);
+  font-weight: 400;
+  font-variation-settings: "wght" 400;
+  letter-spacing: normal;
+}
+
+.payment-form__promo-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+
+/* Custom mandate disclaimer — we suppress Stripe's auto-rendered version
+ * (which would appear inside the PaymentElement iframe, above the promo
+ * code) and emit it here so the order is card → promo → terms → Subscribe. */
+.payment-form__mandate {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  margin: 0;
+}

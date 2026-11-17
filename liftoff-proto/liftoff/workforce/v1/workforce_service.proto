@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+// liftoff-workforce-service RPC surface. CAIO conversational drafting is
+// exposed as raw SSE HTTP at the workforce-service edge; `DraftPlan` here
+// carries metadata only.
+package liftoff.workforce.v1;
+
+import "google/protobuf/timestamp.proto";
+import "liftoff/workforce/v1/types.proto";
+import "liftoff/event/v1/common.proto";
+
+service WorkforceService {
+  // Starts a CAIO drafting session. Response returns a session handle
+  // the client uses to open the SSE stream via GET /workforce/plans/
+  // {plan_id}/draft-stream. Proto does NOT server-stream here — SSE is
+  // native HTTP.
+  rpc DraftPlan(DraftPlanRequest) returns (DraftPlanResponse);
+
+  rpc CommitPlan(CommitPlanRequest) returns (CommitPlanResponse);
+  rpc GetPlan(GetPlanRequest) returns (GetPlanResponse);
+  rpc ListPlans(ListPlansRequest) returns (ListPlansResponse);
+
+  // Operator-facing — resumes a provisioning run stuck > 15 min.
+  rpc ResumeStuckPlan(ResumeStuckPlanRequest) returns (ResumeStuckPlanResponse);
+
+  // CAIO tool surface is generated server-side; clients fetch to render
+  // a capability list in the UI.
+  rpc GetCAIOToolDefinitions(GetCAIOToolDefinitionsRequest) returns (GetCAIOToolDefinitionsResponse);
+
+  rpc ExportTenantData(ExportTenantDataRequest) returns (stream ExportTenantDataResponse);
+  rpc DeleteTenantUserData(DeleteTenantUserDataRequest) returns (DeleteTenantUserDataResponse);
+}
+
+// ── DraftPlan ─────────────────────────────────────────────────────────
+
+message DraftPlanRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  // Initial objective / prompt supplied by the user.
+  string objective = 2;
+  // Optional — reopens a prior draft rather than starting fresh.
+  string resume_plan_id = 3;
+}
+
+message DraftPlanResponse {
+  string plan_id = 1;
+  string session_id = 2;
+  // Fully qualified HTTPS URL to the SSE stream for this session.
+  string stream_url = 3;
+  google.protobuf.Timestamp session_expires_at = 4;
+}
+
+// ── CommitPlan ────────────────────────────────────────────────────────
+
+message CommitPlanRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string plan_id = 2;
+  // Must match `created_by_user_id` on the plan — HRBP refuses to
+  // provision if the committer and drafter are not the same identity.
+  string approver_user_id = 3;
+}
+
+message CommitPlanResponse {
+  Plan plan = 1;
+  // Short-lived capability token minted by platform-backend and returned
+  // here to the client for observability. HRBP carries the server-side
+  // copy separately.
+  string capability_token_id = 2;
+}
+
+// ── GetPlan / ListPlans ───────────────────────────────────────────────
+
+message GetPlanRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string plan_id = 2;
+}
+
+message GetPlanResponse {
+  Plan plan = 1;
+}
+
+message ListPlansRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  liftoff.event.v1.Pagination pagination = 2;
+  PlanStatus status_filter = 3;
+}
+
+message ListPlansResponse {
+  repeated Plan plans = 1;
+  string next_page_token = 2;
+}
+
+// ── ResumeStuckPlan ───────────────────────────────────────────────────
+
+message ResumeStuckPlanRequest {
+  string plan_id = 1;
+  // Operator identity — required for audit.
+  string operator_user_id = 2;
+  string reason = 3;
+}
+
+message ResumeStuckPlanResponse {
+  Plan plan = 1;
+}
+
+// ── Tool definitions ──────────────────────────────────────────────────
+
+message GetCAIOToolDefinitionsRequest {
+  // No tenant context — tool surface is identical for every tenant.
+}

@@ -1,0 +1,556 @@
+syntax = "proto3";
+
+// ConnectorService RPC surface. Called by tenant-runtime's tool-gateway
+// on the hot path of every agent tool call that touches a connector.
+package liftoff.connector.v1;
+
+import "google/protobuf/struct.proto";
+import "liftoff/event/v1/common.proto";
+import "liftoff/connector/v1/types.proto";
+
+// ConnectorService owns OAuth credential storage, vendor SDK wrappers,
+// MCP sidecars, and the capability→connector-type registry. Other
+// services never touch vendor SDKs or Secret Manager directly — all
+// connector traffic flows through this service.
+//
+// Latency targets (validated by CI benchmark):
+//   Execute: p95 < 20ms, p99 < 50ms (excluding vendor call time)
+//
+// Both connector-service and governance-engine run with min-instances >= 1
+// to eliminate cold-start latency on the revenue path.
+service ConnectorService {
+  // Execute a single connector operation.
+  rpc Execute(ExecuteRequest) returns (ExecuteResponse);
+
+  // Execute N connector operations in a single HTTP round trip. Used by
+  // the tool-gateway when an agent issues multiple independent tool calls
+  // simultaneously (e.g. "read from Slack + write to Google Sheets").
+  // Reduces N round trips to 1.
+  rpc ExecuteBatch(ExecuteBatchRequest) returns (ExecuteBatchResponse);
+
+  // Pre-fetch OAuth credentials for the listed connectors so the first
+  // Execute call in an invocation doesn't pay the Secret Manager + token
+  // refresh latency penalty (~50-100ms).
+  rpc Warm(WarmRequest) returns (WarmResponse);
+
+  // Fetch live OAuth credentials for a specific connector. Used by
+  // platform-backend for MCP session bootstrapping.
+  rpc GetCredentials(GetCredentialsRequest) returns (GetCredentialsResponse);
+
+  // Return the set of connector types with working OAuth + MCP impls.
+  // Replaces the static FUNCTIONAL_CONNECTOR_TYPES set in
+  // platform-backend/src/agent-templates/connector-availability.ts.
+  rpc GetFunctionalTypes(GetFunctionalTypesRequest) returns (GetFunctionalTypesResponse);
+
+  // Return the full capability → connector types + required OAuth scopes
+  // registry. Replaces connector-capabilities.ts in platform-backend.
+  rpc GetCapabilities(GetCapabilitiesRequest) returns (GetCapabilitiesResponse);
+
+  // Return the tool schema for every function a connector type exposes.
+  // Replaces tenant-runtime/src/connectors/connector-functions-registry.ts
+  // (~5 kLoC of static schemas). Callers cache the response at startup +
+  // refresh every 5 min; it's what tool-gateway + agent-execution feed
+  // into Claude's tool-use catalog.
+  rpc ListTools(ListToolsRequest) returns (ListToolsResponse);
+
+  // Return the tenant's connector instances (rows in the connectors
+  // table). Replaces platform-backend/src/workforce-plans/connector-
+  // stub.ts + connector-display-names.ts. Used by the HRBP agent's
+  // prefetch + the /connections UI's list endpoints.
+  rpc ListTenantConnectors(ListTenantConnectorsRequest) returns (ListTenantConnectorsResponse);
+
+  // Resolve the MCP server config for a specific connector instance. The
+  // response carries the vendor MCP URL + transport, with per-workspace
+  // URL resolvers (Snowflake, Databricks) applied against the stored
+  // connector config. Called by tenant-runtime's mcp-server.ts when
+  // building the SDK's mcpServers map — replaces a hardcoded copy of the
+  // vendor MCP registry that used to live in tenant-runtime and drifted
+  // from connector-service's authoritative `mcp-server-registry.ts`.
+  rpc GetMcpServerConfig(GetMcpServerConfigRequest) returns (GetMcpServerConfigResponse);
+
+  // Pre-fetch the content of a thread/conversation/issue before an agent
+  // invocation so it can be injected as active context without the agent
+  // needing a round-trip tool call. Used by tenant-runtime's pre-flight
+  // context injector.
+  rpc PrefetchThread(PrefetchThreadRequest) returns (PrefetchThreadResponse);
+
+  // Mark a connector instance as errored (e.g. BYOK insufficient_funds or
+  // invalid_key). The error_code is carried in the connectors.error_code
+  // column and surfaced back via LookupTenantConnector / catalog responses.
+  rpc MarkConnectorError(MarkConnectorErrorRequest) returns (MarkConnectorErrorResponse);
+
+  // Clear a connector error after re-probe success or operator action.
+  rpc ClearConnectorError(ClearConnectorErrorRequest) returns (ClearConnectorErrorResponse);
+
+  // Look up a single connector for (tenant, type) — cheaper than
+  // ListTenantConnectors filtering. Used by the runtime web-tool credential
+  // resolver.
+  rpc LookupTenantConnector(LookupTenantConnectorRequest) returns (LookupTenantConnectorResponse);
+
+  // Admin/cross-tenant — list connectors currently in error state for a
+  // given (type, error_code). Used by the BYOK re-probe worker.
+  rpc ListErroredConnectors(ListErroredConnectorsRequest) returns (ListErroredConnectorsResponse);
+}
+
+// ── Execute ───────────────────────────────────────────────────────────
+
+message ExecuteRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  // Which connector instance (matches Connector.id).
+  //
+  // REQUIRED. Must be a connector UUID; type-alias dispatch is no longer
+  // supported. Callers that previously passed a type alias (e.g. "gmail",
+  // "google_mail") must first resolve to the bound connector UUID — agents
+  // resolve via their per-agent bindingsByType map; non-agent callers
+  // (compensation, prefetch, mcp config) already use UUIDs.
+  //
+  // The connector-service rejects requests with an empty connector_id
+  // (InvalidArgument). proto3 cannot express "required" syntactically;
+  // enforcement lives in the RPC handler.
+  string connector_id = 2;
+  // Function name from the connector's tool registry.
+  string function_name = 3;
+  // Function input, shape per the function's JSON schema.
+  google.protobuf.Struct input = 4;
+  // Idempotency key — service dedupes repeat executions.
+  string idempotency_key = 5;
+  // Trace ID for distributed tracing.
+  string trace_id = 6;
+  // Agent that triggered this action (for cost attribution).
+  string agent_id = 7;
+  // Governance action ID this call belongs to.
+  string action_id = 8;
+}
+
+message ExecuteResponse {
+  // When false, `error` carries the reason.
+  bool success = 1;
+  google.protobuf.Struct result = 2;
+  string error = 3;
+  // Latency of the vendor call in ms (excludes our wrapper overhead).
+  int64 vendor_latency_ms = 4;
+  // Normalised cost attributable to this call (USD).
+  double cost_usd = 5;
+
+  // ── Structured error contract (populated only when success = false) ──
+  // Closed vocabulary; see @liftoffos/connector-types ToolErrorCode.
+  // Empty string = legacy/unclassified (older connector-service build).
+  string error_code = 6;
+  // Whether the agent should retry the same call unchanged.
+  bool retryable = 7;
+  // Milliseconds to wait before retry when retryable (0 = unset).
+  int64 retry_after_ms = 8;
+  // Actionable, model-facing next step.
+  string recovery = 9;
+
+  // Whose money paid the VENDOR for this call. Closed vocabulary, string for
+  // the same forward-compatibility reasons as error_code:
+  //   "x402_wallet"  — the platform x402 wallet settled a per-call USDC
+  //                    payment (books cost_bucket='x402_wallet_funded' with
+  //                    real OU consumption downstream);
+  //   "platform_key" — a platform-held vendor credential/balance paid;
+  //   "tenant_key"   — the workspace's own vendor credential paid.
+  // Empty = unreported (legacy build, or a call with nothing to fund). The
+  // wire is the AUTHORITY on funding: consumers must never re-derive it from
+  // the connector type, which is exactly the convention this field retires.
+  string funding_source = 10;
+}
+
+// ── ExecuteBatch ──────────────────────────────────────────────────────
+
+message ExecuteBatchRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  repeated ExecuteRequest operations = 2;
+}
+
+message ExecuteBatchResponse {
+  // Results in the same order as the input operations. Partial failures
+  // allowed — each operation returns its own success/error independently.
+  repeated ExecuteResponse results = 1;
+}
+
+// ── Warm ──────────────────────────────────────────────────────────────
+
+message WarmRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  // Connector types to warm (e.g. ["slack", "google_mail"]).
+  repeated string connector_types = 2;
+}
+
+message WarmResponse {
+  // Connectors successfully warmed (subset of request).
+  repeated string warmed_connector_types = 1;
+  // Connectors that could not be warmed (e.g. no credentials stored).
+  repeated WarmFailure failures = 2;
+}
+
+message WarmFailure {
+  string connector_type = 1;
+  string reason = 2;
+}
+
+// ── GetCredentials ────────────────────────────────────────────────────
+
+message GetCredentialsRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string connector_id = 2;
+}
+
+message GetCredentialsResponse {
+  AuthFlowKind flow_kind = 1;
+  // When flow_kind == AUTH_FLOW_KIND_STATIC_OAUTH or DCR.
+  OauthCredentials oauth = 2;
+  // When flow_kind == AUTH_FLOW_KIND_API_KEY.
+  ApiKeyCredentials api_key = 3;
+  // When flow_kind == AUTH_FLOW_KIND_KEYPAIR.
+  KeypairCredentials keypair = 4;
+}
+
+message OauthCredentials {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 expires_at_epoch_sec = 3;
+  repeated string scopes = 4;
+  google.protobuf.Struct extra = 5;
+}
+
+message ApiKeyCredentials {
+  string api_key = 1;
+  google.protobuf.Struct extra = 2;
+}
+
+message KeypairCredentials {
+  string public_key = 1;
+  string private_key = 2;
+  string key_id = 3;
+  google.protobuf.Struct extra = 4;
+}
+
+// ── GetFunctionalTypes ────────────────────────────────────────────────
+
+message GetFunctionalTypesRequest {
+  // Filter to connectors available for the calling tenant. Empty =
+  // return the platform-wide list.
+  liftoff.event.v1.TenantContext tenant_context = 1;
+}
+
+message GetFunctionalTypesResponse {
+  // Canonical connector type strings (e.g. "github", "google_mail").
+  repeated string connector_types = 1;
+}
+
+// ── GetCapabilities ───────────────────────────────────────────────────
+
+message GetCapabilitiesRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+}
+
+message GetCapabilitiesResponse {
+  repeated CapabilityEntry capabilities = 1;
+}
+
+// ── ListTools ─────────────────────────────────────────────────────────
+
+message ListToolsRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  // Optional filter — if empty, return tools for every connector type.
+  repeated string connector_types = 2;
+  // Caller sends the cached version it has; server returns the same
+  // `version` when nothing has changed so callers can skip the full
+  // payload. Server-assigned monotonic tag.
+  string cached_version = 3;
+}
+
+message ToolDefinition {
+  // Tool / function name as the agent calls it (e.g. "slack.postMessage").
+  string name = 1;
+  // Human-readable description for Claude's tool-use prompt.
+  string description = 2;
+  // JSON schema for the input payload. Struct so we don't lock it to
+  // OpenAPI 3.0 vs JSON Schema draft-07 in the wire type.
+  google.protobuf.Struct input_schema = 3;
+  // Category labels used by HITL admission (e.g. "read", "destructive").
+  repeated string categories = 4;
+  // True when the tool mutates external state.
+  bool is_write = 5;
+  // Alternative tool name for draft-first communication mode. Registry-level
+  // name (e.g. "create_draft"); the tool-interceptor composes the per-account
+  // alias at dispatch time.
+  string draft_variant = 6;
+  // Stable entity identifier the tool reads/writes (e.g. "Email", "Message").
+  string entity_type = 7;
+
+  // ── W1 work_inbox/ack convention ──
+  // Tagging poll-shaped inbox tools with their paired ack tool lets the distill
+  // prompt auto-inject an acknowledgement contract whenever both halves of a
+  // pair are bound to an agent. Prevents the repeat-reply spam class of
+  // failure on every poll-driven connector (email, ticketing, CRM, tasks).
+
+  // Work-queue role:
+  //   "inbox" — surfaces a queue of pending items, filtered by external-system state
+  //   "ack"   — flips the external-system state so the item drops out of the next list
+  // Empty when the tool is not part of a work-pair.
+  string work_role = 8;
+  // On work_role="inbox": registry name of the paired ack tool (e.g. "mark_as_read").
+  string paired_ack = 9;
+  // On work_role="ack": registry name of the inbox tool this ack closes the loop on.
+  string acknowledges = 10;
+  // Stable cross-connector label for the kind of work item. Both halves of a
+  // pair MUST agree. Examples: "email_message", "support_ticket", "issue",
+  // "lead", "task", "card", "deal".
+  string work_item_kind = 11;
+
+  // ── Composio cutover-completion (proto-gen v0.8.0) ──
+  // Definition origin. "" / "native" → dispatched via the connector's native
+  // REST executor. "composio" → dispatched via composio.tools.execute() in
+  // tenant-runtime, with translations sourced from @liftoffos/composio-overlays.
+  // Read by tenant-runtime's stable-name router to pick the dispatch path.
+  string definition_source = 12;
+
+  // Underlying vendor's tool name (e.g. "GMAIL_FETCH_EMAILS"). For
+  // definition_source="composio" this is what tenant-runtime's composio
+  // dispatcher passes as the slug to composio.tools.execute(). For native
+  // tools, MUST equal `name` or be empty.
+  string vendor_tool_name = 13;
+
+  // ── Record provenance ──
+  // Which arguments NAME the record this call acts on, and where a read's
+  // result carries the identities it returned. Together they let the runtime
+  // ask whether the id a write is about to act on came from something the run
+  // actually read, or from something the model composed out of context.
+  //
+  // The two halves are separate because they are separate facts. A write
+  // declares what its arguments MEAN; a read declares what its result CONTAINS.
+  // Most tools have one or the other, and a tool that has neither is simply not
+  // covered — the runtime falls back to its own argument heuristic, exactly as
+  // an undeclared category falls back to a name heuristic.
+
+  // Payload argument names that identify the record acted on, e.g.
+  // ["pull_number"] or ["spreadsheet_id", "range"]. Order is not significant.
+  repeated string id_args = 14;
+
+  // Where this tool's RESULT carries record identities, so the runtime can
+  // remember what the run has legitimately seen.
+  repeated ReturnedIds returns_ids = 15;
+
+  // ── Host-only result fields ──
+  // Result paths that must reach the SURFACE but never the model: signed URLs,
+  // payment links, one-time tokens. The model-visible result carries a
+  // placeholder in their place. Distinct from secret-scrubbing, which removes
+  // the value from everywhere.
+  repeated string egress_only = 16;
+
+  // ── Staged writes ──
+  // "stage" — the call prepares a change that a paired apply commits.
+  // "apply" — the call commits what a paired stage prepared.
+  // "direct" — the call takes effect on its own. Empty means "direct".
+  //
+  // Only opt-in families set this. It exists so a job that is N line-level
+  // writes can be approved ONCE, as the staged batch, rather than pausing per
+  // line: the approval covers exactly the batch the apply commits.
+  string write_role = 17;
+  // On write_role="stage": registry name of the apply tool that commits it.
+  string paired_apply = 18;
+
+  // ── Classification provenance ──
+  // Whether `categories` were stated by the connector's registry/catalog
+  // definition or derived by the service's name heuristic. The runtime forwards
+  // this to the governance Authorize decision so a declared read can be trusted
+  // to skip the read-gate while an inferred one falls back to the name
+  // heuristic — the heuristic defaults an unknown verb to read, so an inferred
+  // "read" must never loosen a fail-closed gate. Empty ⇒ treat as inferred.
+  ClassificationSource classification_source = 19;
+}
+
+// Provenance of a ToolDefinition's `categories`.
+enum ClassificationSource {
+  CLASSIFICATION_SOURCE_UNSPECIFIED = 0;
+  // Categories came from the connector's registry/catalog entry.
+  CLASSIFICATION_SOURCE_DECLARED = 1;
+  // Categories were derived heuristically from the tool name.
+  CLASSIFICATION_SOURCE_INFERRED = 2;
+}
+
+// Where a read's result carries record identities.
+message ReturnedIds {
+  // The kind of thing the ids identify, e.g. "PullRequest", "Message". Matched
+  // against the entity a later write names, so a message id cannot vouch for a
+  // pull request.
+  string entity_type = 1;
+  // Dot path into the result, with `[]` for "every element", e.g.
+  // "messages[].id" or "data.spreadsheetId".
+  string path = 2;
+}
+
+message ConnectorToolSet {
+  string connector_type = 1;
+  string display_name = 2;
+  repeated ToolDefinition tools = 3;
+}
+
+message ListToolsResponse {
+  repeated ConnectorToolSet tool_sets = 1;
+  // Monotonic version tag; callers pass this as cached_version next time.
+  // When the request's cached_version matches, server returns the tag
+  // with empty tool_sets (the caller's cache is still fresh).
+  string version = 2;
+  // True iff tool_sets is intentionally empty because cached_version
+  // matched. Distinct from "no connectors have tools".
+  bool unchanged = 3;
+}
+
+// ── ListTenantConnectors ──────────────────────────────────────────────
+
+message ListTenantConnectorsRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  // Optional filter on connector type. Empty = return every row for the
+  // tenant.
+  repeated string connector_types = 2;
+  // Optional filter on status. Empty = every status.
+  repeated string statuses = 3;
+}
+
+message ConnectorSummary {
+  // Stable row id (UUID) for this connector instance.
+  string id = 1;
+  // Canonical connector type ("github", "google_mail", …).
+  string connector_type = 2;
+  // Human-readable display name for the connector class.
+  string display_name = 3;
+  // Tenant-chosen instance name ("Engineering Slack").
+  string name = 4;
+  // Runtime status. One of: active | disabled | error | disconnected.
+  string status = 5;
+  // Credential flow kind backing this connector.
+  AuthFlowKind flow_kind = 6;
+  // Optional masked hint for API-key connectors ("•••abcd").
+  string api_key_hint = 7;
+  // Last successful sync timestamp, seconds since epoch. 0 if never synced.
+  int64 last_sync_at_epoch_sec = 8;
+  // Row creation timestamp.
+  int64 created_at_epoch_sec = 9;
+  // Row update timestamp.
+  int64 updated_at_epoch_sec = 10;
+}
+
+message ListTenantConnectorsResponse {
+  repeated ConnectorSummary connectors = 1;
+}
+
+// ── GetMcpServerConfig ────────────────────────────────────────────────
+
+// Transport protocol used to talk to an MCP server.
+enum McpTransport {
+  MCP_TRANSPORT_UNSPECIFIED = 0;
+  MCP_TRANSPORT_SSE = 1;
+  MCP_TRANSPORT_STREAMABLE_HTTP = 2;
+  MCP_TRANSPORT_STDIO = 3;
+}
+
+message GetMcpServerConfigRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  // Connector instance UUID (matches Connector.id). The server resolves
+  // the connector's type from the row + applies any per-workspace URL
+  // resolver (Snowflake, Databricks) against `connector.config`.
+  string connector_id = 2;
+}
+
+message GetMcpServerConfigResponse {
+  // False when the connector has no MCP config at all (non-MCP connector
+  // types use the Execute RPC path instead). Callers should skip MCP
+  // wiring for these.
+  bool exists = 1;
+  // True for vendor-hosted MCP servers (GitHub, Stripe, Notion…); false
+  // for self-hosted sidecars. Tenant-runtime only wires vendor-hosted
+  // entries directly into the SDK's mcpServers map — sidecars are
+  // tunnelled through the Execute RPC.
+  bool is_vendor_hosted = 2;
+  // Fully-resolved MCP URL, including per-workspace substitutions for
+  // connectors that carry tenant-specific hosts.
+  string mcp_url = 3;
+  McpTransport transport = 4;
+  // For composio_managed entries: the tenant identity to substitute into
+  // the {user_id} placeholder in mcp_url. Empty for non-Composio entries.
+  string composio_user_id = 5;
+  // false → tenant-runtime should NOT fetch OAuth credentials and NOT set
+  // an Authorization header. The mcp_url + composio_user_id are sufficient.
+  //
+  // proto3 bools default to FALSE on the wire. The RPC handler therefore
+  // ALWAYS sets this field explicitly: `true` on the vendor-hosted/sidecar
+  // branch and `false` on the Composio branch. Old tenant-runtime builds
+  // reading the new proto will see `false` only for Composio responses
+  // (where it's correct) and `true` for everything else — they keep
+  // attaching Bearer headers without behavior change.
+  bool requires_bearer_auth = 6;
+}
+
+// ── PrefetchThread ────────────────────────────────────────────────────
+
+message PrefetchThreadRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  // Connector instance UUID.
+  string connector_id = 2;
+  // Entity type — matches the historyReads entityType in connectors.ts
+  // (e.g. "thread", "comments", "conversation", "activity", "messages").
+  string entity_type = 3;
+  // Entity identifier. Format is connector-type-specific (e.g. for Slack:
+  // "<channelId>:<threadTs>"; for Jira: issue ID; for Gmail: threadId).
+  string entity_id = 4;
+  // Trace ID for distributed tracing.
+  string trace_id = 5;
+}
+
+message PrefetchThreadResponse {
+  // False when the fetch failed (see error field).
+  bool success = 1;
+  // JSON-serialised ExternalRecord.data on success.
+  string content = 2;
+  // Error message on failure.
+  string error = 3;
+}
+
+// ── MarkConnectorError / ClearConnectorError ──────────────────────────
+
+message MarkConnectorErrorRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string connector_id = 2;
+  string error_code = 3;   // 'byok_insufficient_funds' | 'byok_invalid_key'
+  string reason = 4;       // audit string, free-form
+}
+message MarkConnectorErrorResponse {}
+
+message ClearConnectorErrorRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string connector_id = 2;
+}
+message ClearConnectorErrorResponse {}
+
+// ── LookupTenantConnector ─────────────────────────────────────────────
+
+message LookupTenantConnectorRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string connector_type = 2;
+}
+message LookupTenantConnectorResponse {
+  // Empty when no connector of that type exists for the tenant.
+  // Returns the FIRST connector (deterministic ordering on id ASC) when
+  // multiple instances exist of the same type — the resolver doesn't multi-route.
+  string connector_id = 1;
+  string status = 2;          // 'connected' | 'error' | 'disconnected' | 'pending'
+  string error_code = 3;      // populated when status='error', else empty
+  bool present = 4;           // false when no row matches; convenience for callers
+}
+
+// ── ListErroredConnectors ─────────────────────────────────────────────
+
+message ListErroredConnectorsRequest {
+  string connector_type = 1;
+  string error_code = 2;
+}
+message ListErroredConnectorsResponse {
+  repeated ErroredConnector connectors = 1;
+}
+message ErroredConnector {
+  string tenant_id = 1;
+  string connector_id = 2;
+}

@@ -1,0 +1,7 @@
+{
+  "name": "eslint-plugin-r5-local",
+  "version": "1.0.0",
+  "main": "index.js",
+  "private": true,
+  "description": "WS-0 — local ESLint plugin for connector-service. Linked via `file:./eslint-rules` in the parent package.json."
+}

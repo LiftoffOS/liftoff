@@ -1,0 +1,60 @@
+# Bootstrap build: build and push images only.
+# Used for initial deployment before Cloud Run service exists.
+# Does NOT attest, migrate, or deploy — those happen via full cloudbuild.yaml
+# once the Cloud Run service and migration job are created by terraform.
+
+timeout: 1800s
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  dynamicSubstitutions: true
+
+substitutions:
+  _REGION: us-west1
+  _ENV: dev
+  _SHA: "0000000"
+
+steps:
+  # 0. Get Artifact Registry token for @liftoffos/* private npm packages
+  - id: ar-token
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - echo -n "$$( gcloud auth print-access-token )" > /workspace/ar_token
+
+  - id: build-runtime
+    name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        docker build \
+          -f Dockerfile \
+          --build-arg ARTIFACT_REGISTRY_TOKEN="$$(cat /workspace/ar_token)" \
+          -t ${_REGION}-docker.pkg.dev/${PROJECT_ID}/YOUR_GCP_PROJECT/byok-proxy:${_SHA} \
+          .
+
+  - id: build-migrate
+    name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        docker build \
+          -f Dockerfile.migrate \
+          --build-arg ARTIFACT_REGISTRY_TOKEN="$$(cat /workspace/ar_token)" \
+          -t ${_REGION}-docker.pkg.dev/${PROJECT_ID}/YOUR_GCP_PROJECT/byok-proxy-migrate:${_SHA} \
+          .
+
+  - id: push-runtime
+    name: gcr.io/cloud-builders/docker
+    args: [push, "${_REGION}-docker.pkg.dev/${PROJECT_ID}/YOUR_GCP_PROJECT/byok-proxy:${_SHA}"]
+
+  - id: push-migrate
+    name: gcr.io/cloud-builders/docker
+    args: [push, "${_REGION}-docker.pkg.dev/${PROJECT_ID}/YOUR_GCP_PROJECT/byok-proxy-migrate:${_SHA}"]
+
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/YOUR_GCP_PROJECT/byok-proxy:${_SHA}
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/YOUR_GCP_PROJECT/byok-proxy-migrate:${_SHA}

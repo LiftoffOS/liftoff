@@ -1,0 +1,45 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.0",
+  "id": "702af048-5c55-43d3-aa3e-e86575350175",
+  "developer": {
+    "name": "Liftoff",
+    "websiteUrl": "https://example.com",
+    "privacyUrl": "https://example.com/privacy",
+    "termsOfUseUrl": "https://example.com/terms",
+    "mpnId": "{{MPN_ID}}"
+  },
+  "name": {
+    "short": "Liftoff",
+    "full": "Liftoff — AI workforce"
+  },
+  "description": {
+    "short": "Chat with your Liftoff AI teams in Microsoft Teams.",
+    "full": "Liftoff is an AI workforce management platform that lets companies design and deploy AI agents to run core business functions autonomously alongside their human workforce. In Microsoft Teams, mention @Liftoff in any chat or channel to talk to your AI teammates, hand off tasks, review their work, and get answers grounded in your connected tools and knowledge — just like messaging a coworker."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#FB411F",
+  "bots": [
+    {
+      "botId": "702af048-5c55-43d3-aa3e-e86575350175",
+      "scopes": ["personal", "team", "groupchat"],
+      "supportsFiles": false,
+      "isNotificationOnly": false,
+      "commandLists": [
+        {
+          "scopes": ["personal", "team", "groupchat"],
+          "commands": [
+            { "title": "help", "description": "Learn what your Liftoff AI team can do" },
+            { "title": "switch", "description": "Change which AI teammate you're talking to" }
+          ]
+        }
+      ]
+    }
+  ],
+  "permissions": ["identity", "messageTeamMembers"],
+  "validDomains": ["api.example.com"]
+}

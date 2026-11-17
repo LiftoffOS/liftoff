@@ -1,0 +1,563 @@
+{
+  "connectorType": "kit",
+  "harvestedAt": "2026-09-15",
+  "source": "vendor_docs",
+  "sourceUrl": "https://help.kit.com/en/articles/15072804-kit-mcp-tools",
+  "tools": [
+    {
+      "name": "list_prompt_suggestions",
+      "description": "Get the canonical catalog of suggested workflows for this Kit account.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get_current_account",
+      "description": "Get details for the authenticated Kit account.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_colors",
+      "description": "Get the brand color palette for this Kit account.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "update_colors",
+      "description": "Replace the brand color palette for this Kit account.",
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get_creator_profile",
+      "description": "Get the creator's newsletter site information.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get_email_stats",
+      "description": "Get account-level email sending statistics (averages across the whole account, last 90 days), not per-broadcast stats. For one broadcast's performance use get_stats_for_a_broadcast; for many broadcasts at once use get_stats_for_a_list_of_broadcasts.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get_growth_stats",
+      "description": "Get subscriber growth statistics for the account.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "bulk_create_subscribers",
+      "description": "Create or update multiple subscribers in a single call (upsert by email address). Use this instead of calling create_subscriber repeatedly.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "bulk_update_subscriber_custom_field_values",
+      "description": "Update custom field values for multiple subscribers in a single call. Use this instead of calling update_subscriber repeatedly.",
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "create_subscriber",
+      "description": "Create or update a single subscriber (upsert by email address). For creating more than one subscriber, use bulk_create_subscribers instead.",
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "filter_subscribers",
+      "description": "Filter subscribers by engagement (opens, clicks, sends, deliveries), sign-up date, subscriber state, tag membership, primary location, and/or original signup attribution. Results can be enriched via include (tags, location, attribution, or engagement stats over a window).",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get_subscriber",
+      "description": "Get detailed information about a specific subscriber by ID.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_stats_for_a_subscriber",
+      "description": "Get engagement statistics for a specific subscriber by ID. Returns (under subscriber.stats ): sent , opened , clicked , bounced , open_rate , click_rate , last_sent , last_opened , last_clicked , sends_since_last_open , sends_since_last_click . Use email_sent_after / email_sent_before (YYYY-MM-DD) to scope to a date range.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_subscribers",
+      "description": "List subscribers with optional filtering, enrichment, and cursor pagination. Use include to enrich each subscriber: fields adds custom field values; tags , location , attribution , and canceled_at add their respective data in a single call.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_tags_for_a_subscriber",
+      "description": "List all tags applied to a specific subscriber.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "unsubscribe",
+      "description": "Unsubscribe a subscriber from the account.",
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "update_subscriber",
+      "description": "Update a single subscriber's details (email, name, or custom fields). For updating custom fields on more than one subscriber, use bulk_update_subscriber_custom_field_values instead.",
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "bulk_create_tags",
+      "description": "Create multiple tags in a single call (upsert by name). Use this instead of calling create_tag repeatedly when setting up a tag taxonomy or importing many tags at once.",
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "bulk_delete_tags",
+      "description": "Delete multiple tags in a single call by ID. Use this to clean up a tag taxonomy or remove tags in bulk.",
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "bulk_remove_tags_from_subscribers",
+      "description": "Remove a tag from multiple subscribers in a single call. Prefer this over repeated remove_tag_from_subscriber calls when untagging more than a handful of subscribers.",
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "bulk_tag_subscribers",
+      "description": "Apply a tag to multiple subscribers in a single call. Prefer this over repeated tag_subscriber calls when tagging more than a handful of subscribers.",
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "create_tag",
+      "description": "Create a new tag. For creating more than one tag, use bulk_create_tags instead.",
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_subscribers_for_tag",
+      "description": "List all subscribers who have a specific tag. Returns a slim response by default; add \"fields\" to include when you need custom field values.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_tags",
+      "description": "List all tags in the account. Add subscriber_count to include to also get each tag's active subscriber count.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "remove_tag_from_subscriber",
+      "description": "Remove a tag from a subscriber. For removing a tag from more than one subscriber at once, use bulk_remove_tags_from_subscribers instead.",
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "tag_subscriber",
+      "description": "Apply a tag to a subscriber. For tagging more than one subscriber at once, use bulk_tag_subscribers instead.",
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "update_tag_name",
+      "description": "Rename an existing tag.",
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_segments",
+      "description": "List all subscriber segments (saved subscriber filters) in the account.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "bulk_create_custom_fields",
+      "description": "Create multiple custom field definitions in a single call (upsert by label). Use this instead of calling create_custom_field repeatedly when setting up a new account or importing a field schema.",
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "create_custom_field",
+      "description": "Create a new custom field. For creating more than one custom field, use bulk_create_custom_fields instead.",
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "delete_custom_field",
+      "description": "Permanently delete a custom field and its values from all subscribers.",
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_custom_fields",
+      "description": "List all custom fields defined in the account.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "update_custom_field",
+      "description": "Rename an existing custom field.",
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "add_subscriber_to_form",
+      "description": "Subscribe someone to a form. For subscribing more than one subscriber, use bulk_add_subscribers_to_forms instead.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "bulk_add_subscribers_to_forms",
+      "description": "Subscribe multiple existing subscribers to one or more forms in a single call, triggering the form's confirmation or incentive email for each. Use this instead of calling add_subscriber_to_form repeatedly for onboarding or lead-import workflows.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "list_forms",
+      "description": "List all forms and landing pages in the account. Add subscriber_count to include to also get each form's active subscriber count.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_subscribers_for_form",
+      "description": "List subscribers who signed up through a specific form. Returns a slim response by default; add \"fields\" to include when you need custom field values.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "add_subscriber_to_sequence",
+      "description": "Add a subscriber to an email sequence. Creates the subscriber if they don't exist.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "create_sequence",
+      "description": "Create a new email sequence (automated email series).",
+      "annotations": {
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "delete_sequence",
+      "description": "Permanently delete a sequence. All subscribers will be removed from the sequence.",
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get_sequence",
+      "description": "Get detailed information about a specific sequence. Add \"stats\" to include to also get deliverability counts and rates (opens, clicks, bounces, complaints, unsubscribes) plus the unsubscriber count (matches the sequences dashboard).",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_sequences",
+      "description": "List all email sequences (automated email series) in the account. Add \"stats\" to include to also get per-sequence deliverability counts and rates (opens, clicks, bounces, complaints, unsubscribes) plus the unsubscriber count (matches the sequences dashboard).",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_subscribers_for_sequence",
+      "description": "List subscribers in a specific sequence. Returns a slim response by default; add \"fields\" to include when you need custom field values.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "update_sequence",
+      "description": "Update an existing sequence's settings.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "create_sequence_email",
+      "description": "Add a new email to a sequence.",
+      "annotations": {
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "delete_sequence_email",
+      "description": "Remove an email from a sequence. Remaining emails are automatically re-ordered.",
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get_sequence_email",
+      "description": "Get a specific email within a sequence, including its HTML content. Add \"stats\" to include to also get this email's deliverability counts and rates (opens, clicks, bounces, complaints, unsubscribes).",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_sequence_emails",
+      "description": "List all emails in a specific sequence, ordered by position. Content is omitted by default; pass include_content: true to include it. Add \"stats\" to include for per-email deliverability counts and rates (opens, clicks, bounces, complaints, unsubscribes).",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "update_sequence_email",
+      "description": "Update an existing sequence email. Only fields you provide are changed (patch semantics).",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "create_broadcast",
+      "description": "Create a draft email broadcast.",
+      "annotations": {
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "delete_broadcast",
+      "description": "Delete a broadcast. Cannot delete broadcasts that are sending or completed.",
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get_broadcast",
+      "description": "Get detailed information about a specific broadcast.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get_link_clicks_for_a_broadcast",
+      "description": "Get click data for a specific broadcast.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get_stats_for_a_broadcast",
+      "description": "Get performance statistics for a single broadcast by ID. Requires a broadcast ID; use list_broadcasts first to find IDs. For stats across many broadcasts at once, use get_stats_for_a_list_of_broadcasts.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get_stats_for_a_list_of_broadcasts",
+      "description": "Performance analytics across many broadcasts at once. Use this when the goal is performance analysis or building a stats leaderboard across multiple sends. This is not the listing tool: to browse or find broadcasts, use list_broadcasts. For the stats of a single broadcast, use get_stats_for_a_broadcast after finding its ID with list_broadcasts.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_broadcasts",
+      "description": "List all broadcasts (email campaigns) in the account. Add \"content\" to include when you need full details (HTML content, targeting) across many broadcasts at once.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "update_broadcast",
+      "description": "Update an existing broadcast's content (subject, body, preview text, segment, template, etc.).",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "list_email_templates",
+      "description": "List all email templates available in the account.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_snippets",
+      "description": "List all snippets in the account.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get_snippet",
+      "description": "Get a specific snippet by ID, including its content and document.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "create_snippet",
+      "description": "Create a new reusable snippet."
+    },
+    {
+      "name": "update_snippet",
+      "description": "Update an existing snippet. Only fields you provide are changed (patch semantics).",
+      "annotations": {
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get_post",
+      "description": "Get detailed information about a specific post.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_posts",
+      "description": "List all published posts on the creator's newsletter site.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_products",
+      "description": "List the account's Commerce products — everything the creator sells, including tip jars.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_tax_codes",
+      "description": "List the Kit tax codes used to classify a product's tax category, i.e. to choose a product's tax_code_id when creating or updating a product.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get_purchase",
+      "description": "Get details about a specific purchase.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_purchases",
+      "description": "List all purchases tracked in the account.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_domains",
+      "description": "List the account's domains.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "create_webhook",
+      "description": "Create a webhook that fires HTTP requests to an external URL when events occur.",
+      "annotations": {
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "delete_webhook",
+      "description": "Delete a webhook. It will stop firing for all future events.",
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list_webhooks",
+      "description": "List all webhooks configured in the account.",
+      "annotations": {
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    }
+  ]
+}

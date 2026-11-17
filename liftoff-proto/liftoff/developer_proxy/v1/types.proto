@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+// Shared message shapes for liftoff-developer-proxy. Management surface only —
+// hot-path vendor traffic flows as transparent HTTP pass-through, not via
+// Connect-RPC.
+package liftoff.developer_proxy.v1;
+
+import "google/protobuf/timestamp.proto";
+
+enum DeveloperProxyVendor {
+  DEVELOPER_PROXY_VENDOR_UNSPECIFIED = 0;
+  DEVELOPER_PROXY_VENDOR_ANTHROPIC = 1;
+  DEVELOPER_PROXY_VENDOR_OPENAI = 2;
+}
+
+enum CredentialStatus {
+  CREDENTIAL_STATUS_UNSPECIFIED = 0;
+  CREDENTIAL_STATUS_PENDING = 1;
+  CREDENTIAL_STATUS_ACTIVE = 2;
+  CREDENTIAL_STATUS_REVOKED = 3;
+  CREDENTIAL_STATUS_EXPIRED = 4;
+}
+
+enum UsageStreamStatus {
+  USAGE_STREAM_STATUS_UNSPECIFIED = 0;
+  USAGE_STREAM_STATUS_PENDING = 1;
+  USAGE_STREAM_STATUS_FINAL = 2;
+  USAGE_STREAM_STATUS_DISCONNECTED = 3;
+  USAGE_STREAM_STATUS_ERROR = 4;
+}
+
+message Credential {
+  string id = 1;
+  string tenant_id = 2;
+  string user_id = 3;
+  DeveloperProxyVendor vendor = 4;
+  // Opaque reference into Secret Manager. Never a raw key.
+  string encrypted_api_key_ref = 5;
+  CredentialStatus status = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp last_used_at = 8;
+  google.protobuf.Timestamp revoked_at = 9;
+}
+
+message UsageSummary {
+  string tenant_id = 1;
+  string user_id = 2;
+  DeveloperProxyVendor vendor = 3;
+  string model = 4;
+  google.protobuf.Timestamp period_start = 5;
+  google.protobuf.Timestamp period_end = 6;
+  int64 input_tokens = 7;
+  int64 output_tokens = 8;
+  int64 cached_input_tokens = 9;
+  int64 cache_creation_input_tokens = 10;
+  int64 cost_micros = 11;
+  int64 request_count = 12;
+}
+
+// PKCE setup flow for CLI clients exchanging long-lived vendor keys for
+// Liftoff-minted proxy credentials.
+message PkceSession {
+  string id = 1;
+  string tenant_id = 2;
+  string user_id = 3;
+  DeveloperProxyVendor vendor = 4;
+  // SHA256 of the verifier, base64url-encoded. Verifier never transmitted.
+  string code_challenge = 5;
+  string code_challenge_method = 6;
+  google.protobuf.Timestamp expires_at = 7;
+}
+
+enum DataScope {
+  DATA_SCOPE_UNSPECIFIED = 0;
+  DATA_SCOPE_TENANT = 1;
+  DATA_SCOPE_USER = 2;
+}
+
+message ExportTenantDataRequest {
+  string tenant_id = 1;
+  string subject_user_id = 2;
+  DataScope scope = 3;
+  string requested_by = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  bytes authorization_hmac = 6;
+}
+
+message ExportTenantDataResponse {
+  bytes record = 1;
+  string record_type = 2;
+  int64 sequence = 3;
+}
+
+message DeleteTenantUserDataRequest {
+  string tenant_id = 1;
+  string subject_user_id = 2;
+  DataScope scope = 3;
+  string requested_by = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  bytes authorization_hmac = 6;
+}
+
+message DeleteTenantUserDataResponse {
+  int64 records_deleted = 1;
+  int64 records_pseudonymized = 2;
+  string audit_receipt_id = 3;
+}

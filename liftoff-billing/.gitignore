@@ -1,0 +1,9 @@
+# No trailing slash, deliberately. `node_modules/` matches a DIRECTORY and not a
+# SYMLINK, so a symlinked node_modules slips past it and can be committed — which
+# is how a self-referential `node_modules -> node_modules` reached main and
+# replaced the installed packages in every checkout that pulled it. Bare
+# `node_modules` matches both.
+node_modules
+dist/
+.env
+*.local

@@ -1,0 +1,29 @@
+{
+  "name": "@liftoffos/chat-attachments",
+  "version": "0.5.0",
+  "description": "What a chat message carries besides its text, shared by every Liftoff chat surface: the attachment contract (uploads, connector references and media; caps, request schema, persisted projections, <attachment> prompt wrapper, sanitizer, context-budget allowances) and the MediaRef both directions ride on.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LiftoffOS/liftoff.git",
+    "directory": "liftoff-platform-backend/packages/chat-attachments"
+  },
+  "author": "Liftoff",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@liftoffos/service-runtime": "*",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,22 @@
+-- Phase 1a: Widen agents.agent_type from VARCHAR(1) to VARCHAR(20)
+--
+-- Migration 023 declared `agent_type VARCHAR(1) NOT NULL DEFAULT 'B'` to hold
+-- the legacy taxonomy ('A', 'B', 'C'). Phase 1 of the agent-taxonomy-collapse
+-- work replaces these literals with ('agent', 'workflow'), which do not fit in
+-- a single-character column.
+--
+-- This migration widens the column so:
+--   - Phase 1a (this migration + subscriber normalizer): writes 'agent' / 'workflow'
+--     successfully while still reading legacy literals if they somehow arrive.
+--   - Phase 1b (platform-backend migration 086): rewrites any pre-existing data
+--     in the control-plane DB and publishes new-literal events.
+--   - Phase 1c: no additional schema change here; the constraint narrowing and
+--     default flip happen in tenant-runtime code (there is no CHECK constraint
+--     on this column to narrow — migration 023 did not add one).
+--
+-- No CHECK constraint existed on this column (verified via grep of migrations/).
+-- The default stays 'B' through Phase 1a so rolling-back to the pre-deploy
+-- tenant-runtime revision does not violate NOT NULL on new inserts. Phase 1c
+-- (tenant-runtime) flips the default to 'agent'.
+
+ALTER TABLE agents ALTER COLUMN agent_type TYPE VARCHAR(20);

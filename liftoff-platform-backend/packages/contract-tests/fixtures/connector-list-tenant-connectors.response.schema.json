@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/connector-list-tenant-connectors.response.schema.json",
+  "title": "ConnectorListTenantConnectorsResponse",
+  "description": "Response from POST /api/connectors/list-tenant-connectors. One ConnectorSummary per row with proto-shaped epoch-seconds timestamps, joined display name, and sanitised fields (no credential secrets).",
+  "type": "object",
+  "required": ["connectors"],
+  "additionalProperties": false,
+  "properties": {
+    "connectors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "connectorType",
+          "displayName",
+          "name",
+          "status",
+          "flowKind",
+          "apiKeyHint",
+          "lastSyncAtEpochSec",
+          "createdAtEpochSec",
+          "updatedAtEpochSec"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "connectorType": { "type": "string", "minLength": 1 },
+          "displayName": { "type": "string" },
+          "name": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["active", "disabled", "error", "disconnected", "pending"]
+          },
+          "flowKind": {
+            "type": "string",
+            "enum": [
+              "AUTH_FLOW_KIND_UNSPECIFIED",
+              "AUTH_FLOW_KIND_STATIC_OAUTH",
+              "AUTH_FLOW_KIND_DYNAMIC_CLIENT_REGISTRATION",
+              "AUTH_FLOW_KIND_API_KEY",
+              "AUTH_FLOW_KIND_KEYPAIR",
+              "AUTH_FLOW_KIND_NONE"
+            ]
+          },
+          "apiKeyHint": { "type": "string" },
+          "lastSyncAtEpochSec": { "type": "integer", "minimum": 0 },
+          "createdAtEpochSec": { "type": "integer", "minimum": 0 },
+          "updatedAtEpochSec": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

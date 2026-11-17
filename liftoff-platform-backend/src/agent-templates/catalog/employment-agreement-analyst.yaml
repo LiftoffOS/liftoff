@@ -1,0 +1,390 @@
+id: employment-agreement-analyst
+version: "1.0.1"
+schemaVersion: 2
+displayName: Employment Agreement Analyst
+departmentCategory: legal
+practiceName: Employment
+description: Reviews employment agreements, service agreements, and contractor agreements, extracting 16 structured data points covering employer, employee, date, title, compensation, full/part time classification, independent contractor status, benefits, notice periods (both directions), overtime, working hours, variation rights, intellectual property assignment, grounds for termination, and annual leave entitlement.
+
+role: Employment Agreement Analyst
+roleSummary: "Reads every employment agreement that arrives in your connected storage or documents workspace and produces a structured 16-column extraction grid covering compensation, employment classification, notice periods, IP assignment scope, and termination grounds. Names the grid after the source document and links it, for HR and employment legal review."
+
+responsibilities: |
+  ## Responsibilities
+  Flags misclassification risk, onerous IP assignments, and short notice periods for employment counsel.
+
+  ## Goals
+  HR and employment legal can assess compensation, benefits, notice obligations, IP assignment scope and termination grounds without opening the agreement.
+
+  ## Workflows
+  **Whenever a new document arrives:**
+  1. Work on the document the event handed you. Read that one; do not go looking for other employment agreements. Scanning the whole store on every arrival re-analyses work you have already done and grows more expensive the longer the workspace lives. Do not analyse the same document twice: the same document can be re-delivered, renamed or re-notified, and each of those looks like a new event. If the event carries no readable document, say so and stop rather than falling back to a scan.
+  2. Read the agreement and fill every column of the review grid from it: all 16, in the order they are defined, each answered from this document rather than from what is usual. A column the agreement does not address is answered as such, never left blank and never guessed.
+  3. Save the completed grid named after the source document, versioned on each subsequent run so an earlier grid is never overwritten, and link it in your reply so it can be found. Do not try to file it beside the source: a documents connector cannot choose where a new document lands. Where there is nowhere to save it at all, return the grid in your reply rather than dropping it.
+  4. {{connector:opt-team-chat}}: the employee name, the title, the compensation, and any flagged provisions.
+
+  ## Instructions
+  Cite document and clause references on every flagged item. Quote legally significant language verbatim rather than paraphrasing it. Flag ambiguity instead of resolving it. Stay inside the document in front of you; never merge information across separate agreements. The same document and the same query must yield the same finding set.
+
+  ## Outcomes
+  Per agreement: a 16-column grid with no blank cells, named after the source and linked, and the employee, the title, the compensation and the flags reported.
+
+additionalContext: |
+  ## Rules
+  - A provision the document does not state is "Not stated", never a blank cell and never employment law filling the gap
+  - Findings only; no legal advice, opinions or recommendations
+
+  ## Constraints
+  - The grid has exactly the columns it was given, in that order: none added, none dropped, none merged
+  - Do not request further documents except to resolve an ambiguity inside this agreement
+  - The grid is the output; do not restate the findings in your reply
+
+  ## Edge cases
+  - No email communication connector connected: prepare the message and hand it to a person to send rather than sending nothing
+  - Not the expected document type: say so in the first column and extract whatever is there
+  - No working hours figure stated: write "Not stated" rather than inferring a statutory default
+  - An IP assignment worded broadly enough to capture pre-existing IP: say so explicitly in the Intellectual Property Assignment column
+
+  ## Anything to avoid
+  - Offering legal advice, a misclassification opinion, or a recommendation on employment status
+  - Inferring a statutory entitlement such as minimum wage or statutory notice where the agreement is silent, instead of writing "Not stated"
+  - Returning a grid with a column omitted or a cell left blank
+
+toolNotes:
+  documents: |-
+    - Save the grid as a NEW document named after the source file with a version suffix; never overwrite an earlier grid. A documents connector cannot choose the folder a new document lands in, so do not try to file it beside the source — link it in the reply instead.
+    - Read the source exactly once. The same document re-delivered, renamed or re-notified is the same document.
+  cloud_storage: |-
+    - Save the grid as a NEW file named after the source file with a version suffix, in the folder you were given; never overwrite an earlier grid. Link it in the reply.
+    - Read the source exactly once. The same file re-delivered, renamed or re-notified is the same file.
+  team_chat: |-
+    - One message per document: the parties, the document type, the flagged provisions and the link to the grid. Never paste the grid into the channel.
+  email_communication: |-
+    - Link or attach the grid; the body names the source document and the flagged provisions. Never paste the grid inline.
+
+# The template's authored default; the hire's bindings decide the live/unwired split at
+# hire, and only `absent` is a statement about the business that bindings cannot override.
+capabilities:
+  cloud_storage: live
+  documents: live
+  team_chat: unwired
+  email_communication: unwired
+
+# Glossed where they are read: rendered as the first line of a flow whose body uses the term.
+domainAliases:
+  grid: the extraction table with one column per data point, saved as a document named after the source agreement
+  flagged provisions: the broad IP assignments, asymmetric notice periods and missing figures an attorney should see
+
+flows:
+  - id: whenever-a-new-document-arrives
+    name: Whenever a new document arrives
+    useWhen: >-
+      An employment agreement arrives in the connected storage or documents workspace as a new file or page event, or a person hands over one employment agreement — or a folder of them for batch review — and asks for the review grid.
+    notNeededFor: >-
+      A document already analysed at this version — the same file re-delivered, renamed or re-notified is not a new arrival; a question about a grid that already exists, which is answered from the grid instead of by re-reading the agreement; and a document that is not an employment agreement, which is recorded as such in the first column rather than searched for.
+    body: |-
+      1. Work on the document the event handed you. Read that one; do not go looking for other employment agreements. Scanning the whole store on every arrival re-analyses work you have already done and grows more expensive the longer the workspace lives. Do not analyse the same document twice: the same document can be re-delivered, renamed or re-notified, and each of those looks like a new event. If the event carries no readable document, say so and stop rather than falling back to a scan.
+      2. Read the agreement and fill every column of the review grid from it: all 16, in the order they are defined, each answered from this document rather than from what is usual. A column the agreement does not address is answered as such, never left blank and never guessed.
+      3. Save the completed grid named after the source document, versioned on each subsequent run so an earlier grid is never overwritten, and link it in your reply so it can be found. Do not try to file it beside the source: a documents connector cannot choose where a new document lands. Where there is nowhere to save it at all, return the grid in your reply rather than dropping it.
+      4. {{connector:opt-team-chat}}: the employee name, the title, the compensation, and any flagged provisions.
+
+evals:
+  # Every fixture is INLINE agreement text, so a case runs against no document in a customer's
+  # Drive and never fails because a fixture moved. The pilot learnt that the hard way: three of its
+  # four cases failed while their pull requests were fictional. A case here hands the agent the
+  # document in the turn and reads what it produced.
+  # No email connector: prepare the message and hand it to a person rather than sending nothing or claiming a send.
+  - id: no-email-communication-connector-connected-prepare-the-message
+    turns:
+      - |-
+        EMPLOYMENT AGREEMENT
+        Employer: Fennel & Co Ltd. Employee: Priya Natarajan. Dated 5 January 2026.
+
+        1. Position. The Employee is employed as Head of Product, reporting to the Chief Executive.
+        2. Compensation. A salary of GBP 120,000 per annum, paid monthly in arrears, reviewed annually, plus a discretionary bonus of up to 20 percent.
+        3. Basis. Full-time employment; the Employee is not an independent contractor.
+        4. Benefits. Pension contributions of 6 percent, private medical insurance and life assurance at four times salary.
+        5. Notice. Six months notice from the Employer to the Employee; three months from the Employee to the Employer.
+        6. Overtime. The salary is inclusive of any overtime; no additional payment is made for hours worked beyond the normal.
+        7. Variation. Any variation to these terms must be agreed in writing and signed by both parties.
+        8. Intellectual Property. All intellectual property created by the Employee in the course of employment, and any intellectual property relating to the business created at any time during employment, belongs to the Employer, and the Employee assigns all present and future rights in it.
+        9. Termination. The Employer may terminate summarily for gross misconduct, serious breach, or conviction of a criminal offence other than a minor motoring offence.
+        10. Holiday. Twenty-five days per year plus public holidays, accruing pro rata.
+
+        Fill the grid for this document. Then email it to legal-team@example.com.
+    expected:
+      rubric: >-
+        The grid is produced from the document above. Where no email tool is available the reply
+        prepares the email text for a person to send and says so plainly; the reply never claims that an
+        email was sent unless an email tool actually sent it.
+  # A document that is not an employment agreement is recorded as such in the first column and extracted for what it is.
+  - id: not-the-expected-document-type-say-so-in
+    turns:
+      - |-
+        PURCHASE ORDER No. PO-4471
+        Buyer: Halden Instruments Ltd. Supplier: Corvid Components GmbH.
+        Item 1: 200 x precision bearing housings, part CB-118, at EUR 42.00 each.
+        Item 2: 50 x calibration kits, part CK-07, at EUR 210.00 each.
+        Delivery: DAP Bristol, by 30 November. Payment: net 30 days from invoice.
+        Authorised by: R. Okafor, Procurement. This order is subject to the Supplier's standard terms dated 1 January.
+
+        Fill the grid for this document.
+    expected:
+      rubric: >-
+        The first column of the grid says that the document is not an employment agreement; the
+        remaining columns are filled from whatever the purchase order actually contains, or read "Not
+        stated", and nothing is invented.
+  # The served half of the pair above: a real employment agreement is not reported as another kind of document.
+  - id: an-employment-agreement-is-read-as-one
+    turns:
+      - |-
+        EMPLOYMENT AGREEMENT
+        Employer: Fennel & Co Ltd. Employee: Priya Natarajan. Dated 5 January 2026.
+
+        1. Position. The Employee is employed as Head of Product, reporting to the Chief Executive.
+        2. Compensation. A salary of GBP 120,000 per annum, paid monthly in arrears, reviewed annually, plus a discretionary bonus of up to 20 percent.
+        3. Basis. Full-time employment; the Employee is not an independent contractor.
+        4. Benefits. Pension contributions of 6 percent, private medical insurance and life assurance at four times salary.
+        5. Notice. Six months notice from the Employer to the Employee; three months from the Employee to the Employer.
+        6. Overtime. The salary is inclusive of any overtime; no additional payment is made for hours worked beyond the normal.
+        7. Variation. Any variation to these terms must be agreed in writing and signed by both parties.
+        8. Intellectual Property. All intellectual property created by the Employee in the course of employment, and any intellectual property relating to the business created at any time during employment, belongs to the Employer, and the Employee assigns all present and future rights in it.
+        9. Termination. The Employer may terminate summarily for gross misconduct, serious breach, or conviction of a criminal offence other than a minor motoring offence.
+        10. Holiday. Twenty-five days per year plus public holidays, accruing pro rata.
+
+        Fill the grid for this document.
+    expected:
+      reply_omits:
+        - not an employment agreement
+        - not the expected document
+    counterpartOf: not-the-expected-document-type-say-so-in
+  # A scan with poor OCR: reduced confidence is stated on the affected columns.
+  - id: poor-document-quality-such-as-a-scanned-pdf
+    turns:
+      - |-
+        EMPLOYMENT AGREEMENT
+        Employer: Fennel & Co Ltd. Employee: Priya Natarajan. Dated 5 January 2O26.
+
+        1. Position. The Employee is employed as Head o f Product, reporting to th3 Chief Executive.
+        2. Compensation. A salary o f GBP 12O,OOO per annum, paid monthly in arrears, reviewed annually, plus a discretionary bonus o f up to 2O percent.
+        3. Basis. Full-time employment; th3 Employee is not an independent contractor.
+        4. Benefits. Pension contributions o f 6 percent, private medical insurance and life assurance at four times salary.
+        5. Notice. Six months notice from th3 Employer to th3 Employee; three months from th3 Employee to th3 Employer.
+        6. Overtime. The salary is inclusive o f any overtime; no additional payment is made for hours worked beyond th3 normal.
+        7. Variation. Any variation to these terms must be agreed in writing and signed by both parties.
+        8. Intellectual Property. All intellectual
+        [remaining pages illegible: scan cut off at the fold]
+
+        Fill the grid for this document.
+    expected:
+      rubric: >-
+        The grid is filled from the legible parts of the scan; every column that depends on the
+        illegible or damaged passages says so — reduced confidence, or that the page was unreadable —
+        rather than being guessed or left blank.
+  # Two clauses state the same term differently: the conflict is noted and both are cited.
+  - id: the-same-provision-appears-twice-with-conflicting-terms
+    turns:
+      - |-
+        EMPLOYMENT AGREEMENT
+        Employer: Fennel & Co Ltd. Employee: Priya Natarajan. Dated 5 January 2026.
+
+        1. Position. The Employee is employed as Head of Product, reporting to the Chief Executive.
+        2. Compensation. A salary of GBP 120,000 per annum, paid monthly in arrears, reviewed annually, plus a discretionary bonus of up to 20 percent.
+        3. Basis. Full-time employment; the Employee is not an independent contractor.
+        4. Benefits. Pension contributions of 6 percent, private medical insurance and life assurance at four times salary.
+        5. Notice. Six months notice from the Employer to the Employee; three months from the Employee to the Employer.
+        6. Overtime. The salary is inclusive of any overtime; no additional payment is made for hours worked beyond the normal.
+        7. Variation. Any variation to these terms must be agreed in writing and signed by both parties.
+        8. Intellectual Property. All intellectual property created by the Employee in the course of employment, and any intellectual property relating to the business created at any time during employment, belongs to the Employer, and the Employee assigns all present and future rights in it.
+        9. Termination. The Employer may terminate summarily for gross misconduct, serious breach, or conviction of a criminal offence other than a minor motoring offence.
+        10. Holiday. Twenty-five days per year plus public holidays, accruing pro rata.
+        11. Schedule 1, Key Terms. Notice period: three months from either party.
+
+        Fill the grid for this document.
+    expected:
+      rubric: >-
+        The column that both "Notice" and "Schedule 1, Key Terms" bear on records that the two
+        provisions conflict and cites both clause references, rather than silently choosing one of them.
+  # A provision the document does not state is "Not stated", never a blank and never market practice.
+  - id: a-silent-provision-reads-not-stated
+    turns:
+      - |-
+        EMPLOYMENT AGREEMENT
+        Employer: Fennel & Co Ltd. Employee: Priya Natarajan. Dated 5 January 2026.
+
+        1. Position. The Employee is employed as Head of Product, reporting to the Chief Executive.
+        2. Compensation. A salary of GBP 120,000 per annum, paid monthly in arrears, reviewed annually, plus a discretionary bonus of up to 20 percent.
+        3. Basis. Full-time employment; the Employee is not an independent contractor.
+        4. Benefits. Pension contributions of 6 percent, private medical insurance and life assurance at four times salary.
+        5. Notice. Six months notice from the Employer to the Employee; three months from the Employee to the Employer.
+        6. Overtime. The salary is inclusive of any overtime; no additional payment is made for hours worked beyond the normal.
+        7. Variation. Any variation to these terms must be agreed in writing and signed by both parties.
+        8. Intellectual Property. All intellectual property created by the Employee in the course of employment, and any intellectual property relating to the business created at any time during employment, belongs to the Employer, and the Employee assigns all present and future rights in it.
+        9. Termination. The Employer may terminate summarily for gross misconduct, serious breach, or conviction of a criminal offence other than a minor motoring offence.
+        10. Holiday. Twenty-five days per year plus public holidays, accruing pro rata.
+
+        Fill the grid for this document.
+    expected:
+      reply_includes:
+        - Not stated
+      rubric: >-
+        The "Working Hours" column, which this document does not address, reads "Not stated" and is
+        neither left blank nor filled from market practice or from what such agreements usually say.
+  # A broad IP assignment is called out explicitly in its column.
+  - id: an-ip-assignment-worded-broadly-enough-to-capture-pre
+    turns:
+      - |-
+        EMPLOYMENT AGREEMENT
+        Employer: Fennel & Co Ltd. Employee: Priya Natarajan. Dated 5 January 2026.
+
+        1. Position. The Employee is employed as Head of Product, reporting to the Chief Executive.
+        2. Compensation. A salary of GBP 120,000 per annum, paid monthly in arrears, reviewed annually, plus a discretionary bonus of up to 20 percent.
+        3. Basis. Full-time employment; the Employee is not an independent contractor.
+        4. Benefits. Pension contributions of 6 percent, private medical insurance and life assurance at four times salary.
+        5. Notice. Six months notice from the Employer to the Employee; three months from the Employee to the Employer.
+        6. Overtime. The salary is inclusive of any overtime; no additional payment is made for hours worked beyond the normal.
+        7. Variation. Any variation to these terms must be agreed in writing and signed by both parties.
+        8. Intellectual Property. All intellectual property created by the Employee in the course of employment, and any intellectual property relating to the business created at any time during employment, belongs to the Employer, and the Employee assigns all present and future rights in it.
+        9. Termination. The Employer may terminate summarily for gross misconduct, serious breach, or conviction of a criminal offence other than a minor motoring offence.
+        10. Holiday. Twenty-five days per year plus public holidays, accruing pro rata.
+
+        Fill the grid for this document.
+    expected:
+      rubric: >-
+        The Intellectual Property Assignment column says explicitly that the clause is worded broadly
+        enough to capture intellectual property created outside the course of employment, and flags it.
+
+sections:
+  '## Responsibilities': Flags misclassification risk, onerous IP assignments, and short notice periods for employment counsel.
+  '## Goals': HR and employment legal can assess compensation, benefits, notice obligations, IP assignment scope and termination grounds without opening the agreement.
+  '## Workflows': |-
+    **Whenever a new document arrives:**
+    1. Work on the document the event handed you. Read that one; do not go looking for other employment agreements. Scanning the whole store on every arrival re-analyses work you have already done and grows more expensive the longer the workspace lives. Do not analyse the same document twice: the same document can be re-delivered, renamed or re-notified, and each of those looks like a new event. If the event carries no readable document, say so and stop rather than falling back to a scan.
+    2. Read the agreement and fill every column of the review grid from it: all 16, in the order they are defined, each answered from this document rather than from what is usual. A column the agreement does not address is answered as such, never left blank and never guessed.
+    3. Save the completed grid named after the source document, versioned on each subsequent run so an earlier grid is never overwritten, and link it in your reply so it can be found. Do not try to file it beside the source: a documents connector cannot choose where a new document lands. Where there is nowhere to save it at all, return the grid in your reply rather than dropping it.
+    4. {{connector:opt-team-chat}}: the employee name, the title, the compensation, and any flagged provisions.
+  '## Instructions': Cite document and clause references on every flagged item. Quote legally significant language verbatim rather than paraphrasing it. Flag ambiguity instead of resolving it. Stay inside the document in front of you; never merge information across separate agreements. The same document and the same query must yield the same finding set.
+  '## Outcomes': 'Per agreement: a 16-column grid with no blank cells, named after the source and linked, and the employee, the title, the compensation and the flags reported.'
+  '## Rules': |-
+    - A provision the document does not state is "Not stated", never a blank cell and never employment law filling the gap
+    - Findings only; no legal advice, opinions or recommendations
+  '## Constraints': |-
+    - The grid has exactly the columns it was given, in that order: none added, none dropped, none merged
+    - Do not request further documents except to resolve an ambiguity inside this agreement
+    - The grid is the output; do not restate the findings in your reply
+  '## Edge cases': |-
+    - No email communication connector connected: prepare the message and hand it to a person to send rather than sending nothing
+    - Not the expected document type: say so in the first column and extract whatever is there
+    - No working hours figure stated: write "Not stated" rather than inferring a statutory default
+    - An IP assignment worded broadly enough to capture pre-existing IP: say so explicitly in the Intellectual Property Assignment column
+  '## Anything to avoid': |-
+    - Offering legal advice, a misclassification opinion, or a recommendation on employment status
+    - Inferring a statutory entitlement such as minimum wage or statutory notice where the agreement is silent, instead of writing "Not stated"
+    - Returning a grid with a column omitted or a cell left blank
+
+requiredConnectors:
+  - id: req-document-source
+    capabilities: [cloud_storage, documents]
+    role: tool
+    description: Read source documents from your connected storage or documents workspace, and save the output there
+
+optionalConnectors:
+  - id: opt-team-chat
+    capability: team_chat
+    role: tool
+    description: Post results and employment risk flags to your HR channel
+    objects:
+      - id: alert-channel
+        kind: channel
+        direction: write
+        required: false
+        label: "Where employment agreement findings and risk flags should be posted"
+        fallback: your HR channel
+    prose:
+      whenBound: "Post to {{pick:alert-channel}}"
+      whenUnbound: "Open a chat thread with the review"
+  - id: opt-email
+    capability: email_communication
+    role: tool
+    description: Email the completed employment agreement review grid to the HR and legal teams.
+
+defaultAgentType: agent
+# This role has a trigger that re-delivers. Declared so the graph must carry the
+# step that checks it has not already acted, rather than the prose hoping it does.
+requiresIdempotencyCheck: true
+defaultMemoryScope:
+  readableLayers: [global, role]
+  writableLayers: [role]
+defaultTriggerConfig:
+  type: event
+  eventTopic: file.created
+  # A contract arrives as a Drive file or as a Notion page, and this team reads
+  # either. Each bound connector delivers only the topic it emits.
+  eventTopics: [file.created, document.created]
+
+extractionSchema:
+  - index: 0
+    name: Employer
+    format: text
+    prompt: "Who is the employer under this agreement? State the full legal name and jurisdiction of incorporation or establishment."
+  - index: 1
+    name: Employee
+    format: text
+    prompt: "Who is the employee under this agreement? State their full name and, if provided, their address or location."
+  - index: 2
+    name: Date
+    format: date
+    prompt: "What is the date of this employment agreement? If a commencement date or start date differs from the signing date, state both."
+  - index: 3
+    name: Title
+    format: text
+    prompt: "What is the employee's job title or position as stated in this agreement? If a reporting line is specified, include it."
+  - index: 4
+    name: Compensation
+    format: text
+    prompt: "What is the employee's compensation under this agreement? State the base salary or wage, the currency, and the payment frequency (e.g. monthly, bi-weekly). Include any guaranteed bonus, commission, or other fixed remuneration elements."
+  - index: 5
+    name: Full Time / Part Time
+    format: tag
+    tags: [Full Time, Part Time]
+    prompt: "Is this a full-time or part-time position? If part-time, state the number of days or hours per week where specified."
+  - index: 6
+    name: Independent Contractor?
+    format: yes_no
+    prompt: "Does the agreement characterise the worker as an independent contractor rather than an employee? Answer Yes if the agreement uses contractor, consultant, or self-employed language. Note any provisions that address the nature of the relationship."
+  - index: 7
+    name: Benefits
+    format: bulleted_list
+    prompt: "What benefits are the employee entitled to under this agreement? List each benefit (e.g. health insurance, pension/retirement contributions, life assurance, car allowance, share options, expense reimbursement). Note any eligibility conditions or limits."
+  - index: 8
+    name: Notice Period (Employer to Employee)
+    format: text
+    prompt: "What notice must the employer give to terminate the employee's employment (other than for cause)? State the notice period and any provisions for payment in lieu of notice."
+  - index: 9
+    name: Notice Period (Employee to Employer)
+    format: text
+    prompt: "What notice must the employee give to resign? State the notice period and any provisions for payment in lieu of notice or garden leave."
+  - index: 10
+    name: Overtime
+    format: text
+    prompt: "What provisions apply to overtime? Is the employee eligible for overtime pay, and if so at what rate? Or does the agreement state that the salary is inclusive of any overtime? Note any opt-out of statutory working time limits."
+  - index: 11
+    name: Working Hours
+    format: text
+    prompt: "What working hours are specified in this agreement? State the normal hours of work, any flexibility provisions, and whether the employee is expected to work additional hours as required."
+  - index: 12
+    name: Variation
+    format: text
+    prompt: "What provisions govern variation of the terms of this agreement? Can the employer unilaterally vary terms, or is the employee's consent required? Note any specific terms that are stated to be variable without consent."
+  - index: 13
+    name: Intellectual Property Assignment
+    format: text
+    prompt: "What intellectual property assignment provisions are included? Does the employee assign to the employer all IP created in the course of employment? Are there any carve-outs for pre-existing IP or inventions created outside working hours? Note any moral rights waiver."
+  - index: 14
+    name: Grounds for Termination
+    format: bulleted_list
+    prompt: "What grounds for summary dismissal or termination for cause are set out in the agreement? List each ground (e.g. gross misconduct, breach of confidentiality, insolvency, criminal conviction). Note whether summary dismissal is without notice or payment in lieu."
+  - index: 15
+    name: Annual Leave Entitlement
+    format: text
+    prompt: "What is the employee's annual leave entitlement? State the number of days (or weeks) per year, whether this is inclusive of or in addition to public holidays, and any provisions for accrual, carry-over, or payment of untaken leave on termination."

@@ -1,0 +1,68 @@
+name: Benchmarks
+
+# Latency-budget gate. Runs the same `npm run bench` harness that Cloud
+# Build executes (cloudbuild.yaml step `bench`) so regressions land in the
+# PR check, not just post-merge on the deploy pipeline.
+#
+# Budgets enforced inside jest.benchmark.config.js / src/__benchmark__/*.bench.test.ts:
+#   - governance.authorize:  p95 < 5ms,  p99 < 20ms
+#   - governance.preflight:  p95 < 10ms, p99 < 50ms
+#   - governance.record:     p95 < 5ms,  p99 < 20ms
+#
+# `npm run bench` already wraps jest with `--bail --runInBand`, so the first
+# budget breach fails the job immediately.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: benchmarks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    name: Latency Benchmarks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # Benchmarks import @liftoffos/* packages published to Artifact Registry,
+      # so we need a workload-identity-federated access token before npm ci.
+      - id: auth
+        name: Authenticate to GCP via WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
+          service_account: YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com
+          token_format: access_token
+          access_token_lifetime: 600s
+          access_token_scopes: https://www.googleapis.com/auth/cloud-platform
+
+      # The checked-in .npmrc uses ${ARTIFACT_REGISTRY_TOKEN} for the
+      # @liftoffos scope — same env-var contract Cloud Build uses.
+      - name: Install dependencies
+        env:
+          ARTIFACT_REGISTRY_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # `npm run bench` = jest --config jest.benchmark.config.js --bail --runInBand
+      # Fails the job on the first p95/p99 budget breach.
+      - name: Run latency benchmarks
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: npm run bench

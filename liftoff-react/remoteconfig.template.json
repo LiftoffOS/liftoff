@@ -1,0 +1,13 @@
+{
+  "parameters": {
+    "liftoff_score_enabled": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "valueType": "BOOLEAN",
+      "description": "Controls the LiftoffScore section in the Insights report. Owner/admin only. Ships off because it rates named people: turn on only after the backend serves real posteriors and the rollout is signed off."
+    }
+  },
+  "conditions": [],
+  "parameterGroups": {}
+}

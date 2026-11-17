@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/tenant-manifests.response.schema.json",
+  "title": "TenantManifestsResponse",
+  "description": "Response from GET /api/v1/tool-catalog/tenant/:tenantId/manifests",
+  "type": "object",
+  "required": ["schemaVersion", "manifests"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "manifests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["manifestId", "connectorType", "alias", "displayName"],
+        "properties": {
+          "manifestId": { "type": "string", "format": "uuid" },
+          "connectorType": { "type": "string", "minLength": 1 },
+          "alias": { "type": "string", "minLength": 1 },
+          "displayName": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

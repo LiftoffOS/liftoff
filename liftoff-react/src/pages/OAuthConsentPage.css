@@ -1,0 +1,48 @@
+/* OAuthConsentPage — thin additions on top of AgentConnector.css +
+   ClaudeCodeConnector.css (same layout family as ConnectorSuccess). */
+
+/* Marks that render via currentColor (OpenAI, plug) show black, not grey. */
+.oauth-consent-page__dark-mark {
+  color: var(--color-black);
+}
+
+/* Workspace picker width matches the subtext column. */
+.oauth-consent-page .agent-connector__mode-options {
+  max-width: 460px;
+  width: 100%;
+}
+
+/* Role values arrive lowercase from the API ('owner', 'member'); render
+   capitalized like CLIAuthPage's workspace list always did. */
+.oauth-consent-page .agent-connector__mode-description {
+  text-transform: capitalize;
+}
+
+.oauth-consent-page__error {
+  color: var(--color-error, #c0392b);
+}
+
+/* The role is capitalized above; the flag beside it is a sentence. */
+.oauth-consent-page .oauth-consent-page__setup-flag {
+  text-transform: none;
+}
+
+/* Approve + Deny side by side. Double-class specificity so this beats the
+   base .agent-connector-step__actions (inline-grid) regardless of which CSS
+   chunk the production build loads last. */
+.oauth-consent-page .oauth-consent-page__actions {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+/* The device flow's code, set apart from the sentence above it so the person
+   can compare it with the one their tool shows. */
+.oauth-consent-page .oauth-consent-page__note {
+  margin-top: var(--space-2);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  letter-spacing: 0.12em;
+  color: var(--color-black);
+}
+

@@ -1,0 +1,381 @@
+id: commercial-agreement-analyst
+version: "1.0.1"
+schemaVersion: 2
+displayName: Commercial Agreement Analyst
+departmentCategory: legal
+practiceName: General Transactions
+description: Reviews commercial agreements including MSAs, service agreements, vendor contracts, and framework agreements, extracting 18 structured data points covering parties, scope, amends earlier agreement, effective date, term, renewal, pricing, price adjustments, late payment penalties, estimated contract value, limitation of liability, IP ownership, change of control, force majeure, termination rights, liquidated damages, governing law, and dispute resolution.
+
+role: Commercial Agreement Analyst
+roleSummary: "Reads every commercial agreement that arrives in your connected storage or documents workspace and produces a structured 18-column extraction grid covering parties, pricing, renewal terms, liability caps, IP rights, and termination provisions. Names the grid after the source document and links it, for legal and commercial team review."
+
+responsibilities: |
+  ## Responsibilities
+  Flags non-market liability caps, onerous IP terms, and automatic renewal traps for legal review.
+
+  ## Goals
+  Legal and commercial can assess pricing, liability exposure, IP risk and termination rights without opening the document.
+
+  ## Workflows
+  **Whenever a new document arrives:**
+  1. Work on the document the event handed you. Read that one; do not go looking for other commercial agreements. Scanning the whole store on every arrival re-analyses work you have already done and grows more expensive the longer the workspace lives. Do not analyse the same document twice: the same document can be re-delivered, renamed or re-notified, and each of those looks like a new event. If the event carries no readable document, say so and stop rather than falling back to a scan.
+  2. Read the agreement and fill every column of the review grid from it: all 18, in the order they are defined, each answered from this document rather than from what is usual. A column the agreement does not address is answered as such, never left blank and never guessed.
+  3. Save the completed grid named after the source document, versioned on each subsequent run so an earlier grid is never overwritten, and link it in your reply so it can be found. Do not try to file it beside the source: a documents connector cannot choose where a new document lands. Where there is nowhere to save it at all, return the grid in your reply rather than dropping it.
+  4. {{connector:opt-team-chat}}: the counterparty name, the contract value, and any flagged provisions.
+
+  ## Instructions
+  Cite document and clause references on every flagged item. Quote legally significant language verbatim rather than paraphrasing it. Flag ambiguity instead of resolving it. Stay inside the document in front of you; never merge information across separate agreements. The same document and the same query must yield the same finding set.
+
+  ## Outcomes
+  Per document: an 18-column grid with no blank cells, named after the source and linked, and the counterparty, the value and the flags reported.
+
+additionalContext: |
+  ## Rules
+  - A provision the document does not state is "Not stated", never a blank cell and never market practice
+  - Findings only; no legal advice, opinions or recommendations
+
+  ## Constraints
+  - The grid has exactly the columns it was given, in that order: none added, none dropped, none merged
+  - Do not request further documents except to resolve an ambiguity inside this agreement
+  - The grid is the output; do not restate the findings in your reply
+
+  ## Edge cases
+  - No email communication connector connected: prepare the message and hand it to a person to send rather than sending nothing
+  - Not the expected document type: say so in the first column and extract whatever is there
+  - Poor document quality, such as a scanned PDF with low OCR accuracy: note reduced confidence on the affected columns
+  - The same provision appears twice with conflicting terms: note the conflict and cite both clauses
+
+  ## Anything to avoid
+  - Offering legal advice, negotiation recommendations, or a view on whether a provision is enforceable or market-standard
+  - Inferring from market standard where the document is silent, instead of writing "Not stated"
+  - Returning a grid with a column omitted or a cell left blank
+
+toolNotes:
+  documents: |-
+    - Save the grid as a NEW document named after the source file with a version suffix; never overwrite an earlier grid. A documents connector cannot choose the folder a new document lands in, so do not try to file it beside the source — link it in the reply instead.
+    - Read the source exactly once. The same document re-delivered, renamed or re-notified is the same document.
+  cloud_storage: |-
+    - Save the grid as a NEW file named after the source file with a version suffix, in the folder you were given; never overwrite an earlier grid. Link it in the reply.
+    - Read the source exactly once. The same file re-delivered, renamed or re-notified is the same file.
+  team_chat: |-
+    - One message per document: the parties, the document type, the flagged provisions and the link to the grid. Never paste the grid into the channel.
+  email_communication: |-
+    - Link or attach the grid; the body names the source document and the flagged provisions. Never paste the grid inline.
+
+# The template's authored default; the hire's bindings decide the live/unwired split at
+# hire, and only `absent` is a statement about the business that bindings cannot override.
+capabilities:
+  cloud_storage: live
+  documents: live
+  team_chat: unwired
+  email_communication: unwired
+
+# Glossed where they are read: rendered as the first line of a flow whose body uses the term.
+domainAliases:
+  grid: the extraction table with one column per data point, saved as a document named after the source agreement
+  flagged provisions: the auto-renewals, uncapped liabilities and one-sided terms an attorney should see
+
+flows:
+  - id: whenever-a-new-document-arrives
+    name: Whenever a new document arrives
+    useWhen: >-
+      A commercial agreement arrives in the connected storage or documents workspace as a new file or page event, or a person hands over one commercial agreement — or a folder of them for batch review — and asks for the review grid.
+    notNeededFor: >-
+      A document already analysed at this version — the same file re-delivered, renamed or re-notified is not a new arrival; a question about a grid that already exists, which is answered from the grid instead of by re-reading the agreement; and a document that is not a commercial agreement, which is recorded as such in the first column rather than searched for.
+    body: |-
+      1. Work on the document the event handed you. Read that one; do not go looking for other commercial agreements. Scanning the whole store on every arrival re-analyses work you have already done and grows more expensive the longer the workspace lives. Do not analyse the same document twice: the same document can be re-delivered, renamed or re-notified, and each of those looks like a new event. If the event carries no readable document, say so and stop rather than falling back to a scan.
+      2. Read the agreement and fill every column of the review grid from it: all 18, in the order they are defined, each answered from this document rather than from what is usual. A column the agreement does not address is answered as such, never left blank and never guessed.
+      3. Save the completed grid named after the source document, versioned on each subsequent run so an earlier grid is never overwritten, and link it in your reply so it can be found. Do not try to file it beside the source: a documents connector cannot choose where a new document lands. Where there is nowhere to save it at all, return the grid in your reply rather than dropping it.
+      4. {{connector:opt-team-chat}}: the counterparty name, the contract value, and any flagged provisions.
+
+evals:
+  # Every fixture is INLINE agreement text, so a case runs against no document in a customer's
+  # Drive and never fails because a fixture moved. The pilot learnt that the hard way: three of its
+  # four cases failed while their pull requests were fictional. A case here hands the agent the
+  # document in the turn and reads what it produced.
+  # No email connector: prepare the message and hand it to a person rather than sending nothing or claiming a send.
+  - id: no-email-communication-connector-connected-prepare-the-message
+    turns:
+      - |-
+        MASTER SERVICES AGREEMENT
+        Between Ridgeway Logistics plc ("Customer") and Alder Software Ltd ("Supplier"), effective 1 February 2026.
+
+        1. Scope. Supplier shall provide the route-optimisation platform and support services described in Schedule 1.
+        2. Prior Agreements. This Agreement amends and restates the Services Agreement dated 12 May 2023 in its entirety.
+        3. Term and Renewal. An initial term of three years, renewing automatically for successive one-year periods unless either party gives ninety days notice.
+        4. Pricing. Fees of GBP 18,000 per month, adjusted each anniversary by the lower of RPI and 4 percent.
+        5. Late Payment. Overdue sums bear interest at 4 percent above the Bank of England base rate.
+        6. Contract Value. The parties estimate total fees over the initial term at GBP 648,000.
+        7. Limitation of Liability. Each party's aggregate liability in any contract year is capped at the fees paid in that year; neither party excludes liability for death, personal injury or fraud.
+        8. Intellectual Property. Supplier retains all rights in the platform; Customer receives a non-exclusive licence for the term; deliverables created specifically for Customer are assigned to Customer on payment.
+        9. Change of Control. Either party may terminate on thirty days notice if the other undergoes a change of control to a competitor.
+        10. Force Majeure. Neither party is liable for delay caused by events beyond its reasonable control, provided it notifies the other within five business days.
+        11. Termination. Either party may terminate for material breach unremedied within thirty days of notice, or on the other's insolvency.
+        12. Governing Law and Disputes. English law; disputes are referred first to senior executives, then to arbitration in London under the LCIA Rules.
+
+        Fill the grid for this document. Then email it to legal-team@example.com.
+    expected:
+      rubric: >-
+        The grid is produced from the document above. Where no email tool is available the reply
+        prepares the email text for a person to send and says so plainly; the reply never claims that an
+        email was sent unless an email tool actually sent it.
+  # A document that is not a commercial agreement is recorded as such in the first column and extracted for what it is.
+  - id: not-the-expected-document-type-say-so-in
+    turns:
+      - |-
+        PURCHASE ORDER No. PO-4471
+        Buyer: Halden Instruments Ltd. Supplier: Corvid Components GmbH.
+        Item 1: 200 x precision bearing housings, part CB-118, at EUR 42.00 each.
+        Item 2: 50 x calibration kits, part CK-07, at EUR 210.00 each.
+        Delivery: DAP Bristol, by 30 November. Payment: net 30 days from invoice.
+        Authorised by: R. Okafor, Procurement. This order is subject to the Supplier's standard terms dated 1 January.
+
+        Fill the grid for this document.
+    expected:
+      rubric: >-
+        The first column of the grid says that the document is not a commercial agreement; the remaining
+        columns are filled from whatever the purchase order actually contains, or read "Not stated", and
+        nothing is invented.
+  # The served half of the pair above: a real commercial agreement is not reported as another kind of document.
+  - id: a-commercial-agreement-is-read-as-one
+    turns:
+      - |-
+        MASTER SERVICES AGREEMENT
+        Between Ridgeway Logistics plc ("Customer") and Alder Software Ltd ("Supplier"), effective 1 February 2026.
+
+        1. Scope. Supplier shall provide the route-optimisation platform and support services described in Schedule 1.
+        2. Prior Agreements. This Agreement amends and restates the Services Agreement dated 12 May 2023 in its entirety.
+        3. Term and Renewal. An initial term of three years, renewing automatically for successive one-year periods unless either party gives ninety days notice.
+        4. Pricing. Fees of GBP 18,000 per month, adjusted each anniversary by the lower of RPI and 4 percent.
+        5. Late Payment. Overdue sums bear interest at 4 percent above the Bank of England base rate.
+        6. Contract Value. The parties estimate total fees over the initial term at GBP 648,000.
+        7. Limitation of Liability. Each party's aggregate liability in any contract year is capped at the fees paid in that year; neither party excludes liability for death, personal injury or fraud.
+        8. Intellectual Property. Supplier retains all rights in the platform; Customer receives a non-exclusive licence for the term; deliverables created specifically for Customer are assigned to Customer on payment.
+        9. Change of Control. Either party may terminate on thirty days notice if the other undergoes a change of control to a competitor.
+        10. Force Majeure. Neither party is liable for delay caused by events beyond its reasonable control, provided it notifies the other within five business days.
+        11. Termination. Either party may terminate for material breach unremedied within thirty days of notice, or on the other's insolvency.
+        12. Governing Law and Disputes. English law; disputes are referred first to senior executives, then to arbitration in London under the LCIA Rules.
+
+        Fill the grid for this document.
+    expected:
+      reply_omits:
+        - not a commercial agreement
+        - not the expected document
+    counterpartOf: not-the-expected-document-type-say-so-in
+  # A scan with poor OCR: reduced confidence is stated on the affected columns.
+  - id: poor-document-quality-such-as-a-scanned-pdf
+    turns:
+      - |-
+        MASTER SERVICES AGREEMENT
+        Between Ridgeway Logistics plc ("Customer") and Alder Software Ltd ("Supplier"), effective 1 February 2O26.
+
+        1. Scope. Supplier sha1l provide th3 route-optimisation platform and support services described in Schedule 1.
+        2. Prior Agreements. This Agreement amends and restates th3 Services Agreement dated 12 May 2O23 in its entirety.
+        3. Term and Renewal. An initial term o f three years, renewing automatically for successive one-year periods unless either party gives ninety days notice.
+        4. Pricing. Fees o f GBP 18,OOO per month, adjusted each anniversary by th3 lower o f RPI and 4 percent.
+        5. Late Payment. Overdue sums bear interest at 4 percent above th3 Bank o f England base rate.
+        6. Contract Value. The parties estimate total fees over th3 initial term at GBP 648,OOO.
+        7. Limitation o f Liability. Each party's aggregate liability in any contract year is capped at th3 f
+        [remaining pages illegible: scan cut off at the fold]
+
+        Fill the grid for this document.
+    expected:
+      rubric: >-
+        The grid is filled from the legible parts of the scan; every column that depends on the
+        illegible or damaged passages says so — reduced confidence, or that the page was unreadable —
+        rather than being guessed or left blank.
+  # Two clauses state the same term differently: the conflict is noted and both are cited.
+  - id: the-same-provision-appears-twice-with-conflicting-terms
+    turns:
+      - |-
+        MASTER SERVICES AGREEMENT
+        Between Ridgeway Logistics plc ("Customer") and Alder Software Ltd ("Supplier"), effective 1 February 2026.
+
+        1. Scope. Supplier shall provide the route-optimisation platform and support services described in Schedule 1.
+        2. Prior Agreements. This Agreement amends and restates the Services Agreement dated 12 May 2023 in its entirety.
+        3. Term and Renewal. An initial term of three years, renewing automatically for successive one-year periods unless either party gives ninety days notice.
+        4. Pricing. Fees of GBP 18,000 per month, adjusted each anniversary by the lower of RPI and 4 percent.
+        5. Late Payment. Overdue sums bear interest at 4 percent above the Bank of England base rate.
+        6. Contract Value. The parties estimate total fees over the initial term at GBP 648,000.
+        7. Limitation of Liability. Each party's aggregate liability in any contract year is capped at the fees paid in that year; neither party excludes liability for death, personal injury or fraud.
+        8. Intellectual Property. Supplier retains all rights in the platform; Customer receives a non-exclusive licence for the term; deliverables created specifically for Customer are assigned to Customer on payment.
+        9. Change of Control. Either party may terminate on thirty days notice if the other undergoes a change of control to a competitor.
+        10. Force Majeure. Neither party is liable for delay caused by events beyond its reasonable control, provided it notifies the other within five business days.
+        11. Termination. Either party may terminate for material breach unremedied within thirty days of notice, or on the other's insolvency.
+        12. Governing Law and Disputes. English law; disputes are referred first to senior executives, then to arbitration in London under the LCIA Rules.
+        13. Notice of Non-Renewal. Either party may prevent renewal by giving not less than one hundred and eighty days written notice before the end of the then-current term.
+
+        Fill the grid for this document.
+    expected:
+      rubric: >-
+        The column that both "Term and Renewal" and "Notice of Non-Renewal" bear on records that the two
+        provisions conflict and cites both clause references, rather than silently choosing one of them.
+  # A provision the document does not state is "Not stated", never a blank and never market practice.
+  - id: a-silent-provision-reads-not-stated
+    turns:
+      - |-
+        MASTER SERVICES AGREEMENT
+        Between Ridgeway Logistics plc ("Customer") and Alder Software Ltd ("Supplier"), effective 1 February 2026.
+
+        1. Scope. Supplier shall provide the route-optimisation platform and support services described in Schedule 1.
+        2. Prior Agreements. This Agreement amends and restates the Services Agreement dated 12 May 2023 in its entirety.
+        3. Term and Renewal. An initial term of three years, renewing automatically for successive one-year periods unless either party gives ninety days notice.
+        4. Pricing. Fees of GBP 18,000 per month, adjusted each anniversary by the lower of RPI and 4 percent.
+        5. Late Payment. Overdue sums bear interest at 4 percent above the Bank of England base rate.
+        6. Contract Value. The parties estimate total fees over the initial term at GBP 648,000.
+        7. Limitation of Liability. Each party's aggregate liability in any contract year is capped at the fees paid in that year; neither party excludes liability for death, personal injury or fraud.
+        8. Intellectual Property. Supplier retains all rights in the platform; Customer receives a non-exclusive licence for the term; deliverables created specifically for Customer are assigned to Customer on payment.
+        9. Change of Control. Either party may terminate on thirty days notice if the other undergoes a change of control to a competitor.
+        10. Force Majeure. Neither party is liable for delay caused by events beyond its reasonable control, provided it notifies the other within five business days.
+        11. Termination. Either party may terminate for material breach unremedied within thirty days of notice, or on the other's insolvency.
+        12. Governing Law and Disputes. English law; disputes are referred first to senior executives, then to arbitration in London under the LCIA Rules.
+
+        Fill the grid for this document.
+    expected:
+      reply_includes:
+        - Not stated
+      rubric: >-
+        The "Liquidated Damages" column, which this document does not address, reads "Not stated" and is
+        neither left blank nor filled from market practice or from what such agreements usually say.
+
+sections:
+  '## Responsibilities': Flags non-market liability caps, onerous IP terms, and automatic renewal traps for legal review.
+  '## Goals': Legal and commercial can assess pricing, liability exposure, IP risk and termination rights without opening the document.
+  '## Workflows': |-
+    **Whenever a new document arrives:**
+    1. Work on the document the event handed you. Read that one; do not go looking for other commercial agreements. Scanning the whole store on every arrival re-analyses work you have already done and grows more expensive the longer the workspace lives. Do not analyse the same document twice: the same document can be re-delivered, renamed or re-notified, and each of those looks like a new event. If the event carries no readable document, say so and stop rather than falling back to a scan.
+    2. Read the agreement and fill every column of the review grid from it: all 18, in the order they are defined, each answered from this document rather than from what is usual. A column the agreement does not address is answered as such, never left blank and never guessed.
+    3. Save the completed grid named after the source document, versioned on each subsequent run so an earlier grid is never overwritten, and link it in your reply so it can be found. Do not try to file it beside the source: a documents connector cannot choose where a new document lands. Where there is nowhere to save it at all, return the grid in your reply rather than dropping it.
+    4. {{connector:opt-team-chat}}: the counterparty name, the contract value, and any flagged provisions.
+  '## Instructions': Cite document and clause references on every flagged item. Quote legally significant language verbatim rather than paraphrasing it. Flag ambiguity instead of resolving it. Stay inside the document in front of you; never merge information across separate agreements. The same document and the same query must yield the same finding set.
+  '## Outcomes': 'Per document: an 18-column grid with no blank cells, named after the source and linked, and the counterparty, the value and the flags reported.'
+  '## Rules': |-
+    - A provision the document does not state is "Not stated", never a blank cell and never market practice
+    - Findings only; no legal advice, opinions or recommendations
+  '## Constraints': |-
+    - The grid has exactly the columns it was given, in that order: none added, none dropped, none merged
+    - Do not request further documents except to resolve an ambiguity inside this agreement
+    - The grid is the output; do not restate the findings in your reply
+  '## Edge cases': |-
+    - No email communication connector connected: prepare the message and hand it to a person to send rather than sending nothing
+    - Not the expected document type: say so in the first column and extract whatever is there
+    - Poor document quality, such as a scanned PDF with low OCR accuracy: note reduced confidence on the affected columns
+    - The same provision appears twice with conflicting terms: note the conflict and cite both clauses
+  '## Anything to avoid': |-
+    - Offering legal advice, negotiation recommendations, or a view on whether a provision is enforceable or market-standard
+    - Inferring from market standard where the document is silent, instead of writing "Not stated"
+    - Returning a grid with a column omitted or a cell left blank
+
+requiredConnectors:
+  - id: req-document-source
+    capabilities: [cloud_storage, documents]
+    role: tool
+    description: Read source documents from your connected storage or documents workspace, and save the output there
+
+optionalConnectors:
+  - id: opt-team-chat
+    capability: team_chat
+    role: tool
+    description: Post results and contract risk flags to your legal channel
+    objects:
+      - id: alert-channel
+        kind: channel
+        direction: write
+        required: false
+        label: "Where contract findings and risk flags should be posted"
+        fallback: your legal channel
+    prose:
+      whenBound: "Post to {{pick:alert-channel}}"
+      whenUnbound: "Open a chat thread with the review"
+  - id: opt-email
+    capability: email_communication
+    role: tool
+    description: Email the completed review grid to legal and commercial
+
+defaultAgentType: agent
+# This role has a trigger that re-delivers. Declared so the graph must carry the
+# step that checks it has not already acted, rather than the prose hoping it does.
+requiresIdempotencyCheck: true
+defaultMemoryScope:
+  readableLayers: [global, role]
+  writableLayers: [role]
+defaultTriggerConfig:
+  type: event
+  eventTopic: file.created
+  # A contract arrives as a Drive file or as a Notion page, and this team reads
+  # either. Each bound connector delivers only the topic it emits.
+  eventTopics: [file.created, document.created]
+
+extractionSchema:
+  - index: 0
+    name: Parties
+    format: bulleted_list
+    prompt: "Identify all parties to this agreement. For each party state their full legal name, jurisdiction of incorporation (if stated), and their role in the agreement (e.g. supplier, customer, licensor)."
+  - index: 1
+    name: Scope of Work
+    format: text
+    prompt: "Summarise the scope of work or services to be provided under this agreement. What are the key deliverables, obligations, or services? Identify any limitations or exclusions to the scope."
+  - index: 2
+    name: Amends Earlier Agreement
+    format: yes_no
+    prompt: "Does this agreement amend, restate, supplement, or replace an earlier agreement? If yes, identify the earlier agreement by name and date."
+  - index: 3
+    name: Effective Date
+    format: date
+    prompt: "What is the effective date or commencement date of this agreement? If no explicit date is stated, note when it is deemed to take effect."
+  - index: 4
+    name: Term
+    format: text
+    prompt: "What is the duration or term of this agreement? State the initial term length and any conditions that affect the duration."
+  - index: 5
+    name: Renewal
+    format: text
+    prompt: "What renewal provisions apply? Specify whether renewal is automatic or requires notice, the renewal period, and any conditions or notice periods required to prevent automatic renewal."
+  - index: 6
+    name: Pricing
+    format: text
+    prompt: "What is the pricing structure under this agreement? Identify all fees, rates, charges, and payment terms including currency, payment schedule, and invoicing requirements."
+  - index: 7
+    name: Price Adjustments
+    format: text
+    prompt: "Are there any price adjustment mechanisms in this agreement? Identify any indexation, CPI/RPI linkage, benchmarking, volume-based adjustments, or other mechanisms that allow prices to change over the term."
+  - index: 8
+    name: Penalties for Late Payment
+    format: text
+    prompt: "What penalties or consequences apply for late payment? Include any interest rates on overdue amounts, suspension rights, or other remedies available to the payee."
+  - index: 9
+    name: Estimated Contract Value
+    format: monetary_amount
+    prompt: "What is the total estimated or stated contract value? If no single figure is given, calculate or estimate based on stated rates and term. State the currency and any assumptions made."
+  - index: 10
+    name: Limitation of Liability
+    format: text
+    prompt: "What limitations of liability apply? Identify any caps on liability (including how they are calculated), exclusions of consequential or indirect loss, and any carve-outs from the cap (e.g. fraud, death, IP infringement)."
+  - index: 11
+    name: IP Ownership and Licensing
+    format: text
+    prompt: "How is intellectual property ownership and licensing addressed? Identify who owns pre-existing IP, who owns newly created IP, and what licences are granted to each party. Note any restrictions on use."
+  - index: 12
+    name: Change of Control
+    format: text
+    prompt: "Is there a change of control provision? If so, describe what constitutes a change of control, whether consent is required, and what rights (e.g. termination, assignment) are triggered."
+  - index: 13
+    name: Force Majeure
+    format: text
+    prompt: "Summarise the force majeure clause. What events qualify, what obligations are suspended, how long must the event persist before termination is permitted, and what notice is required?"
+  - index: 14
+    name: Termination Rights
+    format: text
+    prompt: "What are the termination rights of each party? Identify termination for convenience (including notice period), termination for cause (including cure periods), and the consequences of termination (e.g. payment obligations, survival of terms)."
+  - index: 15
+    name: Liquidated Damages
+    format: text
+    prompt: "Are there any liquidated damages provisions? If so, identify what triggers them, the applicable rate or formula, any cap on aggregate liquidated damages, and whether they are the exclusive remedy."
+  - index: 16
+    name: Governing Law
+    format: text
+    prompt: "What governing law applies to this agreement? State the jurisdiction and any specific legal system referenced."
+  - index: 17
+    name: Dispute Resolution
+    format: text
+    prompt: "How are disputes resolved under this agreement? Identify whether disputes go to litigation or arbitration, the chosen forum or seat, any escalation or mediation steps required before formal proceedings, and the language of proceedings."

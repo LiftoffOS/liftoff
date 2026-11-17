@@ -1,0 +1,43 @@
+.auto-reload-modal {
+  text-align: left;
+  min-width: 360px;
+}
+
+.auto-reload-modal__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+}
+
+.auto-reload-modal__description {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  line-height: 1.5;
+  margin: 0 0 var(--space-5) 0;
+}
+
+.auto-reload-modal__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.auto-reload-modal__card-note {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.auto-reload-modal__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-6);
+}
+
+.auto-reload-modal__actions-right {
+  display: flex;
+  gap: var(--space-3);
+}

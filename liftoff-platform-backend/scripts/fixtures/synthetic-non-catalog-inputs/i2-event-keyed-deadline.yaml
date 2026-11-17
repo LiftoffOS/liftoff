@@ -1,0 +1,6 @@
+# Triggers I2: event-keyed deadline language — "if no reply within N hours"
+# anchors the deadline to a transient event (the reply), not a durable field.
+role: Follow-up Coordinator
+responsibilities: >
+  After emailing a prospect, if no reply within 48 hours send one polite
+  follow-up message, then stop.

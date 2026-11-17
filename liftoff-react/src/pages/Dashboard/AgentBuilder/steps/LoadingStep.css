@@ -1,0 +1,172 @@
+/* The distillation progress screen.
+ *
+ * These rules lived in AgentBuilder.css, which only the builder loads. That was
+ * fine while the builder was the only caller. It stopped being fine the moment
+ * AgentUpdatePage started rendering this component in a modal: the update page
+ * never imports the builder's stylesheet, so every rule below was missing and
+ * the checklist rendered as raw unstyled markup.
+ *
+ * Owned by the component now, and imported by it, so any screen that mounts
+ * LoadingStep gets the styling with it and cannot forget.
+ */
+
+.loading-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.loading-step__header {
+  font-size: var(--text-4xl);
+  font-weight: 500;
+  color: var(--color-black);
+  letter-spacing: -0.02em;
+}
+
+/* Trailing dots on "On it." Two of them, counting up and starting over, so
+   the header always ends in at least the period it is written with. Opacity
+   rather than added characters: the dots hold their width at every frame, so
+   a centred header stays put instead of jittering once a second.
+
+   Under the global reduced-motion rule animations stop after one iteration,
+   which settles both dots at opacity 1 and leaves a static "On it..." That is
+   the right resting state, so there is no separate rule for it here. */
+.loading-step__dots {
+  display: inline;
+}
+
+.loading-step__dot {
+  opacity: 0;
+}
+
+.loading-step__dot:nth-child(1) {
+  animation: loading-step-dot-2 1.2s steps(1) infinite;
+}
+
+.loading-step__dot:nth-child(2) {
+  animation: loading-step-dot-3 1.2s steps(1) infinite;
+}
+
+@keyframes loading-step-dot-2 {
+  0%, 32% { opacity: 0; }
+  33%, 100% { opacity: 1; }
+}
+
+@keyframes loading-step-dot-3 {
+  0%, 65% { opacity: 0; }
+  66%, 100% { opacity: 1; }
+}
+
+.loading-step__wait {
+  font-size: var(--text-base);
+  color: var(--color-gray-400);
+  margin: 0;
+  text-align: center;
+}
+
+/* The checklist. A rounded rectangle with no fill and no rules: the shape is
+   there to group the rows and hold them off the header, not to draw a box
+   around them. Width is set from the longest row rather than the column, so
+   the block stays centred as a unit instead of every row centring itself. */
+.loading-step__steps {
+  margin: var(--space-4) 0 0;
+  padding: var(--space-5) var(--space-6);
+  border-radius: var(--radius-2xl);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-align: left;
+}
+
+.loading-step__step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  /* Two lines' worth, always. The patience line is in the DOM on every active
+     row and only faded in, so reserving its height here is what stops the
+     rows below shifting down the moment a stage runs long. */
+  min-height: 44px;
+  font-size: var(--text-base);
+  color: var(--color-gray-500);
+  transition: color 0.4s ease-in-out;
+}
+
+.loading-step__step--active {
+  color: var(--color-black);
+}
+
+.loading-step__step--done {
+  color: var(--color-gray-400);
+}
+
+/* Fixed box so the tick and the spinner occupy identical space and the labels
+   do not jog sideways as each row completes. */
+.loading-step__mark {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Optical centring against the first line of the label, not the row. */
+  margin-top: 3px;
+}
+
+.loading-step__check {
+  width: 16px;
+  height: 16px;
+  color: var(--color-black);
+}
+
+/* Only ever on the active row, so it needs no dimmed variant. */
+.loading-step__spinner {
+  border-width: 2px;
+}
+
+.loading-step__label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.35;
+}
+
+.loading-step__patience {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out;
+}
+
+.loading-step__patience--shown {
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .loading-step__steps {
+    padding: var(--space-4) 0 0;
+  }
+
+  .loading-step__step {
+    font-size: var(--text-sm);
+  }
+}
+
+
+/* The failed state. Both of these classes were referenced by the component and
+   defined nowhere, in AgentBuilder.css or anywhere else, so a failed build
+   rendered its heading and message with no spacing and full-strength body
+   colour. Pre-existing, and easy to miss because reaching it means failing a
+   real distillation. */
+.loading-step--error {
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.loading-step__error-message {
+  margin: 0;
+  max-width: 40ch;
+  font-size: var(--text-base);
+  color: var(--color-gray-400);
+}

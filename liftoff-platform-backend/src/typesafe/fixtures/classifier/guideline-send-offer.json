@@ -1,0 +1,35 @@
+{
+  "set": {
+    "id": "classifier",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "tool": {
+      "name": "send_offer",
+      "description": "Send a job offer letter to a candidate by email."
+    }
+  },
+  "expect": {
+    "customerCommunication": {
+      "choice": "yes"
+    },
+    "financialActions": {
+      "choice": "no"
+    },
+    "dataChanges": {
+      "choice": "no",
+      "advisory": true
+    },
+    "externalPublishing": {
+      "choice": "no"
+    },
+    "hiringDecisions": {
+      "choice": "yes"
+    },
+    "effect": {
+      "choice": "outbound"
+    }
+  },
+  "note": "Guideline sentence from the classification prompt, in the direction it states. Sending an offer is BOTH hiringDecisions AND customerCommunication. 1b: send_* is outbound. dataChanges is advisory: the guideline states the two categories and is silent on dataChanges."
+}

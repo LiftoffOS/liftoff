@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/connector-get-capabilities.response.schema.json",
+  "title": "ConnectorGetCapabilitiesResponse",
+  "description": "Response from POST /api/connectors/capabilities. One entry per capability group with the providers (connector types + scopes) that satisfy it. capability is the JSON rendering of the liftoff.connector.v1.ConnectorCapability proto enum — strict enum values keep proto and runtime in lock-step.",
+  "type": "object",
+  "required": ["capabilities"],
+  "additionalProperties": false,
+  "properties": {
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["capability", "providers"],
+        "additionalProperties": false,
+        "properties": {
+          "capability": {
+            "type": "string",
+            "enum": [
+              "CONNECTOR_CAPABILITY_UNSPECIFIED",
+              "CONNECTOR_CAPABILITY_EMAIL_MARKETING",
+              "CONNECTOR_CAPABILITY_HRIS",
+              "CONNECTOR_CAPABILITY_ACCOUNTING",
+              "CONNECTOR_CAPABILITY_SUPPORT_TICKETING",
+              "CONNECTOR_CAPABILITY_ATS",
+              "CONNECTOR_CAPABILITY_CRM",
+              "CONNECTOR_CAPABILITY_INCIDENT_MANAGEMENT",
+              "CONNECTOR_CAPABILITY_ERROR_TRACKING",
+              "CONNECTOR_CAPABILITY_PROJECT_MANAGEMENT"
+            ]
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["connectorType", "requiredScopes"],
+              "additionalProperties": false,
+              "properties": {
+                "connectorType": { "type": "string", "minLength": 1 },
+                "requiredScopes": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

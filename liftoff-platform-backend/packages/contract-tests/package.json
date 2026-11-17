@@ -1,0 +1,37 @@
+{
+  "name": "@liftoffos/contract-tests",
+  "version": "1.0.1",
+  "description": "Cross-repo contract schemas and validators for Liftoff service boundaries (HTTP + Pub/Sub)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "fixtures"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LiftoffOS/liftoff.git",
+    "directory": "liftoff-platform-backend/packages/contract-tests"
+  },
+  "keywords": [
+    "liftoff",
+    "contract",
+    "schema",
+    "ajv"
+  ],
+  "author": "Liftoff",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@liftoffos/shared-types": "*",
+    "ajv": "^8.18.0",
+    "ajv-formats": "^3.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

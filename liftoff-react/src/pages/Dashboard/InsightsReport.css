@@ -1,0 +1,343 @@
+/* Report content */
+.insights-report {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.insights-report__stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+/* Override MetricCard to match InsightsReport styling */
+.insights-report__stats .metric-card__value {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Sections */
+.insights-report__section {
+  margin-bottom: var(--space-8);
+}
+
+.insights-report__section-title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0 0 var(--space-4) 0;
+}
+
+/* Remove focus outlines on all Recharts elements */
+.insights-report__section .recharts-wrapper,
+.insights-report__section .recharts-wrapper *,
+.insights-report__section .recharts-responsive-container * {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Horizontal bar chart */
+.insights-report__bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.insights-report__bar-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.insights-report__bar-label {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  width: 160px;
+  flex-shrink: 0;
+}
+
+.insights-report__bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--color-gray-100);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.insights-report__bar-fill {
+  height: 100%;
+  background: var(--color-black);
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.insights-report__bar-fill--accent {
+  background: var(--color-accent);
+}
+
+.insights-report__bar-value {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  width: 80px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Vertical bar chart (weekly trend) */
+.insights-report__trend-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  height: 160px;
+  padding: var(--space-4) 0;
+}
+
+.insights-report__trend-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  height: 100%;
+}
+
+.insights-report__trend-track {
+  flex: 1;
+  width: 100%;
+  max-width: 40px;
+  background: var(--color-gray-100);
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.insights-report__trend-fill {
+  width: 100%;
+  background: var(--color-black);
+  border-radius: 4px;
+  transition: height 0.6s ease;
+}
+
+.insights-report__trend-stack {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: height 0.6s ease;
+}
+
+.insights-report__trend-segment {
+  width: 100%;
+  transition: height 0.6s ease;
+}
+
+.insights-report__trend-label {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}
+
+.insights-report__trend-legend {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+.insights-report__trend-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}
+
+.insights-report__trend-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+/* Table */
+.insights-report__table {
+  border: 1px solid var(--color-gray-100);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.insights-report__table-header {
+  display: grid;
+  grid-template-columns: 1fr 100px 100px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-gray-50);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.insights-report__table-row {
+  display: grid;
+  grid-template-columns: 1fr 100px 100px;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  border-top: 1px solid var(--color-gray-100);
+}
+
+.insights-report__table-row--group {
+  font-weight: 500;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.insights-report__table-row--group:hover {
+  background: var(--color-gray-50);
+}
+
+.insights-report__table-cell--first {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.insights-report__table-chevron {
+  color: var(--color-gray-400);
+  transition: transform var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.insights-report__table-chevron--open {
+  transform: rotate(180deg);
+}
+
+.insights-report__table-sub-indent {
+  display: inline-block;
+  width: var(--space-4);
+}
+
+/* Observations */
+.insights-report__observations {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.insights-report__observation {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-gray-50);
+  border-radius: 8px;
+}
+
+.insights-report__observation-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+  background: rgba(107, 114, 128, 0.12);
+  color: #6b7280;
+}
+
+.insights-report__observation-icon--success {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+}
+
+.insights-report__observation-icon--warning {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+
+.insights-report__observation-icon--error {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.insights-report__observation p {
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Loading skeletons */
+.insights-report__skeleton {
+  background: linear-gradient(90deg, var(--color-gray-100) 25%, var(--color-gray-50) 50%, var(--color-gray-100) 75%);
+  background-size: 200% 100%;
+  animation: insights-shimmer 1.5s infinite;
+  border-radius: var(--radius-lg);
+}
+
+.insights-report__skeleton--card {
+  height: 88px;
+}
+
+.insights-report__skeleton--chart {
+  height: 200px;
+  margin-bottom: var(--space-8);
+}
+
+.insights-report__skeleton--observation {
+  height: 56px;
+  margin-bottom: var(--space-2);
+}
+
+/* Insight intro paragraph placeholder — sits above the metric cards while
+ * the LLM intro stream is in flight. Two short rounded rows that
+ * approximate a 1-2 sentence paragraph at text-sm with line-height 1.6.
+ * Once the intro arrives the actual <InsightsText> component takes over. */
+.insights-report__intro-skeleton {
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.insights-report__skeleton--intro {
+  height: 14px;
+  border-radius: var(--radius-sm);
+}
+
+.insights-report__skeleton--intro-line-1 {
+  width: 100%;
+}
+
+.insights-report__skeleton--intro-line-2 {
+  /* Slightly shorter than the first line so it visually reads as a
+   * paragraph end rather than a list of bars. */
+  width: 70%;
+}
+
+@keyframes insights-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (max-width: 768px) {
+  .insights-report__stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .insights-report__bar-label {
+    width: 100px;
+  }
+
+  .insights-report__bar-value {
+    width: 60px;
+  }
+
+  .insights-report__table-header,
+  .insights-report__table-row {
+    grid-template-columns: 1fr 80px 80px;
+  }
+}

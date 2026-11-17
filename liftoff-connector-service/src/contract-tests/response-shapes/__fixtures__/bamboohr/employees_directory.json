@@ -1,0 +1,4 @@
+{
+  "fields": [{"id": "displayName", "type": "list", "name": "Display name"}, {"id": "workEmail", "type": "email", "name": "Work Email"}],
+  "employees": [{"id": "1", "displayName": "Test Employee", "workEmail": "test@example.com"}]
+}

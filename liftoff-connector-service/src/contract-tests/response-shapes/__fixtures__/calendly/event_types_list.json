@@ -1,0 +1,4 @@
+{
+  "collection": [{"uri": "https://api.calendly.com/event_types/00000000-0000-0000-0000-000000000001", "name": "30 Minute Meeting", "active": true, "slug": "30min", "scheduling_url": "https://calendly.com/example/30min", "duration": 30, "kind": "solo", "pooling_type": null}],
+  "pagination": {"count": 1, "next_page": null, "previous_page": null}
+}

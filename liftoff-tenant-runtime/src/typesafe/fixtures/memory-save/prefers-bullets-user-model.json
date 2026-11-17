@@ -1,0 +1,35 @@
+{
+  "set": {
+    "id": "memory_save",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "content": "Priya prefers the weekly summary as short bullet points rather than paragraphs.",
+    "layer": "individual",
+    "requestedTags": [
+      "agent-initiated"
+    ],
+    "contract": {
+      "kind": "instructions",
+      "instructions": "Every Monday, read the CRM for last week's closed deals, append one summary row to the Sales tracking sheet, and notify #sales-ops when done. Route billing questions to the finance team.",
+      "role": "You are the Sales Ops assistant for Acme."
+    },
+    "neighbours": [],
+    "aboutPerson": {
+      "accountId": "acc-priya",
+      "facet": "role"
+    }
+  },
+  "expect": {
+    "kind": {
+      "choice": "user_model",
+      "min": 0.7
+    },
+    "facet": {
+      "choice": "communication_style",
+      "min": 0.7
+    }
+  },
+  "note": "Something about how a person likes to work. Pins KIND_T for the facet."
+}

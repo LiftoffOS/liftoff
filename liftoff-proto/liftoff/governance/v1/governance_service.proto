@@ -1,0 +1,175 @@
+syntax = "proto3";
+
+// GovernanceEngine RPC surface. Called by tenant-runtime on the hot path
+// of every agent tool call.
+package liftoff.governance.v1;
+
+import "liftoff/event/v1/common.proto";
+import "liftoff/governance/v1/types.proto";
+
+// GovernanceEngine: the single authoritative point where HITL, admission,
+// kill switches, allowlists, and conflict detection decide whether an
+// agent action proceeds.
+//
+// Hot path pattern used by tenant-runtime:
+//   1. Once per invocation:  Preflight     → cached for 30s with push invalidation
+//   2. Per tool call:        Authorize     → synchronous, p99 < 5ms with HTTP/2 keep-alive
+//   3. After tool call:      Record        → fire-and-forget, 202 Accepted
+//   4. Dashboard:            ListApprovals → list pending HITL approvals
+//
+// Fail-closed: if the service is unreachable, callers MUST block the tool
+// call rather than permit it. Governance is a safety system.
+service GovernanceService {
+  // Invocation-start policy fetch. Returns admission status, HITL level,
+  // kill-switch snapshot, allowlists, and a preflight token used to
+  // correlate subsequent Authorize/Record calls. Cached client-side for
+  // 30 seconds; re-fetched on miss or push invalidation.
+  rpc Preflight(PreflightRequest) returns (PreflightResponse);
+
+  // Per-tool-call authorization. Handles idempotency, conflict detection,
+  // and HITL-required decisions. Target p99 < 5ms with HTTP/2 keep-alive.
+  rpc Authorize(AuthorizeRequest) returns (AuthorizeResponse);
+
+  // Post-execution action/usage/audit recording. Fire-and-forget —
+  // service returns 202 Accepted and writes are async.
+  rpc Record(RecordRequest) returns (RecordResponse);
+
+  // HITL dashboard — list pending approval requests.
+  rpc ListApprovals(ListApprovalsRequest) returns (ListApprovalsResponse);
+}
+
+// ── Preflight ─────────────────────────────────────────────────────────
+
+message PreflightRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string agent_id = 2;
+  // Connector types the agent has access to for this invocation.
+  repeated string connector_types = 3;
+  // Capability tier from R5 classification (standard / sandbox / enterprise).
+  string capability_tier = 4;
+  // Execution environment (sandbox / managed / bring-your-own).
+  string execution_environment = 5;
+}
+
+message PreflightResponse {
+  AdmissionStatus admission_status = 1;
+  AdmissionReason admission_reason = 2;
+  HitlLevel hitl_level = 3;
+  KillSwitchState kill_switch_state = 4;
+  repeated ActionAllowlist allowlists = 5;
+  // Opaque server-signed token identifying this preflight. Must be echoed
+  // on every Authorize / Record call tied to this invocation.
+  string preflight_token = 6;
+  // Version counter — bumped when kill switches / allowlists change.
+  // Clients use this to detect invalidation races.
+  int64 version = 7;
+}
+
+// ── Authorize ─────────────────────────────────────────────────────────
+
+message AuthorizeRequest {
+  string preflight_token = 1;
+  string idempotency_key = 2;
+  string connector = 3;
+  string entity_type = 4;
+  string action_type = 5;
+  string target_ref = 6;
+  // Optional payload for conflict detection. Server computes a hash
+  // server-side rather than trusting a client-supplied hash.
+  bytes payload = 7;
+  // Thread ID for interactive chat attribution. Empty for autonomous runs.
+  string thread_id = 8;
+
+  // Normalized read classification of this action, resolved by the caller from
+  // the connector catalog (categories + provenance, with write signals winning).
+  // The engine trusts DECLARED_READ to skip the level read-gate and gates a
+  // DECLARED_NON_READ as a write; UNSPECIFIED (older callers, or an inferred /
+  // absent classification) leaves the action-name heuristic in force. It never
+  // overrides the consequential, allowlist, or conflict checks.
+  ActionReadClass action_read_class = 9;
+}
+
+// A caller-resolved, provenance-aware read classification for an action, so the
+// Authorize decision can trust a declared read instead of re-deriving it from
+// the action name. Only a DECLARED classification is trusted; an inferred or
+// absent one leaves the name heuristic in force (fail-closed).
+enum ActionReadClass {
+  ACTION_READ_CLASS_UNSPECIFIED = 0;
+  // The connector declares this action a read — skip the level read-gate.
+  ACTION_READ_CLASS_DECLARED_READ = 1;
+  // The connector declares a write/outbound/destructive/sensitive action — gate as a write.
+  ACTION_READ_CLASS_DECLARED_NON_READ = 2;
+}
+
+message AuthorizeResponse {
+  AuthorizeDecision decision = 1;
+
+  // Populated when decision == HITL_REQUIRED.
+  string approval_request_id = 2;
+
+  // Populated when decision == CONFLICT.
+  Conflict conflict = 3;
+
+  // Populated when decision == BLOCKED.
+  AdmissionReason blocked_reason = 4;
+}
+
+enum AuthorizeDecision {
+  AUTHORIZE_DECISION_UNSPECIFIED = 0;
+  AUTHORIZE_DECISION_ALLOWED = 1;
+  AUTHORIZE_DECISION_HITL_REQUIRED = 2;
+  AUTHORIZE_DECISION_BLOCKED = 3;
+  AUTHORIZE_DECISION_CONFLICT = 4;
+}
+
+message Conflict {
+  string conflicting_action_id = 1;
+  Resolution resolution = 2;
+
+  enum Resolution {
+    RESOLUTION_UNSPECIFIED = 0;
+    RESOLUTION_WAIT = 1;
+    RESOLUTION_OVERRIDE = 2;
+    RESOLUTION_CANCEL = 3;
+  }
+}
+
+// ── Record ────────────────────────────────────────────────────────────
+
+message RecordRequest {
+  string preflight_token = 1;
+  string idempotency_key = 2;
+  string connector = 3;
+  string entity_type = 4;
+  string action_type = 5;
+  string target_ref = 6;
+  string trace_id = 7;
+  int64 duration_ms = 8;
+  // Resulting action status — COMPLETED or FAILED.
+  ActionStatus status = 9;
+  string error = 10;
+  // Normalised cost in USD. 0 when not metered.
+  double cost_usd = 11;
+  // External system response — may be redacted if too large.
+  bytes external_response = 12;
+  // Thread ID for interactive chat attribution. Empty for autonomous runs.
+  string thread_id = 13;
+}
+
+message RecordResponse {
+  // Always 202 Accepted — caller does not block on ledger write.
+  bool accepted = 1;
+}
+
+// ── ListApprovals ─────────────────────────────────────────────────────
+
+message ListApprovalsRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  ApprovalStatus status_filter = 2;
+  liftoff.event.v1.Pagination pagination = 3;
+}
+
+message ListApprovalsResponse {
+  repeated HitlApprovalRequest approvals = 1;
+  string next_page_token = 2;
+}

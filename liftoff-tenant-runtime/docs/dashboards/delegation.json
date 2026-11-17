@@ -1,0 +1,108 @@
+{
+  "displayName": "Runtime Extensions — Parallel Delegation",
+  "_note": "Cloud Monitoring dashboard for Part 5 metrics. Apply via `gcloud monitoring dashboards create --config-from-file=docs/dashboards/delegation.json`. Each tile references a log-based metric (sourced from src/observability/runtime-extensions-metrics.ts emit sites).",
+  "mosaicLayout": {
+    "columns": 12,
+    "tiles": [
+      {
+        "width": 6, "height": 4, "xPos": 0, "yPos": 0,
+        "widget": {
+          "title": "Active delegations (children currently running)",
+          "xyChart": {
+            "dataSets": [{ "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "resource.type=\"cloud_run_revision\" AND metric.type=\"logging.googleapis.com/user/delegation_spawn_total\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_RATE" }
+            }}}]
+          }
+        }
+      },
+      {
+        "width": 6, "height": 4, "xPos": 6, "yPos": 0,
+        "widget": {
+          "title": "Fan-out status (started vs cross-tenant blocks)",
+          "xyChart": {
+            "dataSets": [
+              { "timeSeriesQuery": { "timeSeriesFilter": {
+                "filter": "metric.type=\"logging.googleapis.com/user/delegation_spawn_total\"",
+                "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_RATE", "crossSeriesReducer": "REDUCE_SUM", "groupByFields": ["metric.label.status"] }
+              }}}
+            ]
+          }
+        }
+      },
+      {
+        "width": 6, "height": 4, "xPos": 0, "yPos": 4,
+        "widget": {
+          "title": "Cross-tenant block rate (security signal)",
+          "xyChart": {
+            "dataSets": [{ "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "metric.type=\"logging.googleapis.com/user/delegation_cross_tenant_blocked_total\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_RATE" }
+            }}}]
+          }
+        }
+      },
+      {
+        "width": 6, "height": 4, "xPos": 6, "yPos": 4,
+        "widget": {
+          "title": "Kill switch engaged",
+          "scorecard": {
+            "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "metric.type=\"logging.googleapis.com/user/delegation_spawn_paused\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_MAX" }
+            }},
+            "gaugeView": { "lowerBound": 0, "upperBound": 1 }
+          }
+        }
+      },
+      {
+        "width": 6, "height": 4, "xPos": 0, "yPos": 8,
+        "widget": {
+          "title": "Child duration p50 / p95 / p99",
+          "xyChart": {
+            "dataSets": [{ "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "metric.type=\"logging.googleapis.com/user/delegation_child_duration_ms\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_DELTA", "crossSeriesReducer": "REDUCE_PERCENTILE_99" }
+            }}}]
+          }
+        }
+      },
+      {
+        "width": 6, "height": 4, "xPos": 6, "yPos": 8,
+        "widget": {
+          "title": "Soft-throttle backoff (ms applied per batch)",
+          "xyChart": {
+            "dataSets": [{ "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "metric.type=\"logging.googleapis.com/user/delegation_soft_throttle_backoff_ms\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_DELTA", "crossSeriesReducer": "REDUCE_MEAN" }
+            }}}]
+          }
+        }
+      },
+      {
+        "width": 6, "height": 4, "xPos": 0, "yPos": 12,
+        "widget": {
+          "title": "Shared DB pool utilization",
+          "xyChart": {
+            "dataSets": [{ "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "metric.type=\"logging.googleapis.com/user/delegation_shared_db_utilization\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_MEAN" }
+            }}}]
+          }
+        }
+      },
+      {
+        "width": 6, "height": 4, "xPos": 6, "yPos": 12,
+        "widget": {
+          "title": "Anthropic agent-execution pool 429 rate",
+          "xyChart": {
+            "dataSets": [{ "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "metric.type=\"logging.googleapis.com/user/delegation_anthropic_pool_429_rate\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_MEAN" }
+            }}}]
+          }
+        }
+      }
+    ]
+  }
+}

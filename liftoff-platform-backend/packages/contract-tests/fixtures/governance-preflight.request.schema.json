@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/governance-preflight.request.schema.json",
+  "title": "GovernancePreflightRequest",
+  "description": "Request body for POST /api/governance/preflight — called once at invocation start.",
+  "type": "object",
+  "required": ["tenantId", "agentId", "connectorTypes"],
+  "additionalProperties": false,
+  "properties": {
+    "tenantId": { "type": "string", "minLength": 1 },
+    "agentId": { "type": "string", "minLength": 1 },
+    "connectorTypes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "capabilityTier": {
+      "type": "string",
+      "enum": ["standard", "sandbox", "enterprise"]
+    },
+    "executionEnvironment": {
+      "type": "string",
+      "enum": ["sandbox", "managed", "bring-your-own"]
+    }
+  }
+}

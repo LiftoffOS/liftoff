@@ -1,0 +1,7 @@
+{
+  "resultSetSize": "1",
+  "totalSetSize": "1",
+  "startPosition": "0",
+  "endPosition": "0",
+  "envelopes": [{"envelopeId": "00000000-0000-0000-0000-000000000001", "status": "sent", "documentsUri": "/envelopes/00000000-0000-0000-0000-000000000001/documents", "subject": "Test envelope", "createdDateTime": "2026-06-01T12:00:00Z"}]
+}

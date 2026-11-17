@@ -1,0 +1,253 @@
+{
+  "connectorType": "livestorm",
+  "harvestedAt": "2026-09-15",
+  "source": "vendor_api_reference",
+  "sourceUrl": "https://developers.livestorm.co/llms.txt",
+  "tools": [
+    {
+      "name": "get_ping",
+      "description": "Test authentication",
+      "httpMethod": "GET",
+      "path": "/ping"
+    },
+    {
+      "name": "get_me-1",
+      "description": "Get current user",
+      "httpMethod": "GET",
+      "path": "/me"
+    },
+    {
+      "name": "get_organization-1",
+      "description": "Get current organization",
+      "httpMethod": "GET",
+      "path": "/organization"
+    },
+    {
+      "name": "get_events",
+      "description": "List events",
+      "httpMethod": "GET",
+      "path": "/events"
+    },
+    {
+      "name": "post_events",
+      "description": "Create an event",
+      "httpMethod": "POST",
+      "path": "/events"
+    },
+    {
+      "name": "get_events-id",
+      "description": "Get an event",
+      "httpMethod": "GET",
+      "path": "/events/{id}"
+    },
+    {
+      "name": "put_events-id",
+      "description": "Fully update an event",
+      "httpMethod": "PUT",
+      "path": "/events/{id}"
+    },
+    {
+      "name": "patch_events-id",
+      "description": "Partially update an event",
+      "httpMethod": "PATCH",
+      "path": "/events/{id}"
+    },
+    {
+      "name": "delete_events-id",
+      "description": "Delete an event",
+      "httpMethod": "DELETE",
+      "path": "/events/{id}"
+    },
+    {
+      "name": "get_events-id-people",
+      "description": "List the people from an event",
+      "httpMethod": "GET",
+      "path": "/events/{id}/people"
+    },
+    {
+      "name": "get_events-event-id-people-id",
+      "description": "Get someone's details for an event",
+      "httpMethod": "GET",
+      "path": "/events/{event_id}/people/{id}"
+    },
+    {
+      "name": "get_events-id-sessions",
+      "description": "List event sessions",
+      "httpMethod": "GET",
+      "path": "/events/{id}/sessions"
+    },
+    {
+      "name": "post_events-id-sessions",
+      "description": "Create an event session",
+      "httpMethod": "POST",
+      "path": "/events/{id}/sessions"
+    },
+    {
+      "name": "post_events-id-tags-1",
+      "description": "Assign a tag",
+      "httpMethod": "POST",
+      "path": "/events/{id}/tags"
+    },
+    {
+      "name": "delete_events-id-tags",
+      "description": "Remove a tag",
+      "httpMethod": "DELETE",
+      "path": "/events/{id}/tags"
+    },
+    {
+      "name": "get_sessions-id-chat-messages",
+      "description": "List the chat messages from a session",
+      "httpMethod": "GET",
+      "path": "/sessions/{id}/chat_messages"
+    },
+    {
+      "name": "get_sessions-id-people",
+      "description": "List the people from a session",
+      "httpMethod": "GET",
+      "path": "/sessions/{id}/people"
+    },
+    {
+      "name": "delete_sessions-id-people",
+      "description": "Remove someone from a session using an email",
+      "httpMethod": "DELETE",
+      "path": "/sessions/{id}/people"
+    },
+    {
+      "name": "post_sessions-id-people",
+      "description": "Register a new participant for a session (either an external registrant or internal team member).",
+      "httpMethod": "POST"
+    },
+    {
+      "name": "patch_sessions-period-id-people-id",
+      "description": "Update a contact in a session",
+      "httpMethod": "PATCH",
+      "path": "/sessions/{period_id}/people/{id}"
+    },
+    {
+      "name": "get_sessions-session-id-people-id",
+      "description": "Get someone's details for a session",
+      "httpMethod": "GET",
+      "path": "/sessions/{session_id}/people/{id}"
+    },
+    {
+      "name": "post_sessions-id-people-bulk",
+      "description": "Creates a job for registering multiple registrants to a session",
+      "httpMethod": "POST",
+      "path": "/sessions/{id}/people/bulk"
+    },
+    {
+      "name": "delete_sessions-id-people-people-id",
+      "description": "Remove someone from a session",
+      "httpMethod": "DELETE",
+      "path": "/sessions/{id}/people/{people_id}"
+    },
+    {
+      "name": "get_sessions-id-questions",
+      "description": "List the questions from a session",
+      "httpMethod": "GET",
+      "path": "/sessions/{id}/questions"
+    },
+    {
+      "name": "get_sessions-id-recordings",
+      "description": "List the recordings from a session",
+      "httpMethod": "GET",
+      "path": "/sessions/{id}/recordings"
+    },
+    {
+      "name": "get_sessions-id",
+      "description": "Get a Session",
+      "httpMethod": "GET",
+      "path": "/sessions/{id}"
+    },
+    {
+      "name": "put_sessions-id",
+      "description": "Fully update a session",
+      "httpMethod": "PUT",
+      "path": "/sessions/{id}"
+    },
+    {
+      "name": "patch_sessions-id",
+      "description": "Partially update a session",
+      "httpMethod": "PATCH",
+      "path": "/sessions/{id}"
+    },
+    {
+      "name": "delete_sessions-id",
+      "description": "Delete a session",
+      "httpMethod": "DELETE",
+      "path": "/sessions/{id}"
+    },
+    {
+      "name": "get_sessions",
+      "description": "List Sessions",
+      "httpMethod": "GET",
+      "path": "/sessions"
+    },
+    {
+      "name": "get_people",
+      "description": "List people",
+      "httpMethod": "GET",
+      "path": "/people"
+    },
+    {
+      "name": "get_people-id",
+      "description": "Get a person",
+      "httpMethod": "GET",
+      "path": "/people/{id}"
+    },
+    {
+      "name": "get_jobs-id",
+      "description": "Get a job",
+      "httpMethod": "GET",
+      "path": "/jobs/{id}"
+    },
+    {
+      "name": "get_jobs-id-tasks",
+      "description": "List job tasks",
+      "httpMethod": "GET",
+      "path": "/jobs/{id}/tasks"
+    },
+    {
+      "name": "get_people-attributes",
+      "description": "List people_attributes",
+      "httpMethod": "GET",
+      "path": "/people_attributes"
+    },
+    {
+      "name": "post_users-1",
+      "description": "Create a user",
+      "httpMethod": "POST",
+      "path": "/users"
+    },
+    {
+      "name": "get_users-1",
+      "description": "Get Team Members",
+      "httpMethod": "GET",
+      "path": "/users"
+    },
+    {
+      "name": "delete_users-id-1",
+      "description": "Delete a user",
+      "httpMethod": "DELETE",
+      "path": "/users/{id}"
+    },
+    {
+      "name": "post_webhooks",
+      "description": "Create a webhook",
+      "httpMethod": "POST",
+      "path": "/webhooks"
+    },
+    {
+      "name": "get_webhooks",
+      "description": "List webhooks",
+      "httpMethod": "GET",
+      "path": "/webhooks"
+    },
+    {
+      "name": "delete_webhooks-id",
+      "description": "Delete a webhook",
+      "httpMethod": "DELETE",
+      "path": "/webhooks/{id}"
+    }
+  ]
+}

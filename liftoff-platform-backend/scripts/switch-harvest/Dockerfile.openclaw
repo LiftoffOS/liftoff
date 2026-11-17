@@ -1,0 +1,31 @@
+# A real OpenClaw installation, created from scratch.
+#
+# Every command in drive.sh was verified against this image interactively. The
+# layout it produces is the thing the adapter is written against, and it already
+# contradicted four of our assumptions on first contact: agents live in an ARRAY
+# under `agents.list` rather than a map keyed by id, MCP servers under
+# `mcp.servers` rather than `mcpServers`, channels at the config root rather than
+# per-agent, and cron jobs in `state/openclaw.sqlite` rather than any JSON file.
+#
+# Teardown is deletion of the container. The product ships its own uninstall
+# path and it is not trusted for cleanliness.
+
+FROM node:22-bookworm-slim
+
+ARG REVISION=latest
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates git python3 sqlite3 \
+ && rm -rf /var/lib/apt/lists/*
+
+# The npm dist-tag is the pinned revision. `latest` is what the weekly drift
+# canary installs; a harvest for a fixture generation passes an exact version.
+RUN if [ "$REVISION" = "latest" ]; then npm install -g openclaw; \
+    else npm install -g "openclaw@$REVISION"; fi
+
+RUN openclaw --version
+
+COPY drive.sh /harvest/drive.sh
+RUN chmod +x /harvest/drive.sh
+
+WORKDIR /root

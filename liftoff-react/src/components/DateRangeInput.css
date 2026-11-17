@@ -1,0 +1,45 @@
+.date-range-input {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.date-range-input__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.date-range-input__label {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-gray-400);
+}
+
+.date-range-input__input {
+  width: 124px;
+  padding: 8px 14px;
+  font-size: var(--text-sm);
+  font-family: inherit;
+  color: var(--color-black);
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: 9999px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.date-range-input__input:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+
+.date-range-input__input::placeholder {
+  color: var(--color-gray-300);
+}
+
+.date-range-input__input:disabled {
+  background: var(--color-gray-50);
+  cursor: not-allowed;
+  opacity: 0.6;
+}

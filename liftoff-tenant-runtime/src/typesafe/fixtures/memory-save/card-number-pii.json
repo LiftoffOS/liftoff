@@ -1,0 +1,27 @@
+{
+  "set": {
+    "id": "memory_save",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "content": "Customer Dana Whitfield paid with card 4111 1111 1111 1111, expiry 09/28, for order 4412.",
+    "layer": "individual",
+    "requestedTags": [
+      "agent-initiated"
+    ],
+    "contract": {
+      "kind": "instructions",
+      "instructions": "Every Monday, read the CRM for last week's closed deals, append one summary row to the Sales tracking sheet, and notify #sales-ops when done. Route billing questions to the finance team.",
+      "role": "You are the Sales Ops assistant for Acme."
+    },
+    "neighbours": []
+  },
+  "expect": {
+    "classification": {
+      "choice": "sensitive",
+      "min": 0.7
+    }
+  },
+  "note": "A card number in the content. Pins CLASS_T."
+}

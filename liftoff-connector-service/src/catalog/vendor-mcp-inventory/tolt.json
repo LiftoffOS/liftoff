@@ -1,0 +1,676 @@
+{
+  "connectorType": "tolt",
+  "harvestedAt": "2026-09-15",
+  "source": "live_unauthenticated",
+  "sourceUrl": "https://mcp.tolt.com/",
+  "tools": [
+    {
+      "name": "list_programs",
+      "description": "List all affiliate programs available. Use this first if no program has been selected yet, then use select_program to choose one.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "select_program",
+      "description": "Select which affiliate program to work with for this session.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "program_id": {
+            "type": "string",
+            "description": "The program ID to select (from list_programs)"
+          }
+        },
+        "required": [
+          "program_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "get_program_summary",
+      "description": "Get a high-level overview of your affiliate program. Start here to understand the overall scale.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "program_id": {
+            "type": "string",
+            "description": "Program ID (uses default if not provided)"
+          },
+          "created_gte": {
+            "type": "string",
+            "description": "Start of period for counts (ISO 8601 date)"
+          },
+          "created_lte": {
+            "type": "string",
+            "description": "End of period for counts (ISO 8601 date)"
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "list_partners",
+      "description": "List affiliates/partners with name, email, status, and referral stats.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "program_id": {
+            "type": "string",
+            "description": "Program ID (uses default if not provided)"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Number of results to return (max 100, default 20)"
+          },
+          "starting_after": {
+            "type": "string",
+            "description": "Cursor for next page: return results after this record ID"
+          },
+          "ending_before": {
+            "type": "string",
+            "description": "Cursor for previous page: return results before this record ID"
+          },
+          "created_gte": {
+            "type": "string",
+            "description": "Filter partners created on or after this date (ISO 8601, e.g. '2025-01-01')"
+          },
+          "created_lte": {
+            "type": "string",
+            "description": "Filter partners created on or before this date (ISO 8601, e.g. '2025-12-31')"
+          },
+          "group_id": {
+            "type": "string",
+            "description": "Filter by partner group ID"
+          },
+          "order": {
+            "type": "string",
+            "description": "Sort order, e.g. 'created_at:desc'"
+          },
+          "search": {
+            "type": "string",
+            "description": "Search partners by name or email"
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "get_partner",
+      "description": "Get detailed information about a single affiliate partner. Monetary amounts are formatted from cents.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "partner_id": {
+            "type": "string",
+            "description": "The ID of the partner to retrieve"
+          },
+          "program_id": {
+            "type": "string",
+            "description": "Program ID (uses default if not provided)"
+          }
+        },
+        "required": [
+          "partner_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "get_partner_overview",
+      "description": "Get a complete overview of a partner: details, stats, customers, transactions, commissions. Monetary amounts are formatted from cents.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "partner_id": {
+            "type": "string",
+            "description": "The ID of the partner to get an overview for"
+          },
+          "program_id": {
+            "type": "string",
+            "description": "Program ID (uses default if not provided)"
+          }
+        },
+        "required": [
+          "partner_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "list_customers",
+      "description": "List referred customers with their status and referring partner.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "program_id": {
+            "type": "string",
+            "description": "Program ID (uses default if not provided)"
+          },
+          "partner_id": {
+            "type": "string",
+            "description": "Filter customers referred by a specific partner"
+          },
+          "status": {
+            "type": "string",
+            "description": "Filter by customer status (e.g. 'active', 'churned')"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Number of results to return (max 100, default 20)"
+          },
+          "starting_after": {
+            "type": "string",
+            "description": "Cursor for next page: return results after this record ID"
+          },
+          "ending_before": {
+            "type": "string",
+            "description": "Cursor for previous page: return results before this record ID"
+          },
+          "created_gte": {
+            "type": "string",
+            "description": "Filter customers created on or after this date (ISO 8601, e.g. '2025-01-01')"
+          },
+          "created_lte": {
+            "type": "string",
+            "description": "Filter customers created on or before this date (ISO 8601, e.g. '2025-12-31')"
+          },
+          "search": {
+            "type": "string",
+            "description": "Search by customer email or name"
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "get_customer",
+      "description": "Get detailed information about a single referred customer.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "description": "The ID of the customer to retrieve"
+          },
+          "program_id": {
+            "type": "string",
+            "description": "Program ID (uses default if not provided)"
+          }
+        },
+        "required": [
+          "customer_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "list_transactions",
+      "description": "List revenue transactions attributed to affiliate referrals. Monetary amounts are formatted from cents.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "program_id": {
+            "type": "string",
+            "description": "Program ID (uses default if not provided)"
+          },
+          "partner_id": {
+            "type": "string",
+            "description": "Filter transactions attributed to a specific partner"
+          },
+          "customer_id": {
+            "type": "string",
+            "description": "Filter transactions from a specific customer"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Number of results to return (max 100, default 20)"
+          },
+          "starting_after": {
+            "type": "string",
+            "description": "Cursor for next page: return results after this record ID"
+          },
+          "ending_before": {
+            "type": "string",
+            "description": "Cursor for previous page: return results before this record ID"
+          },
+          "created_gte": {
+            "type": "string",
+            "description": "Filter transactions created on or after this date (ISO 8601, e.g. '2025-01-01')"
+          },
+          "created_lte": {
+            "type": "string",
+            "description": "Filter transactions created on or before this date (ISO 8601, e.g. '2025-12-31')"
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "list_commissions",
+      "description": "List affiliate commissions (pending, approved, or paid). Monetary amounts are formatted from cents.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "program_id": {
+            "type": "string",
+            "description": "Program ID (uses default if not provided)"
+          },
+          "partner_id": {
+            "type": "string",
+            "description": "Filter commissions earned by a specific partner"
+          },
+          "customer_id": {
+            "type": "string",
+            "description": "Filter commissions from a specific customer"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Number of results to return (max 100, default 20)"
+          },
+          "starting_after": {
+            "type": "string",
+            "description": "Cursor for next page: return results after this record ID"
+          },
+          "ending_before": {
+            "type": "string",
+            "description": "Cursor for previous page: return results before this record ID"
+          },
+          "created_gte": {
+            "type": "string",
+            "description": "Filter commissions created on or after this date (ISO 8601, e.g. '2025-01-01')"
+          },
+          "created_lte": {
+            "type": "string",
+            "description": "Filter commissions created on or before this date (ISO 8601, e.g. '2025-12-31')"
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "list_links",
+      "description": "List affiliate tracking links with click counts.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "program_id": {
+            "type": "string",
+            "description": "Program ID (uses default if not provided)"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Number of results to return (max 100, default 20)"
+          },
+          "starting_after": {
+            "type": "string",
+            "description": "Cursor for next page: return results after this record ID"
+          },
+          "ending_before": {
+            "type": "string",
+            "description": "Cursor for previous page: return results before this record ID"
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "export_data",
+      "description": "Export paginated raw data for one resource (or all resources) so the AI can build CSV or further analysis. Returns rows + next_cursor.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "program_id": {
+            "type": "string",
+            "description": "Program ID (uses default if not provided)"
+          },
+          "resource": {
+            "type": "string",
+            "enum": [
+              "partners",
+              "customers",
+              "transactions",
+              "commissions",
+              "links",
+              "all"
+            ],
+            "default": "all",
+            "description": "What to export"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 100,
+            "description": "Page size per API call (max 100)"
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Pagination cursor for selected resource (pass previous next_cursor)"
+          },
+          "created_gte": {
+            "type": "string",
+            "description": "Filter records created on or after this date (ISO 8601)"
+          },
+          "created_lte": {
+            "type": "string",
+            "description": "Filter records created on or before this date (ISO 8601)"
+          },
+          "partner_id": {
+            "type": "string",
+            "description": "Filter by partner ID (applies to customers, transactions, commissions, links)"
+          },
+          "customer_id": {
+            "type": "string",
+            "description": "Filter by customer ID (applies to transactions, commissions)"
+          },
+          "status": {
+            "type": "string",
+            "description": "Filter by status (applies to customers)"
+          },
+          "search": {
+            "type": "string",
+            "description": "Search text (applies to partners, customers)"
+          },
+          "group_id": {
+            "type": "string",
+            "description": "Filter by group ID (applies to partners)"
+          },
+          "order": {
+            "type": "string",
+            "description": "Sort order (applies to partners)"
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "top_partners",
+      "description": "Rank partners by a metric (revenue, commissions, clicks, or customers).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "program_id": {
+            "type": "string",
+            "description": "Program ID (uses default if not provided)"
+          },
+          "metric": {
+            "type": "string",
+            "enum": [
+              "revenue",
+              "commissions",
+              "clicks",
+              "customers"
+            ],
+            "default": "revenue",
+            "description": "Metric used for ranking"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 10,
+            "description": "How many top partners to return"
+          },
+          "created_gte": {
+            "type": "string",
+            "description": "Filter partners created on or after this date (ISO 8601)"
+          },
+          "created_lte": {
+            "type": "string",
+            "description": "Filter partners created on or before this date (ISO 8601)"
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "partner_performance_snapshot",
+      "description": "Get a full KPI snapshot for one partner, including customer/transaction/commission totals and status breakdowns.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "partner_id": {
+            "type": "string",
+            "description": "Partner ID to analyze"
+          },
+          "program_id": {
+            "type": "string",
+            "description": "Program ID (uses default if not provided)"
+          },
+          "created_gte": {
+            "type": "string",
+            "description": "Filter records created on or after this date (ISO 8601)"
+          },
+          "created_lte": {
+            "type": "string",
+            "description": "Filter records created on or before this date (ISO 8601)"
+          }
+        },
+        "required": [
+          "partner_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "commission_reconciliation",
+      "description": "Compare transactions vs commissions and return totals plus reconciliation integrity checks.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "program_id": {
+            "type": "string",
+            "description": "Program ID (uses default if not provided)"
+          },
+          "created_gte": {
+            "type": "string",
+            "description": "Filter records created on or after this date (ISO 8601)"
+          },
+          "created_lte": {
+            "type": "string",
+            "description": "Filter records created on or before this date (ISO 8601)"
+          },
+          "partner_id": {
+            "type": "string",
+            "description": "Filter by partner ID"
+          },
+          "customer_id": {
+            "type": "string",
+            "description": "Filter by customer ID"
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "schema_introspect",
+      "description": "Return resource field/pagination schema metadata for export and CSV planning.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "enum": [
+              "partners",
+              "customers",
+              "transactions",
+              "commissions",
+              "links",
+              "all"
+            ],
+            "default": "all",
+            "description": "Which resource schema to inspect"
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "export_job_start",
+      "description": "Start an async export job that paginates and collects data in the background.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "program_id": {
+            "type": "string",
+            "description": "Program ID (uses default if not provided)"
+          },
+          "resource": {
+            "type": "string",
+            "enum": [
+              "partners",
+              "customers",
+              "transactions",
+              "commissions",
+              "links",
+              "all"
+            ],
+            "default": "all",
+            "description": "What to export"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 100,
+            "description": "Page size per API call (max 100)"
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Pagination cursor for selected resource (pass previous next_cursor)"
+          },
+          "created_gte": {
+            "type": "string",
+            "description": "Filter records created on or after this date (ISO 8601)"
+          },
+          "created_lte": {
+            "type": "string",
+            "description": "Filter records created on or before this date (ISO 8601)"
+          },
+          "partner_id": {
+            "type": "string",
+            "description": "Filter by partner ID (applies to customers, transactions, commissions, links)"
+          },
+          "customer_id": {
+            "type": "string",
+            "description": "Filter by customer ID (applies to transactions, commissions)"
+          },
+          "status": {
+            "type": "string",
+            "description": "Filter by status (applies to customers)"
+          },
+          "search": {
+            "type": "string",
+            "description": "Search text (applies to partners, customers)"
+          },
+          "group_id": {
+            "type": "string",
+            "description": "Filter by group ID (applies to partners)"
+          },
+          "order": {
+            "type": "string",
+            "description": "Sort order (applies to partners)"
+          },
+          "max_rows": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 1000000,
+            "default": 200000,
+            "description": "Maximum total rows allowed in this job before it fails"
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "export_job_status",
+      "description": "Check current status/progress of an async export job.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "description": "Job ID returned by export_job_start"
+          }
+        },
+        "required": [
+          "job_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "export_job_result",
+      "description": "Fetch paged rows from a completed async export job.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "description": "Job ID returned by export_job_start"
+          },
+          "resource": {
+            "type": "string",
+            "enum": [
+              "partners",
+              "customers",
+              "transactions",
+              "commissions",
+              "links",
+              "all"
+            ],
+            "default": "all",
+            "description": "Which resource rows to return from completed job"
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Row cursor for job result paging (numeric string, pass next_cursor from previous result)"
+          },
+          "page_size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "default": 500,
+            "description": "Rows per page in job result"
+          }
+        },
+        "required": [
+          "job_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    }
+  ]
+}

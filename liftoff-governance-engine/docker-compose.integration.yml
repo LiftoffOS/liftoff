@@ -1,0 +1,71 @@
+# Integration docker-compose — spins up a source tenant Postgres and a
+# destination governance Postgres for the Phase 3d backfill tests.
+#
+# Usage:
+#   docker compose -f docker-compose.integration.yml up -d
+#   npx jest --config jest.integration.config.js
+#   docker compose -f docker-compose.integration.yml down -v
+#
+# Both instances run on 127.0.0.1 with known ports. They're isolated to
+# distinct data volumes so resetting one doesn't affect the other.
+
+services:
+  tenant-pg:
+    image: postgres:15
+    container_name: governance-backfill-tenant-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tenant_runtime
+      POSTGRES_USER: tenant_app
+      POSTGRES_PASSWORD: tenant_pw
+    ports:
+      - "55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tenant_app -d tenant_runtime"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  governance-pg:
+    image: postgres:15
+    container_name: governance-backfill-governance-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: governance_engine
+      # Use a superuser so the test can both apply migrations (which CREATE
+      # ROLE governance_admin) and exercise RLS from a second connection.
+      POSTGRES_USER: governance_admin
+      POSTGRES_PASSWORD: governance_pw
+    ports:
+      - "55433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U governance_admin -d governance_engine"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  # Pub/Sub emulator for kill-switch propagation integration tests.
+  # Unauthenticated; tests reach it by setting PUBSUB_EMULATOR_HOST.
+  # Usage:
+  #   docker compose -f docker-compose.integration.yml up -d pubsub
+  #   export PUBSUB_EMULATOR_HOST=127.0.0.1:8085
+  #   npx jest scripts/integration-tests/kill-switch-propagation.test.ts
+  pubsub:
+    image: gcr.io/google.com/cloudsdktool/cloud-sdk:emulators
+    container_name: governance-propagation-pubsub
+    restart: unless-stopped
+    command:
+      - gcloud
+      - beta
+      - emulators
+      - pubsub
+      - start
+      - --host-port=0.0.0.0:8085
+    ports:
+      - "8085:8085"
+    healthcheck:
+      # `curl` isn't on the emulator image; probe the TCP port with bash.
+      test: ["CMD-SHELL", "(echo > /dev/tcp/127.0.0.1/8085) >/dev/null 2>&1"]
+      interval: 2s
+      timeout: 2s
+      retries: 30

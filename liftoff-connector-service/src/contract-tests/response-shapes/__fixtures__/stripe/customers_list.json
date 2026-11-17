@@ -1,0 +1,6 @@
+{
+  "object": "list",
+  "data": [{"id": "cus_PqR8sT2uVwXy4z", "object": "customer", "email": "test@example.com", "created": 1700000000, "currency": "usd"}],
+  "has_more": false,
+  "url": "/v1/customers"
+}

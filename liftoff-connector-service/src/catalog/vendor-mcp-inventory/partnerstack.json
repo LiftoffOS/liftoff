@@ -1,0 +1,518 @@
+{
+  "connectorType": "partnerstack",
+  "harvestedAt": "2026-09-15",
+  "source": "vendor_api_reference",
+  "sourceUrl": "https://docs.partnerstack.com/llms.txt",
+  "tools": [
+    {
+      "name": "post_deals-deal-key-assignment-partnership-key-stack-key-1",
+      "description": "Assign partnership to deal",
+      "httpMethod": "POST",
+      "path": "/deals/{deal_key}/assignment/{partnership_key}/{stack_key}"
+    },
+    {
+      "name": "get_deals-deal-key-file-file-key-1",
+      "description": "Get deal file",
+      "httpMethod": "GET",
+      "path": "/deals/{deal_key}/file/{file_key}"
+    },
+    {
+      "name": "get_v2-deals",
+      "description": "List all deals",
+      "httpMethod": "GET",
+      "path": "/v2/deals"
+    },
+    {
+      "name": "post_v2-deals",
+      "description": "Create a deal",
+      "httpMethod": "POST",
+      "path": "/v2/deals"
+    },
+    {
+      "name": "get_v2-deals-form-templates",
+      "description": "Retrieve the form templates for a deal",
+      "httpMethod": "GET",
+      "path": "/v2/deals/form-templates"
+    },
+    {
+      "name": "delete_v2-deals-deal-key",
+      "description": "Archive a deal",
+      "httpMethod": "DELETE",
+      "path": "/v2/deals/{deal_key}"
+    },
+    {
+      "name": "get_v2-deals-deal-key",
+      "description": "Retrieve a deal",
+      "httpMethod": "GET",
+      "path": "/v2/deals/{deal_key}"
+    },
+    {
+      "name": "patch_v2-deals-deal-key",
+      "description": "Update a deal",
+      "httpMethod": "PATCH",
+      "path": "/v2/deals/{deal_key}"
+    },
+    {
+      "name": "post_v2-deals-deal-key-convert",
+      "description": "Convert a deal",
+      "httpMethod": "POST",
+      "path": "/v2/deals/{deal_key}/convert"
+    },
+    {
+      "name": "get_v2-deals-deal-key-files-1",
+      "description": "Get files attached to a deal",
+      "httpMethod": "GET",
+      "path": "/v2/deals/{deal_key}/files"
+    },
+    {
+      "name": "get_disti-listings-categories",
+      "description": "List disti listing categories",
+      "httpMethod": "GET",
+      "path": "/disti-listings/categories"
+    },
+    {
+      "name": "get_v2-actions-2",
+      "description": "List all actions",
+      "httpMethod": "GET",
+      "path": "/v2/actions"
+    },
+    {
+      "name": "post_v2-actions-1",
+      "description": "Record action",
+      "httpMethod": "POST",
+      "path": "/v2/actions"
+    },
+    {
+      "name": "delete_v2-actions-action-key-1",
+      "description": "Archive an action",
+      "httpMethod": "DELETE",
+      "path": "/v2/actions/{action_key}"
+    },
+    {
+      "name": "post_v2-applications",
+      "description": "Create an Application",
+      "httpMethod": "POST",
+      "path": "/v2/applications"
+    },
+    {
+      "name": "patch_v2-applications-decision",
+      "description": "Bulk Decision Applications",
+      "httpMethod": "PATCH",
+      "path": "/v2/applications/decision"
+    },
+    {
+      "name": "patch_v2-applications-application-key-decision",
+      "description": "Decision an Application",
+      "httpMethod": "PATCH",
+      "path": "/v2/applications/{application_key}/decision"
+    },
+    {
+      "name": "get_v2-applications",
+      "description": "List Applications",
+      "httpMethod": "GET",
+      "path": "/v2/applications"
+    },
+    {
+      "name": "get_v2-customers-2",
+      "description": "List all customers",
+      "httpMethod": "GET",
+      "path": "/v2/customers"
+    },
+    {
+      "name": "post_v2-customers-1",
+      "description": "Create a customer",
+      "httpMethod": "POST",
+      "path": "/v2/customers"
+    },
+    {
+      "name": "delete_v2-customers-customer-key-1",
+      "description": "Delete a customer",
+      "httpMethod": "DELETE",
+      "path": "/v2/customers/{customer_key}"
+    },
+    {
+      "name": "get_v2-customers-customer-key",
+      "description": "Retrieve a customer",
+      "httpMethod": "GET",
+      "path": "/v2/customers/{customer_key}"
+    },
+    {
+      "name": "patch_v2-customers-customer-key-1",
+      "description": "Update a customer",
+      "httpMethod": "PATCH",
+      "path": "/v2/customers/{customer_key}"
+    },
+    {
+      "name": "post_v2-exports-base-records",
+      "description": "POST - Trigger a base records export",
+      "httpMethod": "POST",
+      "path": "/v2/exports/base_records"
+    },
+    {
+      "name": "get_v2-form-templates",
+      "description": "List all form templates",
+      "httpMethod": "GET",
+      "path": "/v2/form-templates"
+    },
+    {
+      "name": "get_v2-groups",
+      "description": "List all groups",
+      "httpMethod": "GET",
+      "path": "/v2/groups"
+    },
+    {
+      "name": "get_v2-leads",
+      "description": "List all leads",
+      "httpMethod": "GET",
+      "path": "/v2/leads"
+    },
+    {
+      "name": "post_v2-leads",
+      "description": "Create a lead",
+      "httpMethod": "POST",
+      "path": "/v2/leads"
+    },
+    {
+      "name": "get_v2-leads-form-templates",
+      "description": "Retrieve the form templates for a lead",
+      "httpMethod": "GET",
+      "path": "/v2/leads/form-templates"
+    },
+    {
+      "name": "delete_v2-leads-lead-key",
+      "description": "Archive a lead",
+      "httpMethod": "DELETE",
+      "path": "/v2/leads/{lead_key}"
+    },
+    {
+      "name": "get_v2-leads-lead-key",
+      "description": "Retrieve a lead",
+      "httpMethod": "GET",
+      "path": "/v2/leads/{lead_key}"
+    },
+    {
+      "name": "patch_v2-leads-lead-key",
+      "description": "Update a lead",
+      "httpMethod": "PATCH",
+      "path": "/v2/leads/{lead_key}"
+    },
+    {
+      "name": "post_v2-leads-lead-key-convert",
+      "description": "Convert a lead",
+      "httpMethod": "POST",
+      "path": "/v2/leads/{lead_key}/convert"
+    },
+    {
+      "name": "get_v2-links-partnership-identifier",
+      "description": "List all links",
+      "httpMethod": "GET",
+      "path": "/v2/links/partnership/{identifier}"
+    },
+    {
+      "name": "get_v2-partner-team-team-key",
+      "description": "Retrieve a partner team",
+      "httpMethod": "GET",
+      "path": "/v2/partner_team/{team_key}"
+    },
+    {
+      "name": "get_v2-partnerships-2",
+      "description": "List all partnerships",
+      "httpMethod": "GET",
+      "path": "/v2/partnerships"
+    },
+    {
+      "name": "patch_v2-partnerships",
+      "description": "Update partnerships",
+      "httpMethod": "PATCH",
+      "path": "/v2/partnerships"
+    },
+    {
+      "name": "post_v2-partnerships",
+      "description": "Create a partnership",
+      "httpMethod": "POST",
+      "path": "/v2/partnerships"
+    },
+    {
+      "name": "delete_v2-partnerships-partnership-key",
+      "description": "Archive a partnership",
+      "httpMethod": "DELETE",
+      "path": "/v2/partnerships/{partnership_key}"
+    },
+    {
+      "name": "post_v2-partnerships-partner-key-member",
+      "description": "Invites or Adds a Partner Member to the given Partnership's Partner Team",
+      "httpMethod": "POST",
+      "path": "/v2/partnerships/{partner_key}/member"
+    },
+    {
+      "name": "patch_v2-partnerships-partnership-key",
+      "description": "Update a partnership",
+      "httpMethod": "PATCH",
+      "path": "/v2/partnerships/{partnership_key}"
+    },
+    {
+      "name": "patch_v2-partnerships-partnership-key-tags",
+      "description": "Updates a partnership's tags",
+      "httpMethod": "PATCH",
+      "path": "/v2/partnerships/{partnership_key}/tags"
+    },
+    {
+      "name": "get_v2-partnerships-unique-identifier",
+      "description": "Retrieve a partnership",
+      "httpMethod": "GET",
+      "path": "/v2/partnerships/{unique_identifier}"
+    },
+    {
+      "name": "get_v2-product-book",
+      "description": "Retrieve all product books for the company",
+      "httpMethod": "GET",
+      "path": "/v2/product_book"
+    },
+    {
+      "name": "post_v2-product-book",
+      "description": "Create a product book",
+      "httpMethod": "POST",
+      "path": "/v2/product_book"
+    },
+    {
+      "name": "delete_v2-product-book-unique-identifier",
+      "description": "Delete a product book",
+      "httpMethod": "DELETE",
+      "path": "/v2/product_book/{unique_identifier}"
+    },
+    {
+      "name": "get_v2-product-book-unique-identifier",
+      "description": "Retrieve a product book",
+      "httpMethod": "GET",
+      "path": "/v2/product_book/{unique_identifier}"
+    },
+    {
+      "name": "patch_v2-product-book-unique-identifier",
+      "description": "Update a product book",
+      "httpMethod": "PATCH",
+      "path": "/v2/product_book/{unique_identifier}"
+    },
+    {
+      "name": "get_v2-products",
+      "description": "Retrieve a paginated list of products",
+      "httpMethod": "GET",
+      "path": "/v2/products"
+    },
+    {
+      "name": "post_v2-products",
+      "description": "Create a Product",
+      "httpMethod": "POST",
+      "path": "/v2/products"
+    },
+    {
+      "name": "delete_v2-products-unique-identifier",
+      "description": "Delete a Product",
+      "httpMethod": "DELETE",
+      "path": "/v2/products/{unique_identifier}"
+    },
+    {
+      "name": "get_v2-products-unique-identifier",
+      "description": "Retrieve details of a Product",
+      "httpMethod": "GET",
+      "path": "/v2/products/{unique_identifier}"
+    },
+    {
+      "name": "patch_v2-products-unique-identifier",
+      "description": "Update details of a Product",
+      "httpMethod": "PATCH",
+      "path": "/v2/products/{unique_identifier}"
+    },
+    {
+      "name": "get_v2-rewards-2",
+      "description": "List all rewards",
+      "httpMethod": "GET",
+      "path": "/v2/rewards"
+    },
+    {
+      "name": "post_v2-rewards",
+      "description": "Create a reward",
+      "httpMethod": "POST",
+      "path": "/v2/rewards"
+    },
+    {
+      "name": "get_v2-sales-cycles-object-type-stages",
+      "description": "Retrieve Sales Cycle Stages",
+      "httpMethod": "GET",
+      "path": "/v2/sales_cycles/{object_type}/stages"
+    },
+    {
+      "name": "get_v2-tiers",
+      "description": "List all tiers",
+      "httpMethod": "GET",
+      "path": "/v2/tiers"
+    },
+    {
+      "name": "post_v2-tiers",
+      "description": "Create a tier",
+      "httpMethod": "POST",
+      "path": "/v2/tiers"
+    },
+    {
+      "name": "get_v2-tiers-collection",
+      "description": "Get V2",
+      "httpMethod": "GET",
+      "path": "/v2/tiers/collection"
+    },
+    {
+      "name": "post_v2-tiers-collection",
+      "description": "Post V2",
+      "httpMethod": "POST",
+      "path": "/v2/tiers/collection"
+    },
+    {
+      "name": "get_v2-tiers-collection-collection-key",
+      "description": "Get V2",
+      "httpMethod": "GET",
+      "path": "/v2/tiers/collection/{collection_key}"
+    },
+    {
+      "name": "patch_v2-tiers-collection-collection-key",
+      "description": "Patch V2",
+      "httpMethod": "PATCH",
+      "path": "/v2/tiers/collection/{collection_key}"
+    },
+    {
+      "name": "get_v2-tiers-tier-key",
+      "description": "Retrieve a tier",
+      "httpMethod": "GET",
+      "path": "/v2/tiers/{tier_key}"
+    },
+    {
+      "name": "patch_v2-tiers-tier-key",
+      "description": "Update a tier",
+      "httpMethod": "PATCH",
+      "path": "/v2/tiers/{tier_key}"
+    },
+    {
+      "name": "get_v2-transactions-2",
+      "description": "List all transactions",
+      "httpMethod": "GET",
+      "path": "/v2/transactions"
+    },
+    {
+      "name": "post_v2-transactions",
+      "description": "Create a transaction",
+      "httpMethod": "POST",
+      "path": "/v2/transactions"
+    },
+    {
+      "name": "delete_v2-transactions-transaction-key",
+      "description": "Delete a transaction",
+      "httpMethod": "DELETE",
+      "path": "/v2/transactions/{transaction_key}"
+    },
+    {
+      "name": "post_v2-vendor-report-export-vendor-report-configuration-key",
+      "description": "POST - Export the current results of a custom report",
+      "httpMethod": "POST",
+      "path": "/v2/vendor_report_export/{vendor_report_configuration_key}"
+    },
+    {
+      "name": "get_v2-vendor-report-export-export-vendor-report-export-key",
+      "description": "GET - Retrieve a vendor report export by key",
+      "httpMethod": "GET",
+      "path": "/v2/vendor_report_export/export/{vendor_report_export_key}"
+    },
+    {
+      "name": "get_v2-vendor-report-configuration-vendor-report-configuration-key",
+      "description": "Retrieve a custom report",
+      "httpMethod": "GET",
+      "path": "/v2/vendor_report_configuration/{vendor_report_configuration_key}"
+    },
+    {
+      "name": "get_v2-vendor-report-configuration-list",
+      "description": "List all custom reports",
+      "httpMethod": "GET",
+      "path": "/v2/vendor_report_configuration/list"
+    },
+    {
+      "name": "get_v2-webhooks",
+      "description": "List all webhooks",
+      "httpMethod": "GET",
+      "path": "/v2/webhooks"
+    },
+    {
+      "name": "post_v2-webhooks",
+      "description": "Create a webhook",
+      "httpMethod": "POST",
+      "path": "/v2/webhooks"
+    },
+    {
+      "name": "delete_v2-webhooks-webhook-key",
+      "description": "Archive a webhook",
+      "httpMethod": "DELETE",
+      "path": "/v2/webhooks/{webhook_key}"
+    },
+    {
+      "name": "get_v2-webhooks-webhook-key",
+      "description": "Retrieve a webhook",
+      "httpMethod": "GET",
+      "path": "/v2/webhooks/{webhook_key}"
+    },
+    {
+      "name": "patch_v2-webhooks-webhook-key",
+      "description": "Update a webhook",
+      "httpMethod": "PATCH",
+      "path": "/v2/webhooks/{webhook_key}"
+    },
+    {
+      "name": "get_v2-actions",
+      "description": "List all actions",
+      "httpMethod": "GET",
+      "path": "/v2/actions"
+    },
+    {
+      "name": "get_v2-customers-1",
+      "description": "List all customers",
+      "httpMethod": "GET",
+      "path": "/v2/customers"
+    },
+    {
+      "name": "get_v2-marketplace-programs",
+      "description": "List all programs",
+      "httpMethod": "GET",
+      "path": "/v2/marketplace/programs"
+    },
+    {
+      "name": "get_v2-marketplace-programs-company-key",
+      "description": "Retrieve a marketplace program",
+      "httpMethod": "GET",
+      "path": "/v2/marketplace/programs/{company_key}"
+    },
+    {
+      "name": "get_v2-partnerships",
+      "description": "List all partnerships",
+      "httpMethod": "GET",
+      "path": "/v2/partnerships"
+    },
+    {
+      "name": "get_v2-payouts",
+      "description": "List all payouts",
+      "httpMethod": "GET",
+      "path": "/v2/payouts"
+    },
+    {
+      "name": "get_v2-rewards",
+      "description": "List all rewards",
+      "httpMethod": "GET",
+      "path": "/v2/rewards"
+    },
+    {
+      "name": "get_v2-transactions",
+      "description": "List all transactions",
+      "httpMethod": "GET",
+      "path": "/v2/transactions"
+    },
+    {
+      "name": "conversion-api",
+      "description": "Convert a customer",
+      "httpMethod": "POST",
+      "path": "/conversion/xid"
+    }
+  ]
+}

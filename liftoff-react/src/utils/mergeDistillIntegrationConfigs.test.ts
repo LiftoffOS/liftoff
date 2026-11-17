@@ -1,0 +1,197 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { mergeDistillIntegrationConfigs } from './mergeDistillIntegrationConfigs'
+import type { SelectedIntegration } from '../components/IntegrationsSelector'
+
+const baseGmail: SelectedIntegration = {
+  id: 'c-gmail-1',
+  integrationId: 'google_mail',
+  name: 'Gmail',
+  type: 'Communications',
+  selectedObjects: [],
+}
+
+const baseOutlook: SelectedIntegration = {
+  id: 'c-outlook-1',
+  integrationId: 'microsoft_outlook_mail',
+  name: 'Outlook',
+  type: 'Communications',
+  selectedObjects: [],
+}
+
+const baseMcp: SelectedIntegration = {
+  id: 'c-mcp-1',
+  integrationId: 'custom_mcp_server',
+  name: 'Docs MCP',
+  type: 'Knowledge',
+  selectedObjects: [],
+}
+
+const baseSlack: SelectedIntegration = {
+  id: 'c-slack-1',
+  integrationId: 'slack',
+  name: 'Slack',
+  type: 'Communications',
+  selectedObjects: [],
+}
+
+describe('mergeDistillIntegrationConfigs', () => {
+  let warnSpy: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+  })
+  afterEach(() => {
+    warnSpy.mockRestore()
+  })
+
+  it('returns the same array reference when no integrationConfigs are provided', () => {
+    const arr: SelectedIntegration[] = [baseGmail]
+    expect(mergeDistillIntegrationConfigs(arr, undefined)).toBe(arr)
+    expect(mergeDistillIntegrationConfigs(arr, {})).toBe(arr)
+  })
+
+  it('writes gmailQuery and sendAs from the LLM emission keyed by connector UUID', () => {
+    const merged = mergeDistillIntegrationConfigs([baseGmail], {
+      'c-gmail-1': {
+        gmailQuery: 'label:support-agent',
+        sendAs: 'support@example.com',
+      },
+    })
+    expect(merged[0].config).toEqual({
+      gmailQuery: 'label:support-agent',
+      sendAs: 'support@example.com',
+    })
+  })
+
+  it('accepts integrationId (catalog id) as the lookup key when the LLM used it', () => {
+    const merged = mergeDistillIntegrationConfigs([baseGmail], {
+      google_mail: { gmailQuery: 'label:x' },
+    })
+    expect(merged[0].config).toEqual({ gmailQuery: 'label:x' })
+  })
+
+  it('preserves existing config fields not addressed by the LLM emission', () => {
+    const withSendAs: SelectedIntegration = {
+      ...baseGmail,
+      config: { sendAs: 'manually-set@example.com' },
+    }
+    const merged = mergeDistillIntegrationConfigs([withSendAs], {
+      'c-gmail-1': { gmailQuery: 'label:x' },
+    })
+    expect(merged[0].config).toEqual({
+      sendAs: 'manually-set@example.com',
+      gmailQuery: 'label:x',
+    })
+  })
+
+  it('does not overwrite with empty strings (LLM may emit empty for considered-and-rejected)', () => {
+    const withQuery: SelectedIntegration = {
+      ...baseGmail,
+      config: { gmailQuery: 'label:old' },
+    }
+    const merged = mergeDistillIntegrationConfigs([withQuery], {
+      'c-gmail-1': { gmailQuery: '', sendAs: '' },
+    })
+    expect(merged[0].config).toEqual({ gmailQuery: 'label:old' })
+  })
+
+  it('leaves integrations without an emission untouched', () => {
+    const merged = mergeDistillIntegrationConfigs([baseGmail, baseSlack], {
+      'c-gmail-1': { gmailQuery: 'label:x' },
+    })
+    expect(merged[0].config).toEqual({ gmailQuery: 'label:x' })
+    expect(merged[1]).toBe(baseSlack)
+  })
+
+  // ── Cross-wiring guard ───────────────────────────────────────────────
+
+  it('drops gmailQuery emitted against a custom_mcp_server integration', () => {
+    const merged = mergeDistillIntegrationConfigs([baseMcp], {
+      'c-mcp-1': { gmailQuery: 'to:support@example.com -from:me', sendAs: 'support@example.com' },
+    })
+    expect(merged[0].config).toBeUndefined()
+    expect(merged[0]).toBe(baseMcp)
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('gmailQuery'),
+      expect.objectContaining({ integrationId: 'custom_mcp_server' }),
+    )
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('sendAs'),
+      expect.objectContaining({ integrationId: 'custom_mcp_server' }),
+    )
+  })
+
+  it('drops sendAs emitted against a Slack integration', () => {
+    const merged = mergeDistillIntegrationConfigs([baseSlack], {
+      'c-slack-1': { sendAs: 'support@example.com' },
+    })
+    expect(merged[0].config).toBeUndefined()
+    expect(merged[0]).toBe(baseSlack)
+    expect(warnSpy).toHaveBeenCalled()
+  })
+
+  it('writes outlookFilter to a microsoft_outlook_mail integration', () => {
+    const merged = mergeDistillIntegrationConfigs([baseOutlook], {
+      'c-outlook-1': {
+        outlookFilter: "categories/any(c:c eq 'Support')",
+        sendAs: 'support@example.com',
+      },
+    })
+    expect(merged[0].config).toEqual({
+      outlookFilter: "categories/any(c:c eq 'Support')",
+      sendAs: 'support@example.com',
+    })
+  })
+
+  it('drops outlookFilter emitted against a Gmail integration (LLM confused providers)', () => {
+    const merged = mergeDistillIntegrationConfigs([baseGmail], {
+      'c-gmail-1': { outlookFilter: 'some-filter', gmailQuery: 'label:x' },
+    })
+    expect(merged[0].config).toEqual({ gmailQuery: 'label:x' })
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('outlookFilter'),
+      expect.objectContaining({ integrationId: 'google_mail' }),
+    )
+  })
+
+  it('drops gmailQuery emitted against an Outlook integration', () => {
+    const merged = mergeDistillIntegrationConfigs([baseOutlook], {
+      'c-outlook-1': { gmailQuery: 'label:x', outlookFilter: "from/emailAddress/address eq 'a@b'" },
+    })
+    expect(merged[0].config).toEqual({
+      outlookFilter: "from/emailAddress/address eq 'a@b'",
+    })
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('gmailQuery'),
+      expect.objectContaining({ integrationId: 'microsoft_outlook_mail' }),
+    )
+  })
+
+  it('honours type=google_mail when integrationId is unset (legacy shape)', () => {
+    const legacyGmail: SelectedIntegration = {
+      id: 'c-gmail-LEGACY',
+      name: 'Gmail',
+      type: 'google_mail',
+      selectedObjects: [],
+    }
+    const merged = mergeDistillIntegrationConfigs([legacyGmail], {
+      'c-gmail-LEGACY': { gmailQuery: 'label:legacy' },
+    })
+    expect(merged[0].config).toEqual({ gmailQuery: 'label:legacy' })
+    expect(warnSpy).not.toHaveBeenCalled()
+  })
+
+  it('reproduces the support-agent regression: MCP + Gmail bound, LLM emits Gmail config under MCP id', () => {
+    // The shape at issue: integrationConfigs emitted by the LLM keyed by the
+    // MCP's connector UUID. Pre-fix this
+    // smeared sendAs + gmailQuery onto the MCP binding (harmless at runtime
+    // but indicative of distillation drift). Now both fields are dropped
+    // and only the Gmail binding gets its config from the gmail-keyed entry.
+    const merged = mergeDistillIntegrationConfigs([baseMcp, baseGmail], {
+      'c-mcp-1': { sendAs: 'support@example.com', gmailQuery: 'to:support@example.com -from:me is:unread' },
+      'c-gmail-1': { gmailQuery: 'to:support@example.com' },
+    })
+    expect(merged[0].config).toBeUndefined() // MCP — Gmail fields dropped
+    expect(merged[1].config).toEqual({ gmailQuery: 'to:support@example.com' })
+  })
+})

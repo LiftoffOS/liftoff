@@ -1,0 +1,84 @@
+{
+  "packages": [
+    {
+      "id": "full-pipeline",
+      "name": "Full Pipeline",
+      "description": "Complete intake-to-handoff automation covering the entire inbound journey",
+      "stages": ["Intake", "Qualification", "Routing", "Scheduling", "Handoff"],
+      "estimatedSetupTime": "2-3 weeks",
+      "complexity": "high",
+      "recommended": true,
+      "features": [
+        "End-to-end automation",
+        "Multi-stage workflows",
+        "Comprehensive routing logic",
+        "Full approval chain support"
+      ],
+      "bestFor": "Companies ready for full operational transformation"
+    },
+    {
+      "id": "intake-only",
+      "name": "Intake Only",
+      "description": "Capture and validate inbound demand from all channels",
+      "stages": ["Intake"],
+      "estimatedSetupTime": "3-5 days",
+      "complexity": "low",
+      "recommended": false,
+      "features": [
+        "Multi-channel capture",
+        "Data validation",
+        "Duplicate detection",
+        "Basic categorization"
+      ],
+      "bestFor": "Quick start for high inbound volume"
+    },
+    {
+      "id": "qualification-routing",
+      "name": "Qualification + Routing",
+      "description": "Score leads and route to the right team automatically",
+      "stages": ["Qualification", "Routing"],
+      "estimatedSetupTime": "1-2 weeks",
+      "complexity": "medium",
+      "recommended": false,
+      "features": [
+        "Lead scoring models",
+        "Segment-based routing",
+        "Priority assignment",
+        "SLA tracking"
+      ],
+      "bestFor": "Teams with defined qualification criteria"
+    },
+    {
+      "id": "scheduling-handoff",
+      "name": "Scheduling + Handoff",
+      "description": "Automate meeting scheduling and smooth handoffs to sales",
+      "stages": ["Scheduling", "Handoff"],
+      "estimatedSetupTime": "1 week",
+      "complexity": "medium",
+      "recommended": false,
+      "features": [
+        "Calendar integration",
+        "Automated scheduling",
+        "Handoff documentation",
+        "Follow-up triggers"
+      ],
+      "bestFor": "Sales teams focused on conversion efficiency"
+    },
+    {
+      "id": "custom",
+      "name": "Custom Package",
+      "description": "Build a custom workflow package tailored to your needs",
+      "stages": [],
+      "estimatedSetupTime": "Varies",
+      "complexity": "custom",
+      "recommended": false,
+      "features": [
+        "Flexible stage selection",
+        "Custom business logic",
+        "Tailored integrations",
+        "Dedicated support"
+      ],
+      "bestFor": "Complex or unique operational requirements"
+    }
+  ]
+}

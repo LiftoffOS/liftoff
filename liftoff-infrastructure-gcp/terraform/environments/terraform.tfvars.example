@@ -1,0 +1,57 @@
+# Terraform Variables Example
+# Copy this file to {dev,staging,prod}/terraform.tfvars and fill in values
+#
+# For sensitive values, you can also use:
+# - TF_VAR_slack_bot_token environment variable
+# - terraform apply -var="slack_bot_token=..."
+# - A separate *.auto.tfvars file (git-ignored)
+
+# -----------------------------------------------------------------------------
+# Required for all environments
+# -----------------------------------------------------------------------------
+
+# GCP Organization (get from: gcloud organizations list)
+org_id = "YOUR_GCP_ORG_ID"
+
+# Billing Account (get from: gcloud billing accounts list)
+billing_account = "YOUR_BILLING_ACCOUNT_ID"
+
+# Environment name (dev, staging, prod)
+environment = "dev"
+
+# Region for deployment
+region = "us-west1"
+
+# Set to true after connecting GitHub repos in Cloud Build console
+# See docs/GITHUB_REPO_CONNECTION.md for instructions
+github_repos_connected = false
+
+# -----------------------------------------------------------------------------
+# Slack Alert Notifications (Optional for dev, Required for prod)
+# -----------------------------------------------------------------------------
+
+# Slack Bot OAuth Token for #platform-observability-alerts
+# Setup:
+#   1. Create app at https://api.slack.com/apps
+#   2. Go to "OAuth & Permissions" > Add "chat:write" scope
+#   3. Install the app to your Slack workspace
+#   4. Copy "Bot User OAuth Token" (starts with xoxb-)
+#
+# Example (DO NOT commit real tokens):
+# slack_bot_token = "xoxb-YOUR-SLACK-BOT-TOKEN"
+slack_bot_token = ""
+
+# -----------------------------------------------------------------------------
+# Environment-Specific Notes
+# -----------------------------------------------------------------------------
+
+# DEV ENVIRONMENT:
+# - slack_bot_token is optional
+# - tenant_runtime_url required once tenant-runtime service is deployed
+
+# STAGING ENVIRONMENT:
+# - slack_bot_token recommended for team visibility
+
+# PROD ENVIRONMENT:
+# - slack_bot_token REQUIRED (no default)
+# - Customer-facing — treat all changes as production incidents

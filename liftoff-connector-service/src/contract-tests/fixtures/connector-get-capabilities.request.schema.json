@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/connector-get-capabilities.request.schema.json",
+  "title": "ConnectorGetCapabilitiesRequest",
+  "description": "Request body for POST /api/connectors/capabilities — returns the full capability → connector-types + required scopes registry. No filters today; tenantContext is accepted so callers can scope later without a breaking change.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "tenantContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tenantId": { "type": "string", "minLength": 1 },
+        "workflowId": { "type": "string" },
+        "agentId": { "type": "string" },
+        "actorId": { "type": "string" }
+      }
+    },
+    "idempotencyKey": { "type": "string", "minLength": 1 }
+  }
+}

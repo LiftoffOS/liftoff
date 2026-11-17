@@ -1,0 +1,17 @@
+version: v2
+modules:
+  - path: .
+    name: buf.build/liftoffos/liftoff-proto
+    excludes:
+      # Generated TypeScript stubs — not protos.
+      - gen
+lint:
+  use:
+    - STANDARD
+  except:
+    # Package names here are of the form `liftoff.governance.v1`. The default
+    # rule wants `buf.build.liftoffos.liftoff_proto.governance.v1`.
+    - PACKAGE_VERSION_SUFFIX
+breaking:
+  use:
+    - FILE

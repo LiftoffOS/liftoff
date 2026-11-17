@@ -1,0 +1,496 @@
+# NGINX TEMPLATE. docker-entrypoint.sh substitutes ${API_ORIGIN},
+# ${API_ORIGIN_WS} and ${DEVELOPER_PROXY_ORIGIN} into this file at container
+# start and writes the result
+# to conf.d/default.conf. It is done there, not with an nginx variable in
+# proxy_pass, because a variable in proxy_pass makes nginx resolve the host
+# PER REQUEST and requires a `resolver` directive — a DNS dependency in the
+# request path. Substituting first keeps every upstream a literal.
+#
+# No hostname belonging to the project that wrote this file appears below.
+# A deployment supplies its own, and the entrypoint refuses to start without
+# them rather than booting with a URL that points at somebody else.
+
+# ==============================================================================
+# SPA route allowlist — $is_spa_route
+# ==============================================================================
+# Generated from the <Routes> tree in src/App.tsx by
+# scripts/generate-spa-routes.mjs, which runs as part of `npm run build`. Lives
+# at /etc/nginx/ rather than /etc/nginx/conf.d/ on purpose: the base image
+# already does `include /etc/nginx/conf.d/*.conf`, so a .conf dropped in there
+# would be included a second time and nginx would refuse to start on the
+# duplicate map.
+#
+# Read the generator's header for why the list is keyed on first path segments.
+include /etc/nginx/spa-routes.conf;
+
+# ==============================================================================
+# What a 404 actually says — $notfound_body
+# ==============================================================================
+# A real 404 status is the whole point of the allowlist above, but the body still
+# has two very different audiences.
+#
+# A person who mistypes a URL should keep getting the styled not-found screen
+# they get today, so the default body is the app shell and App.tsx's `path="*"`
+# route renders exactly as before. Only the status code changed, from a
+# misleading 200 to 404.
+#
+# An agent asking for markdown gets markdown: a short document pointing at
+# sign-in, so a wrong guess at a URL still ends in a useful pointer rather than
+# a wall of HTML it has to parse to learn nothing.
+#
+# Because the body varies by request header, the markdown branch sends
+# `Vary: Accept` (see `location = /404.md`). Without it a shared cache could
+# hand an agent the HTML variant, or a browser the markdown one, depending on
+# which landed in the cache first.
+map $http_accept $notfound_body {
+    default             /index.html;
+    "~*text/markdown"   /404.md;
+}
+
+# ==============================================================================
+# Markdown content negotiation — $md_ext (https://acceptmarkdown.com)
+# ==============================================================================
+# A page that ships a markdown rendition has an index.md beside its index.html.
+# This map turns an Accept header into the extension `location /` should try
+# FIRST, so the same URL serves HTML to a browser and markdown to an agent.
+#
+# Order matters: nginx tests regex entries in the order written, first match
+# wins. `text/markdown;q=0` means the client explicitly does NOT want markdown,
+# so it has to be tested before the general case or a refusal would be read as a
+# request.
+#
+# Full q-value ranking (preferring html when it outranks markdown) is not
+# expressible in a map and is not implemented; an explicit q=0 refusal is, and
+# that is the case that actually changes what a client receives.
+# nginx's bundled mime.types has no entry for .md, so a markdown file would be
+# served as application/octet-stream — which agents treat as a download, not as
+# text. This adds the one mapping; types blocks in the same context accumulate,
+# so the included mime.types is extended rather than replaced.
+types {
+    text/markdown md;
+}
+
+map $http_accept $md_ext {
+    default                                             "";
+    "~*text/markdown\s*;\s*q=0(\.0+)?(\s*[,;]|$)"       "";
+    "~*text/markdown"                                   ".md";
+}
+
+# ==============================================================================
+# Unacceptable media types — $acceptable
+# ==============================================================================
+# RFC 9110 lets a server answer 406 when it cannot produce anything the client
+# will take. Deliberately conservative: an absent Accept header, `*/*`, `text/*`,
+# html and markdown are all fine, which covers every browser and every crawler
+# that sends a real Accept. Only a request that explicitly asks for something
+# else and nothing else (`Accept: application/pdf`) is refused. A 406 that fires
+# on a real client is far worse than one that never fires, so this errs toward
+# accepting.
+map $http_accept $acceptable {
+    default                                                        0;
+    ""                                                             1;
+    "~*(\*/\*|text/\*|text/html|text/markdown|application/xhtml)"  1;
+}
+
+# ==============================================================================
+# Indexing policy — X-Robots-Tag for private surfaces
+# ==============================================================================
+# robots.txt Disallow only stops the *crawl*, it does not prevent indexing: a
+# disallowed URL that Google finds through an external link can still be listed
+# as a bare URL, and because Google never fetches it, it can never read a
+# noindex rule on the page. A noindex served as a header is the rule Google
+# honours definitively, so every private surface carries one.
+#
+# /share/* is the case that actually needs this. Share links exist to be pasted
+# around, so sooner or later one lands somewhere crawlable. It is deliberately
+# absent from robots.txt (see public/robots.txt) precisely so Googlebot fetches
+# it, reads this header, and drops the URL. Disallowing it instead would leave
+# the URL eligible for a URL-only listing indefinitely. The chat content itself
+# is never exposed: /share/:shareId is behind ProtectedRoute and the backend
+# 404s non-members.
+#
+# Emitted at server level (next to the other security headers) rather than in a
+# per-path location, because an add_header inside a location drops every header
+# inherited from the server block. nginx omits the header entirely when the map
+# yields an empty string, so paths the map does not list are unaffected.
+# Keyed on $request_uri, NOT $uri: every SPA route is served through
+# `try_files ... /index.html`, and that internal redirect rewrites $uri to
+# /index.html before headers are emitted, so a $uri map silently matches
+# nothing on exactly the routes that need it. $request_uri keeps the original
+# request line. It also carries the query string, which is harmless here since
+# every pattern is anchored at the start of the path.
+map $request_uri $robots_tag {
+    default             "";
+    ~*^/dashboard       "noindex, nofollow";
+    ~*^/share/          "noindex, nofollow";
+    ~*^/onboarding      "noindex, nofollow";
+    ~*^/login           "noindex, nofollow";
+    ~*^/oauth/          "noindex, nofollow";
+    ~*^/activate        "noindex, nofollow";
+    ~*^/invitation/     "noindex, nofollow";
+    ~*^/cli-auth        "noindex, nofollow";
+    ~*^/signup-approval "noindex, nofollow";
+    ~*^/verify-email    "noindex, nofollow";
+    ~*^/auth/action     "noindex, nofollow";
+    ~*^/contact-sales   "noindex, nofollow";
+    ~*^/dev/            "noindex, nofollow";
+    # /support is deliberately noindex but deliberately NOT disallowed in
+    # robots.txt, for the same reason as /share/ above. The help centre is a
+    # client-rendered page: Googlebot fetching it gets the bare SPA shell with
+    # the homepage <title>, so indexing it only adds a content-free duplicate of
+    # / to the index. noindex removes it definitively.
+    #
+    # Agents are unaffected. /llms.txt points them at /support/articles/*.md,
+    # which is real markdown rather than a JS-dependent page, and X-Robots-Tag is
+    # an indexing directive, not a fetch directive: anything that wants to read
+    # /support still can. A robots.txt Disallow would be the wrong tool twice
+    # over, blocking the AI crawlers we want here AND stopping Google ever
+    # fetching the page to read this header.
+    ~*^/support         "noindex, nofollow";
+}
+
+# Non-production hosts must never be indexed.
+#
+# A preview host serves the same markup as production from the same image.
+# Every page's canonical already points at the production URL, but a canonical
+# is a hint Google is free to ignore, not a directive, so on its own it does not
+# keep a dev URL out of the index. An indexed dev page is a duplicate competing
+# with the exact page it is a copy of.
+#
+# Keyed on $host because nothing in the build distinguishes the two
+# environments: dev and prod ship the identical artifact, so the request's own
+# Host header is the only signal available at serve time.
+#
+# Deliberately NOT a robots.txt Disallow on the dev host, for the same reason
+# spelled out for /share/ and /support above. Disallow blocks the fetch, and a
+# noindex Google never fetches is a noindex Google never applies, which would
+# leave dev URLs eligible for URL-only listings indefinitely.
+map $host $nonprod_robots_tag {
+    default        "";
+    ~*\.run\.app$  "noindex, nofollow";
+}
+
+# Either signal is enough to suppress indexing. Concatenating the two decides
+# it: the pair is empty only when neither the path nor the host asked for a
+# noindex, so the default arm correctly covers every case where one of them did.
+map "$nonprod_robots_tag$robots_tag" $effective_robots_tag {
+    default  "noindex, nofollow";
+    ""       "";
+}
+
+server {
+    listen 8080 default_server;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Cloud Run terminates TLS upstream and sends HTTP on :8080 to nginx.
+    # Without these, any nginx-generated redirect (e.g. trailing-slash 301)
+    # would leak as `http://host:8080/...`. Relative redirects let the browser
+    # resolve against the original request URL.
+    absolute_redirect off;
+    port_in_redirect off;
+
+    # ==========================================================================
+    # Security headers
+    # ==========================================================================
+    # All headers use `always` so they are sent on error responses too.
+    # CSP is enforcing as of PR 8. If a violation breaks something, flip
+    # `Content-Security-Policy` back to `Content-Security-Policy-Report-Only`
+    # while debugging.
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    # microphone=(self): dictation in the chat composer records through
+    # getUserMedia, and `microphone=()` denies it to EVERY origin including our
+    # own — the browser refuses at the document level and never even shows the
+    # permission prompt, so the person cannot grant what they are being asked
+    # for. Only the microphone opens, and only to this origin; camera and
+    # geolocation stay denied to everyone.
+    add_header Permissions-Policy "camera=(), microphone=(self), geolocation=()" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    # noindex for authenticated app surfaces, share links, and every request
+    # arriving on a non-production host. Resolved by the $robots_tag and
+    # $nonprod_robots_tag maps at the top of this file; empty (header omitted)
+    # on any other path served from the production domain.
+    add_header X-Robots-Tag $effective_robots_tag always;
+
+    # CSP allowlist — covers everything the site actually loads:
+    #   - self for app code, HTML, og-image, etc.
+    #   - Google Fonts (CSS + woff2)
+    #   - framerusercontent.com — Inter Variable woff2 (the actual primary font;
+    #     declared in src/index.css. Without this, the browser falls back to
+    #     system sans-serif which renders heavier than Inter, especially on mobile.)
+    #   - Firebase Auth (identitytoolkit, securetoken)
+    #   - Backend API (${API_ORIGIN})
+    #   - GA4 (gtag, analytics — only fires on the canonical site host)
+    #   - 'unsafe-inline' on style-src is required for Tailwind v4 utility classes
+    #     and Helmet-injected meta. 'unsafe-inline' on script-src is required for
+    #     the JSON-LD blocks in index.html (and Helmet-injected JSON-LD).
+    # frame-src additions:
+    #   - https://anchorforge.io — Anchor Browser live-view iframe origin.
+    #     The liveViewUrl returned by Anchor's POST /v1/sessions takes the
+    #     form https://anchorforge.io/devtools-frontend/inspector.html?wss=...
+    #     and is embedded in the Agent Chat browser pane (BrowserPane.tsx).
+    #     Without this entry the iframe loads but the browser displays
+    #     "This content is blocked. Contact the site owner to fix the issue."
+    #   - https://*.anchorbrowser.io — Anchor's API console + identity-create
+    #     surface (app.anchorbrowser.io) which we may iframe for OAuth flows
+    #     via web_identity_connect. Belt-and-suspenders.
+    #   - https://live.browser-use.com — the SAME pane, for a Browser Use
+    #     session. Its live view is a distinct host from the Browser Use console
+    #     (cloud.browser-use.com, which sends frame-ancestors 'none' and cannot
+    #     be framed at all); the API hands back live.browser-use.com?wss=...,
+    #     which sends no framing headers. Both halves have to agree: the vendor
+    #     must permit framing AND this list must allow the host. Checking only
+    #     the vendor's response headers is how this was missed — the pane opened
+    #     and stayed blank, with the CSP refusal visible only in the console.
+    #   - https://api.steel.dev — the SAME pane, for a Steel session, the
+    #     platform's browser. Its live view is the session's player on the API
+    #     host (api.steel.dev/v1/sessions/<id>/player?interactive=true), which
+    #     sends no framing headers. Missed the same way the day Steel shipped:
+    #     the vendor half was checked, this half was not.
+    # media-src is NOT optional and is NOT covered by img-src. Without it, a
+    # <video> or <audio> falls back to default-src 'self' and a signed GCS URL
+    # is blocked — silently, with no console error a user would ever see and no
+    # network entry that says why. Agent-produced video and audio load from
+    # storage.googleapis.com, so they need it and images do not.
+    # connect-src carries the wss:// origins as well as the https:// ones. CSP
+    # matches on scheme, so an http:// origin does NOT authorise an https:// one
+    # WebSocket to that same host — live dictation opens one, and without the
+    # wss:// entry the browser blocks it before the handshake. Adding a new
+    # socket endpoint means adding its wss:// origin here.
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://framerusercontent.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' ${API_ORIGIN} ${API_ORIGIN_WS} ${DEVELOPER_PROXY_ORIGIN} https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.googleapis.com https://api.stripe.com; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://js.stripe.com https://hooks.stripe.com https://anchorforge.io https://*.anchorbrowser.io https://live.browser-use.com https://api.steel.dev; object-src 'none'; base-uri 'self'; form-action 'self';" always;
+
+    # Content negotiation. Pages are served as HTML or as markdown depending on
+    # Accept (see the $md_ext map and `location /`), so responses genuinely vary
+    # by it and shared caches must be told. Accept-Encoding rides in the same
+    # header rather than being emitted separately by gzip_vary, so there is
+    # exactly one Vary on the response. Emitted at server level so `location /`
+    # and the SPA fallback inherit it; any location that sets its own add_header
+    # drops this and restates what it needs.
+    add_header Vary "Accept, Accept-Encoding" always;
+
+    # ==========================================================================
+    # Compression
+    # ==========================================================================
+    gzip on;
+    # OFF, with Vary emitted by hand instead (see the add_header above). gzip_vary
+    # appends its own `Vary: Accept-Encoding`, and the pages below also vary by
+    # Accept, which would leave two Vary headers on every negotiated response.
+    # That is legal HTTP and caches combine them, but a checker reading only the
+    # first sees no `Accept` and reports the negotiation as unsafe. Locations that
+    # set their own add_header drop the inherited one and restate Vary
+    # themselves; grep for `add_header Vary` to see all of them.
+    gzip_vary off;
+    gzip_min_length 1024;
+    # Level 6 (up from nginx's default 1) — meaningfully smaller payloads for a
+    # negligible CPU cost. This only affects how bytes are compressed on the
+    # wire; the client decompresses to the identical file, so nothing the browser
+    # runs (HTML/CSS/JS, animations, timing) changes.
+    gzip_comp_level 6;
+    gzip_proxied expired no-cache no-store private auth;
+    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml application/javascript application/json image/svg+xml;
+    # Serve pre-compressed *.gz siblings (emitted at build time by
+    # scripts/precompress.mjs at max level 9) when the client accepts gzip,
+    # instead of compressing on the fly. gzip is lossless, so the browser
+    # receives byte-identical file contents — this is purely a transfer-size
+    # optimization. Falls back to on-the-fly level-6 above when no .gz exists.
+    gzip_static on;
+    brotli on;
+    brotli_static on;
+    brotli_comp_level 6;
+    brotli_types text/plain text/css application/javascript application/json image/svg+xml application/xml;
+
+    # ==========================================================================
+    # Trailing slash policy
+    # ==========================================================================
+    # Canonical form is WITHOUT a trailing slash (matches <PageHead> canonical URL).
+    # 301 anything else to the canonical form so Google doesn't dedupe two URLs.
+    # The root `/` is left alone. The exemption that used to sit here was for
+    # two analytics SDKs that POSTed to trailing-slash paths; both are gone.
+    rewrite ^/(.+)/$ /$1 permanent;
+
+    # ==========================================================================
+    # Caching
+    # ==========================================================================
+    # Service worker — must NOT inherit the one-year immutable rule below.
+    #
+    # This file is not content-hashed: its URL is fixed, because the browser
+    # re-fetches it by path to discover updates. Caching it `immutable` for a
+    # year would pin whatever shipped first and make every later fix
+    # undeliverable to anyone who had already visited.
+    #
+    # An exact-match location beats the regex below regardless of order, so this
+    # wins on its own. `expires -1` rather than add_header on purpose: an
+    # add_header inside a location drops EVERY inherited header, including the
+    # security headers and X-Robots-Tag set at server level, whereas expires
+    # sets Cache-Control while leaving inheritance intact. Same reasoning as the
+    # llms.txt block further down.
+    location = /firebase-messaging-sw.js {
+        expires -1;
+    }
+
+    # Static assets — content-hashed by Vite, safe to cache forever.
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|webp)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        # This add_header drops the server-level Vary, and gzip_vary is off, so
+        # without restating it a cache could hand a brotli asset to a client that
+        # cannot decode it. Assets do NOT vary by Accept, only by encoding.
+        add_header Vary "Accept-Encoding" always;
+    }
+
+    # robots.txt and sitemap.xml — short cache so we can update them quickly.
+    location ~* ^/(robots\.txt|sitemap\.xml)$ {
+        expires 1h;
+        add_header Cache-Control "public";
+        # Same reason as the asset block above: this add_header drops the
+        # server-level Vary and gzip_vary is off. These two do not vary by Accept.
+        add_header Vary "Accept-Encoding" always;
+    }
+
+    # llms.txt — the agent-facing site map (https://llmstxt.org). Deliberately a
+    # location of its own rather than joining the regex above, for two reasons.
+    #
+    # 1. `charset utf-8` — the file is markdown prose served as text/plain, and
+    #    nginx's mime.types gives .txt no charset at all. Without this an agent
+    #    has to guess the encoding. Scoped here so the sitemap's Content-Type is
+    #    left exactly as it is.
+    # 2. `expires`, never `add_header` — an add_header in a location drops every
+    #    header inherited from the server block, which would silently strip the
+    #    security headers and, more to the point here, X-Robots-Tag. `expires`
+    #    sets Cache-Control while leaving inheritance intact.
+    location = /llms.txt {
+        expires 1h;
+        charset utf-8;
+    }
+
+    # ==========================================================================
+    # Renamed route. The demo form lived at /contact until the page was named
+    # for what it is; /contact-sales is a different page and is untouched.
+    # Permanent, because bookmarks and third-party links outlive the rename.
+    location = /contact {
+        return 301 https://$host/request-a-demo;
+    }
+
+    # ==========================================================================
+    # The Liftoff skill: the document a coding tool fetches to connect over
+    # MCP and then installs as a skill, served by platform-backend
+    # (env-generated + release-flag gated there). It lives on the site domain
+    # and is PROXIED, not redirected: a tool quotes, saves and later re-fetches
+    # the URL it was given, and the document names its own home, so the
+    # address must be the site's end to end. A 301 leaked the API host into
+    # both (the tool's final URL and the document's last line).
+    #
+    # proxy_pass carries no URI part, so the request's own path (/SKILL.md or
+    # /agent-setup.md) passes through unchanged, and no variable appears in
+    # proxy_pass (see the resolver note on /support/articles/). Host and SNI
+    # default to the proxied host. nginx resolves every upstream name once, at
+    # startup, and exits if one does not resolve, so an upstream host that
+    # does not exist keeps the whole site from starting. API_ORIGIN must name
+    # a host that resolves.
+    # /agent-setup.md is the original address and serves the same document.
+    location = /SKILL.md {
+        proxy_ssl_server_name on;
+        proxy_pass ${API_ORIGIN};
+    }
+    location = /agent-setup.md {
+        proxy_ssl_server_name on;
+        proxy_pass ${API_ORIGIN};
+    }
+
+    # Routing
+    # ==========================================================================
+    # A static page lives at dist/<route>/index.html. Try the file, then the
+    # directory's index.html directly (NOT $uri/ — that would make nginx
+    # auto-301 to add a trailing slash, which then collides with our trailing-slash
+    # rewrite above and creates a redirect loop). Fall back to the SPA shell for
+    # any path that has no static output.
+    location / {
+        # acceptmarkdown.com asks for `text/markdown; charset=utf-8`. `charset`
+        # only appends to the types listed in charset_types, so listing ONLY
+        # text/markdown here means markdown gets the charset and the HTML
+        # responses keep the exact Content-Type they have today.
+        charset utf-8;
+        charset_types text/markdown;
+
+        # Nothing this client will accept: refuse rather than force HTML on it.
+        # `return` is one of the two directives that behave predictably inside
+        # `if`, and it short-circuits before try_files runs.
+        if ($acceptable = 0) {
+            return 406;
+        }
+
+        # $md_ext is ".md" only when the client asked for markdown, and "" for
+        # everyone else, so a browser walks the same chain it always did:
+        #   $uri            -> a real file (built asset, .well-known, ...)
+        #   $uri/index.html -> a static page
+        #   @spa            -> allowlist, then shell or 404
+        # An agent asking for markdown gets $uri.md or $uri/index.md first and
+        # falls back to the HTML if this page has no markdown rendition.
+        #
+        # For "/" the middle entry expands to "//index.md"; the doubled slash is
+        # harmless in a filesystem path and resolves to dist/index.md.
+        try_files $uri$md_ext $uri/index$md_ext $uri $uri/index.html @spa;
+
+        # gzip_vary is off server-wide and Vary comes from the server-level
+        # add_header, which this location inherits because it sets no add_header
+        # of its own. Do not add one here without restating the security headers.
+
+        # The HTML shell must never be cached: it names the current content-hashed
+        # JS/CSS chunks, so a stale shell points at chunks a later deploy deleted.
+        # Without this, a tab that outlives a deploy 404s on lazy imports and the
+        # client-side reload recovery (src/lib/chunkReload.ts) can be answered from
+        # cache with the same dead manifest. `expires -1` emits `Cache-Control:
+        # no-cache` (store but always revalidate via ETag → 304 when unchanged).
+        # Using `expires`, not `add_header`, so this location still inherits the
+        # server-level security headers (an add_header here would drop them).
+        expires -1;
+    }
+
+    # Reached only when the request matched no file on disk. Everything that IS a
+    # real route still renders through the shell exactly as before, including all
+    # 44 nested routes and every :param; the app's own `path="*"` catch-all keeps
+    # rendering the styled not-found screen, it just arrives with the right status
+    # now. Anything else gets a genuine 404.
+    #
+    # `if` is safe here: return and rewrite are the two directives that behave
+    # predictably inside it, and this location does nothing else.
+    location @spa {
+        expires -1;
+        if ($is_spa_route = 0) {
+            return 404;
+        }
+        rewrite ^ /index.html last;
+    }
+
+    # The negotiated 404 body. nginx keeps the original 404 status when it serves
+    # an error_page target internally; the `=` form would be what CHANGES the
+    # status, and is deliberately not used here.
+    error_page 404 $notfound_body;
+
+    # `internal` so /404.md is reachable only as an error body. Served directly it
+    # would be a document that says "404 Not Found" with a 200 status, which is
+    # the exact confusion this whole change removes.
+    location = /404.md {
+        internal;
+        default_type text/markdown;
+        charset utf-8;
+        # add_header drops every header inherited from the server block, so the
+        # two that matter on this response are restated. This body IS chosen by
+        # Accept (see $notfound_body), hence Accept in the Vary. gzip_vary is off
+        # server-wide, so this is the only Vary on the response.
+        add_header Vary "Accept, Accept-Encoding" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    # Health check endpoint for Cloud Run
+    location /health {
+        access_log off;
+        return 200 'OK';
+        add_header Content-Type text/plain;
+    }
+}

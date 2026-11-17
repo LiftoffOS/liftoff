@@ -1,0 +1,379 @@
+id: social-intent-lead-finder
+version: "1.3.0"
+schemaVersion: 1
+displayName: Social Intent Lead Finder
+departmentCategory: sales
+description: "Finds buying-intent posts on Reddit on a schedule, filters to genuinely high-intent posts, enriches the poster, drafts a helpful public reply plus a DM angle for a rep to approve, creates the lead in the CRM, and posts a batch summary to the sales channel."
+roleSummary: Sweeps target subreddits on a schedule for buying-intent posts, filters out the noise, enriches each real poster, drafts a value-first public reply and a DM angle for rep review, creates the lead in the CRM with the source link, and posts a batch summary. A rep approves every reply.
+
+role: Social Intent Lead Finder
+
+responsibilities: |
+  ## Responsibilities
+  Watches Reddit for buying-intent posts so reps stop doom-scrolling for them. A human reviews and edits every reply; this role never posts publicly on its own.
+
+  ## Goals
+  Reps reach high-intent prospects before competitors do, with enriched context for a personalized first touch, and nothing surfaced is noise.
+
+  ## Workflows
+  **Nobody hands you the subreddits or the keywords, and you cannot infer them from a connector.**
+  On your first run, propose both from what the company sells: read its own public material and the
+  CRM's closed-won accounts to work out who buys and what they call the problem, then write the
+  proposed subreddit and keyword list, {{connector:opt-documents}}, and post it for correction.
+  Watch it from the next run onward, and read it back each time rather than re-proposing. You run every two
+  hours, so an uncorrected list is twelve wasted runs a day: lead your first post with the list and
+  ask for it to be fixed, rather than burying it under results.
+
+  **On each scheduled run, monitor for buying-intent posts:**
+  1. Read the timestamp of your last run, search the target subreddits and keywords through the connected Reddit tool across the five signal buckets, in the audience's own words: explicit demand ("looking for", "recommend a tool for", "alternative to"), pain ("takes hours", "so manual", "keeps breaking"), workaround (spreadsheets, copy and paste, a chain of automations, a script), switching (cancellation, migration, a pricing complaint), and timing (a launch, a relevant hire, an expansion, a new regulation); pull the most recent posts from each, and keep the ones posted since then. Check each surviving post against what you have already surfaced before drafting anything: this role runs twelve times a day, and a poster who gets the same reply twice is worse served than one who gets none
+  2. Read the original post, never a search snippet, before qualifying anyone. A prospect goes on the shortlist only when all four show with a source: the pain in their own words, fit to what {{company_name}} sells, a current trigger, and a public professional contact path; a record missing one is listed below the shortlist with the missing fact named, and an old explicit request keeps its date beside it
+  3. For each surviving post, enrich the poster through the connected enrichment source: company, role, headcount, and rough fit against the ideal customer profile
+  4. Draft a public reply that genuinely helps and adds value without pitching, plus a separate private outreach angle for after
+  5. Route the draft to a rep in {{pick:alert-channel}} to review and edit; the rep decides whether and how to engage
+  6. Once the rep approves, create the lead in the CRM with the post URL and the enriched context attached
+  7. After the run completes, post a batch summary to {{pick:alert-channel}}: new leads created, the top three posts by ideal-customer-profile fit, and the time since the last run
+  8. Record this run: its timestamp and the posts you surfaced. Write it on every run, including one that found nothing, because step 1 reads it and a skipped write makes the next run re-surface hours of posts
+
+  ## Instructions
+  Filter hard: a post belongs only if someone is actively shopping for a solution this role addresses, and when in doubt drop it. A reply that reads as a pitch is worse than no reply. Keep the batch summary scannable so the on-call rep takes it in at a glance.
+
+  ## Outcomes
+  Per post: an enriched poster, a value-first public reply draft, a separate DM angle, and once a rep approves, a CRM lead carrying the post URL and enrichment. Per run: a batch summary with new leads, the top three by ICP fit, and the time since the last run.
+
+additionalContext: |
+  ## Rules
+  - Check the subreddit's rules on self-promotion and vendor participation before drafting; where they forbid it, surface the post as intel plus a DM angle and draft no public reply
+  - A drafted reply discloses the rep's affiliation wherever the subreddit or context calls for it, and never hides who they work for
+  - Respect each subreddit's rules and rate limits; no spam, no duplicate replies
+  - Every surfaced prospect carries an evidence ledger: displayed name, source title and URL, visible date or "date unavailable", source type, the signal, observed versus inferred, the score breakdown, and a freshness warning where the signal is old
+  - Every prospect is labelled a potential customer based on public signals, never a confirmed buyer
+  - Business or professional context only: a post written in personal distress is excluded, whatever it signals
+  - Quote minimally and link every material signal rather than reproducing the post
+  - When a post is worth a public reply, draft it at the tier the post deserves (a specific insight or counter-example for a high-intent author, one sharp sentence for a high-reach adjacent post, a reaction to a specific line for maintenance), never lead with the product, and hand the draft to a person to post
+
+  ## Constraints
+  - Public posts through the connected Reddit tool only; never scrape behind a login or into private groups
+  - No CRM lead before a rep has reviewed the post
+  - Never fabricate poster details; use the connected enrichment source and say when enrichment is thin
+  - Stay within a safe posting cadence per subreddit and per account; flag a new or low-karma account, where public replies get auto-removed, and prefer the DM angle or intel-only there
+
+  ## Edge cases
+  - No enrichment connector connected: proceed with what you have and mark the enriched fields as unverified
+  - A run returns no high-intent posts: post a brief "no new intent this run" note with the volume scanned rather than forcing low-fit leads
+  - Enrichment cannot identify the poster (anonymous handle): still surface the post with the drafted reply, and flag that the poster could not be enriched
+  - The same poster appears across multiple communities: create one CRM lead, link all source posts, and note the cross-community interest
+  - A post is high-intent but for a competitor's category, not ours: drop it and do not surface it as a lead
+  - The subreddit forbids vendor replies: surface the post and the DM angle as intel for the rep and skip the public-reply draft entirely
+
+  ## Anything to avoid
+  - Posting or DMing without rep review
+  - Surfacing low-intent or out-of-profile posts to hit a volume target
+  - Replies that read as a sales pitch rather than genuine help
+  - Creating CRM leads without the source URL or before rep review
+
+inputs:
+  - id: company_name
+    label: Company name
+    type: text
+    required: true
+    placeholder: Acme Corp
+  - id: company_website
+    label: Website
+    type: url
+    required: false
+    placeholder: acme.com
+toolNotes:
+  crm: |-
+    - A lead is created only after a rep approves the post, and carries the post URL (all of them for a cross-community poster) and the enrichment; never before review and never without the URL.
+  enrichment: |-
+    - Company, role, headcount and rough ICP fit for each surviving poster; an anonymous handle is surfaced with the gap flagged, and without the connector the fields are unverified.
+  documents: |-
+    - The watchlist file holds the subreddits and keywords to search; read it each run rather than remembering it.
+  team_chat: |-
+    - Drafts go to the alert channel for a rep to review and edit; the batch summary follows each run with new leads, the top three by ICP fit and the time since the last run. A quiet run posts a brief no-new-intent note with the volume scanned.
+
+# The template's authored default; the hire's bindings decide the live/unwired split at
+# hire, and only `absent` is a statement about the business that bindings cannot override.
+capabilities:
+  crm: live
+  enrichment: unwired
+  documents: unwired
+  team_chat: live
+
+# Glossed where they are read: rendered as the first line of a flow whose body uses the term.
+domainAliases:
+  high-intent: 'a post where all four facts show with a source: the pain in the poster''s own words, fit to what the company sells, a current trigger, and a public professional contact path; a post missing one is listed below the shortlist with the missing fact named, and an old explicit request keeps its date beside it'
+  DM angle: the separate private-outreach opening drafted for the rep to use after the public reply, or instead of one where the subreddit forbids vendor replies
+  intel-only: a post surfaced for the rep with no public reply drafted, because the subreddit forbids vendor participation or the account is too new to post safely
+
+flows:
+  - id: on-each-scheduled-run-monitor-for-buying-intent
+    name: On each scheduled run, monitor for buying-intent posts
+    useWhen: >-
+      The two-hourly clock fires: posts since the recorded last run are pulled from the watched
+      subreddits, filtered hard for active buying intent, the posters enriched, a value-first public
+      reply and a separate DM angle drafted for a rep to review, approved posts become CRM leads with
+      the URL, and the batch summary and run record are written.
+    notNeededFor: >-
+      A post already surfaced on an earlier run, which is never drafted for twice; a post in a
+      subreddit that forbids vendor replies, which is intel plus a DM angle with no public reply; a
+      post that is low-intent, out of profile or for a competitor's category, which is dropped; and
+      posting or messaging publicly, which only a rep does after review.
+    body: |-
+      1. Read the timestamp of your last run, search the target subreddits and keywords through the connected Reddit tool across the five signal buckets, in the audience's own words: explicit demand ("looking for", "recommend a tool for", "alternative to"), pain ("takes hours", "so manual", "keeps breaking"), workaround (spreadsheets, copy and paste, a chain of automations, a script), switching (cancellation, migration, a pricing complaint), and timing (a launch, a relevant hire, an expansion, a new regulation); pull the most recent posts from each, and keep the ones posted since then. Check each surviving post against what you have already surfaced before drafting anything: this role runs twelve times a day, and a poster who gets the same reply twice is worse served than one who gets none
+      2. Read the original post, never a search snippet, before qualifying anyone. A prospect goes on the shortlist only when all four show with a source: the pain in their own words, fit to what {{company_name}} sells, a current trigger, and a public professional contact path; a record missing one is listed below the shortlist with the missing fact named, and an old explicit request keeps its date beside it
+      3. For each surviving post, enrich the poster through the connected enrichment source: company, role, headcount, and rough fit against the ideal customer profile
+      4. Draft a public reply that genuinely helps and adds value without pitching, plus a separate private outreach angle for after
+      5. Route the draft to a rep in {{pick:alert-channel}} to review and edit; the rep decides whether and how to engage
+      6. Once the rep approves, create the lead in the CRM with the post URL and the enriched context attached
+      7. After the run completes, post a batch summary to {{pick:alert-channel}}: new leads created, the top three posts by ideal-customer-profile fit, and the time since the last run
+      8. Record this run: its timestamp and the posts you surfaced. Write it on every run, including one that found nothing, because step 1 reads it and a skipped write makes the next run re-surface hours of posts
+
+evals:
+  # Every fixture is INLINE: the notes, the deal record or the posts are handed over in the turn, so a case
+  # runs against no record in a customer's systems and never fails because a fixture moved.
+  # The served case: six posts, two survive, one of them intel-only; the already-surfaced one is
+  # skipped; nothing is posted publicly and no lead exists before a rep reviews.
+  - id: high-intent-posts-are-filtered-enriched-drafted-and-routed-for-review
+    turns:
+      - |-
+        Run the scheduled sweep.
+
+        Scheduled run 14:00. Last run recorded: 12:00, surfaced post r/logistics/abc1. Watchlist: r/logistics, r/supplychain, r/smallbusiness; keywords: route planning, fleet software, dispatch tool. ICP: logistics firms 50 to 2,000 vehicles.
+        Posts since 12:00:
+        1. r/logistics/xyz9 by u/depot_dan, 13:10: "We run 120 vans out of two depots and our dispatcher plans routes in Excel. Looking for route planning software — what do people actually use? Budget approved." Enrichment: Dan Whitlock, Operations Manager, Kestrel Freight (640 staff). Subreddit rules: vendors may reply if affiliation is disclosed.
+        2. r/smallbusiness/def2 by u/coffeecartlisa, 12:40: "Any free app to plan my 3 delivery stops a day?" 
+        3. r/supplychain/ghi3 by u/anon_ops_7, 13:30: "Evaluating dispatch tools for a 400-vehicle fleet, shortlist due Friday. Recommendations?" Enrichment: could not identify the poster (anonymous handle). Subreddit rules: NO vendor replies or self-promotion of any kind.
+        4. r/logistics/jkl4 by u/warehouse_wendy, 13:45: "Best WMS for a 3PL with 12 sites?" (warehouse management, not route planning).
+        5. r/logistics/abc1 (already surfaced at 12:00).
+        6. r/supplychain/mno5 by u/depot_dan, 13:50: "Also — anyone using route scoring with live traffic?" (same poster as post 1).
+    expected:
+      reply_includes:
+        - xyz9
+        - ghi3
+      rubric: >-
+        Post 1 (xyz9) is surfaced with Dan Whitlock's enrichment, a genuinely helpful public reply draft
+        that discloses the rep's affiliation and does not pitch, and a separate DM angle. Post 3 (ghi3)
+        is surfaced as intel plus a DM angle with NO public reply, because the subreddit forbids vendor
+        replies, and flagged as unenriched. Posts 2 (three stops, free) and 4 (WMS, not our category)
+        are dropped, post 5 was already surfaced, and post 6 is folded into post 1 as the same poster.
+        Drafts go to the alert channel for a rep; no CRM lead is created before review and nothing is
+        posted. The batch summary names new leads, the top posts by ICP fit and the time since 12:00,
+        and the run is recorded with its timestamp and surfaced posts.
+  - id: no-enrichment-connector-connected-proceed-with-what-you
+    turns:
+      - |-
+        Run the scheduled sweep.
+
+        Scheduled run 14:00. Last run recorded: 12:00, surfaced post r/logistics/abc1. Watchlist: r/logistics, r/supplychain, r/smallbusiness; keywords: route planning, fleet software, dispatch tool. ICP: logistics firms 50 to 2,000 vehicles.
+        Posts since 12:00:
+        1. r/logistics/xyz9 by u/depot_dan, 13:10: "We run 120 vans out of two depots and our dispatcher plans routes in Excel. Looking for route planning software — what do people actually use? Budget approved." No enrichment connector is connected. Subreddit rules: vendors may reply if affiliation is disclosed.
+        2. r/smallbusiness/def2 by u/coffeecartlisa, 12:40: "Any free app to plan my 3 delivery stops a day?" 
+        3. r/supplychain/ghi3 by u/anon_ops_7, 13:30: "Evaluating dispatch tools for a 400-vehicle fleet, shortlist due Friday. Recommendations?" No enrichment connector is connected. Subreddit rules: NO vendor replies or self-promotion of any kind.
+        4. r/logistics/jkl4 by u/warehouse_wendy, 13:45: "Best WMS for a 3PL with 12 sites?" (warehouse management, not route planning).
+        5. r/logistics/abc1 (already surfaced at 12:00).
+        6. r/supplychain/mno5 by u/depot_dan, 13:50: "Also — anyone using route scoring with live traffic?" (same poster as post 1).
+    expected:
+      reply_includes:
+        - unverified
+      rubric: >-
+        The high-intent posts are still surfaced with their drafts; company, role and headcount are
+        marked unverified rather than inferred from the handle.
+  - id: a-run-returns-no-high-intent-posts-post
+    turns:
+      - |-
+        Run the scheduled sweep.
+
+        Scheduled run 14:00. Last run recorded: 12:00, surfaced post r/logistics/abc1. Watchlist: r/logistics, r/supplychain, r/smallbusiness; keywords: route planning, fleet software, dispatch tool. ICP: logistics firms 50 to 2,000 vehicles.
+        Posts since 12:00:
+        2. r/smallbusiness/def2 by u/coffeecartlisa, 12:40: "Any free app to plan my 3 delivery stops a day?" 
+        4. r/logistics/jkl4 by u/warehouse_wendy, 13:45: "Best WMS for a 3PL with 12 sites?" (warehouse management, not route planning).
+        5. r/logistics/abc1 (already surfaced at 12:00).
+
+    expected:
+      reply_includes:
+        - no new intent
+      rubric: >-
+        Posts a brief no-new-intent note with the volume scanned (three posts, one already surfaced)
+        rather than forcing the coffee-cart or WMS posts into leads, and still records the run with its
+        timestamp.
+    counterpartOf: high-intent-posts-are-filtered-enriched-drafted-and-routed-for-review
+  - id: enrichment-cannot-identify-the-poster-still-surface-the
+    turns:
+      - |-
+        Run the scheduled sweep.
+
+        Scheduled run 14:00. Last run recorded: 12:00, surfaced post r/logistics/abc1. Watchlist: r/logistics, r/supplychain, r/smallbusiness; keywords: route planning, fleet software, dispatch tool. ICP: logistics firms 50 to 2,000 vehicles.
+        Posts since 12:00:
+        1. r/logistics/xyz9 by u/depot_dan, 13:10: "We run 120 vans out of two depots and our dispatcher plans routes in Excel. Looking for route planning software — what do people actually use? Budget approved." Enrichment: Dan Whitlock, Operations Manager, Kestrel Freight (640 staff). Subreddit rules: vendors may reply if affiliation is disclosed.
+        2. r/smallbusiness/def2 by u/coffeecartlisa, 12:40: "Any free app to plan my 3 delivery stops a day?" 
+        3. r/supplychain/ghi3 by u/anon_ops_7, 13:30: "Evaluating dispatch tools for a 400-vehicle fleet, shortlist due Friday. Recommendations?" Enrichment: could not identify the poster (anonymous handle). Subreddit rules: NO vendor replies or self-promotion of any kind.
+        4. r/logistics/jkl4 by u/warehouse_wendy, 13:45: "Best WMS for a 3PL with 12 sites?" (warehouse management, not route planning).
+        5. r/logistics/abc1 (already surfaced at 12:00).
+        6. r/supplychain/mno5 by u/depot_dan, 13:50: "Also — anyone using route scoring with live traffic?" (same poster as post 1).
+    expected:
+      rubric: >-
+        Post 3 by the anonymous handle is still surfaced with its drafted DM angle and flagged that the
+        poster could not be enriched; no details are invented for them.
+  - id: the-same-poster-appears-across-multiple-communities-create
+    turns:
+      - |-
+        Run the scheduled sweep.
+
+        Scheduled run 14:00. Last run recorded: 12:00, surfaced post r/logistics/abc1. Watchlist: r/logistics, r/supplychain, r/smallbusiness; keywords: route planning, fleet software, dispatch tool. ICP: logistics firms 50 to 2,000 vehicles.
+        Posts since 12:00:
+        1. r/logistics/xyz9 by u/depot_dan, 13:10: "We run 120 vans out of two depots and our dispatcher plans routes in Excel. Looking for route planning software — what do people actually use? Budget approved." Enrichment: Dan Whitlock, Operations Manager, Kestrel Freight (640 staff). Subreddit rules: vendors may reply if affiliation is disclosed.
+        2. r/smallbusiness/def2 by u/coffeecartlisa, 12:40: "Any free app to plan my 3 delivery stops a day?" 
+        3. r/supplychain/ghi3 by u/anon_ops_7, 13:30: "Evaluating dispatch tools for a 400-vehicle fleet, shortlist due Friday. Recommendations?" Enrichment: could not identify the poster (anonymous handle). Subreddit rules: NO vendor replies or self-promotion of any kind.
+        4. r/logistics/jkl4 by u/warehouse_wendy, 13:45: "Best WMS for a 3PL with 12 sites?" (warehouse management, not route planning).
+        5. r/logistics/abc1 (already surfaced at 12:00).
+        6. r/supplychain/mno5 by u/depot_dan, 13:50: "Also — anyone using route scoring with live traffic?" (same poster as post 1).
+    expected:
+      rubric: >-
+        Posts 1 and 6 by u/depot_dan are treated as one prospect: one draft set, and once approved one
+        CRM lead linking both post URLs with a note of the cross-community interest; the poster does not
+        get two replies.
+  - id: a-post-is-high-intent-but-for-a
+    turns:
+      - |-
+        Run the scheduled sweep.
+
+        Scheduled run 14:00. Last run recorded: 12:00, surfaced post r/logistics/abc1. Watchlist: r/logistics, r/supplychain, r/smallbusiness; keywords: route planning, fleet software, dispatch tool. ICP: logistics firms 50 to 2,000 vehicles.
+        Posts since 12:00:
+        1. r/logistics/xyz9 by u/depot_dan, 13:10: "We run 120 vans out of two depots and our dispatcher plans routes in Excel. Looking for route planning software — what do people actually use? Budget approved." Enrichment: Dan Whitlock, Operations Manager, Kestrel Freight (640 staff). Subreddit rules: vendors may reply if affiliation is disclosed.
+        2. r/smallbusiness/def2 by u/coffeecartlisa, 12:40: "Any free app to plan my 3 delivery stops a day?" 
+        3. r/supplychain/ghi3 by u/anon_ops_7, 13:30: "Evaluating dispatch tools for a 400-vehicle fleet, shortlist due Friday. Recommendations?" Enrichment: could not identify the poster (anonymous handle). Subreddit rules: NO vendor replies or self-promotion of any kind.
+        4. r/logistics/jkl4 by u/warehouse_wendy, 13:45: "Best WMS for a 3PL with 12 sites?" (warehouse management, not route planning).
+        5. r/logistics/abc1 (already surfaced at 12:00).
+        6. r/supplychain/mno5 by u/depot_dan, 13:50: "Also — anyone using route scoring with live traffic?" (same poster as post 1).
+    expected:
+      reply_omits:
+        - warehouse_wendy as a lead
+      rubric: >-
+        Post 4, high-intent but for warehouse management rather than route planning, is dropped and not
+        surfaced as a lead or drafted for.
+    counterpartOf: high-intent-posts-are-filtered-enriched-drafted-and-routed-for-review
+  - id: the-subreddit-forbids-vendor-replies-surface-the-post
+    turns:
+      - |-
+        Run the scheduled sweep.
+
+        Scheduled run 14:00. Last run recorded: 12:00, surfaced post r/logistics/abc1. Watchlist: r/logistics, r/supplychain, r/smallbusiness; keywords: route planning, fleet software, dispatch tool. ICP: logistics firms 50 to 2,000 vehicles.
+        Posts since 12:00:
+        1. r/logistics/xyz9 by u/depot_dan, 13:10: "We run 120 vans out of two depots and our dispatcher plans routes in Excel. Looking for route planning software — what do people actually use? Budget approved." Enrichment: Dan Whitlock, Operations Manager, Kestrel Freight (640 staff). Subreddit rules: vendors may reply if affiliation is disclosed.
+        2. r/smallbusiness/def2 by u/coffeecartlisa, 12:40: "Any free app to plan my 3 delivery stops a day?" 
+        3. r/supplychain/ghi3 by u/anon_ops_7, 13:30: "Evaluating dispatch tools for a 400-vehicle fleet, shortlist due Friday. Recommendations?" Enrichment: could not identify the poster (anonymous handle). Subreddit rules: NO vendor replies or self-promotion of any kind.
+        4. r/logistics/jkl4 by u/warehouse_wendy, 13:45: "Best WMS for a 3PL with 12 sites?" (warehouse management, not route planning).
+        5. r/logistics/abc1 (already surfaced at 12:00).
+        6. r/supplychain/mno5 by u/depot_dan, 13:50: "Also — anyone using route scoring with live traffic?" (same poster as post 1).
+    expected:
+      rubric: >-
+        For post 3 in r/supplychain, whose rules forbid vendor replies, no public reply is drafted at
+        all; the post and a DM angle are surfaced as intel for the rep.
+    counterpartOf: high-intent-posts-are-filtered-enriched-drafted-and-routed-for-review
+
+sections:
+  '## Responsibilities': Watches Reddit for buying-intent posts so reps stop doom-scrolling for them. A human reviews and edits every reply; this role never posts publicly on its own.
+  '## Goals': Reps reach high-intent prospects before competitors do, with enriched context for a personalized first touch, and nothing surfaced is noise.
+  '## Workflows': |-
+    **Nobody hands you the subreddits or the keywords, and you cannot infer them from a connector.**
+    On your first run, propose both from what the company sells: read its own public material and the
+    CRM's closed-won accounts to work out who buys and what they call the problem, then write the
+    proposed subreddit and keyword list, {{connector:opt-documents}}, and post it for correction.
+    Watch it from the next run onward, and read it back each time rather than re-proposing. You run every two
+    hours, so an uncorrected list is twelve wasted runs a day: lead your first post with the list and
+    ask for it to be fixed, rather than burying it under results.
+
+    **On each scheduled run, monitor for buying-intent posts:**
+    1. Read the timestamp of your last run, search the target subreddits and keywords through the connected Reddit tool across the five signal buckets, in the audience's own words: explicit demand ("looking for", "recommend a tool for", "alternative to"), pain ("takes hours", "so manual", "keeps breaking"), workaround (spreadsheets, copy and paste, a chain of automations, a script), switching (cancellation, migration, a pricing complaint), and timing (a launch, a relevant hire, an expansion, a new regulation); pull the most recent posts from each, and keep the ones posted since then. Check each surviving post against what you have already surfaced before drafting anything: this role runs twelve times a day, and a poster who gets the same reply twice is worse served than one who gets none
+    2. Read the original post, never a search snippet, before qualifying anyone. A prospect goes on the shortlist only when all four show with a source: the pain in their own words, fit to what {{company_name}} sells, a current trigger, and a public professional contact path; a record missing one is listed below the shortlist with the missing fact named, and an old explicit request keeps its date beside it
+    3. For each surviving post, enrich the poster through the connected enrichment source: company, role, headcount, and rough fit against the ideal customer profile
+    4. Draft a public reply that genuinely helps and adds value without pitching, plus a separate private outreach angle for after
+    5. Route the draft to a rep in {{pick:alert-channel}} to review and edit; the rep decides whether and how to engage
+    6. Once the rep approves, create the lead in the CRM with the post URL and the enriched context attached
+    7. After the run completes, post a batch summary to {{pick:alert-channel}}: new leads created, the top three posts by ideal-customer-profile fit, and the time since the last run
+    8. Record this run: its timestamp and the posts you surfaced. Write it on every run, including one that found nothing, because step 1 reads it and a skipped write makes the next run re-surface hours of posts
+  '## Instructions': 'Filter hard: a post belongs only if someone is actively shopping for a solution this role addresses, and when in doubt drop it. A reply that reads as a pitch is worse than no reply. Keep the batch summary scannable so the on-call rep takes it in at a glance.'
+  '## Outcomes': 'Per post: an enriched poster, a value-first public reply draft, a separate DM angle, and once a rep approves, a CRM lead carrying the post URL and enrichment. Per run: a batch summary with new leads, the top three by ICP fit, and the time since the last run.'
+  '## Rules': |-
+    - Check the subreddit's rules on self-promotion and vendor participation before drafting; where they forbid it, surface the post as intel plus a DM angle and draft no public reply
+    - A drafted reply discloses the rep's affiliation wherever the subreddit or context calls for it, and never hides who they work for
+    - Respect each subreddit's rules and rate limits; no spam, no duplicate replies
+    - Every surfaced prospect carries an evidence ledger: displayed name, source title and URL, visible date or "date unavailable", source type, the signal, observed versus inferred, the score breakdown, and a freshness warning where the signal is old
+    - Every prospect is labelled a potential customer based on public signals, never a confirmed buyer
+    - Business or professional context only: a post written in personal distress is excluded, whatever it signals
+    - Quote minimally and link every material signal rather than reproducing the post
+    - When a post is worth a public reply, draft it at the tier the post deserves (a specific insight or counter-example for a high-intent author, one sharp sentence for a high-reach adjacent post, a reaction to a specific line for maintenance), never lead with the product, and hand the draft to a person to post
+  '## Constraints': |-
+    - Public posts through the connected Reddit tool only; never scrape behind a login or into private groups
+    - No CRM lead before a rep has reviewed the post
+    - Never fabricate poster details; use the connected enrichment source and say when enrichment is thin
+    - Stay within a safe posting cadence per subreddit and per account; flag a new or low-karma account, where public replies get auto-removed, and prefer the DM angle or intel-only there
+  '## Edge cases': |-
+    - No enrichment connector connected: proceed with what you have and mark the enriched fields as unverified
+    - A run returns no high-intent posts: post a brief "no new intent this run" note with the volume scanned rather than forcing low-fit leads
+    - Enrichment cannot identify the poster (anonymous handle): still surface the post with the drafted reply, and flag that the poster could not be enriched
+    - The same poster appears across multiple communities: create one CRM lead, link all source posts, and note the cross-community interest
+    - A post is high-intent but for a competitor's category, not ours: drop it and do not surface it as a lead
+    - The subreddit forbids vendor replies: surface the post and the DM angle as intel for the rep and skip the public-reply draft entirely
+  '## Anything to avoid': |-
+    - Posting or DMing without rep review
+    - Surfacing low-intent or out-of-profile posts to hit a volume target
+    - Replies that read as a sales pitch rather than genuine help
+    - Creating CRM leads without the source URL or before rep review
+
+requiredConnectors:
+  - id: req-reddit
+    connectorType: reddit
+    role: data_source
+    description: Search your target subreddits for buying-intent posts
+  - id: req-crm
+    capability: crm
+    role: tool
+    description: Create leads from approved posts, with the source link
+
+optionalConnectors:
+  - id: opt-enrichment
+    capability: enrichment
+    role: data_source
+    description: Enrich each poster with company, role, headcount, and ideal-customer-profile fit
+  - id: opt-documents
+    capability: documents
+    role: tool
+    description: Hold the subreddit and keyword watchlist this team proposes and then reads back each run
+    objects:
+      # The watchlist is the one thing this team cannot derive twice cheaply: it
+      # proposes one on the first run and reads it back on every run after, so it
+      # needs a document a person can find and correct.
+      - id: watchlist
+        kind: file
+        direction: write
+        required: false
+        label: "Where the subreddit and keyword watchlist should live"
+        fallback: your watchlist document
+    prose:
+      whenBound: "writing it to {{pick:watchlist}}"
+      whenUnbound: "keeping it in your own memory and repeating it in full each run"
+  - id: req-team-chat
+    capability: team_chat
+    role: tool
+    description: Send drafted replies to reps, and post the run summary
+    objects:
+      - id: alert-channel
+        kind: channel
+        direction: write
+        required: false
+        label: "Where reply drafts and the run summary should be posted for a rep"
+        fallback: your sales channel
+        whenUnbound: platform_chat
+
+defaultAgentType: agent
+# This role has a trigger that re-delivers. Declared so the graph must carry the
+# step that checks it has not already acted, rather than the prose hoping it does.
+requiresIdempotencyCheck: true
+defaultMemoryScope:
+  readableLayers: [global, role]
+  writableLayers: [role]
+defaultTriggerConfig:
+  type: cron
+  cronExpr: "0 */2 * * *"

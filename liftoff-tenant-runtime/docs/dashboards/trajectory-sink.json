@@ -1,0 +1,93 @@
+{
+  "displayName": "Runtime Extensions — Trajectory Sink",
+  "_note": "Cloud Monitoring dashboard for Part 6 metrics. Tiles cover write rate per provider, failure rate, skip breakdown, payload-bytes histogram, thinking-block coverage, and the unknown-block-type regression metric.",
+  "mosaicLayout": {
+    "columns": 12,
+    "tiles": [
+      {
+        "width": 6, "height": 4, "xPos": 0, "yPos": 0,
+        "widget": {
+          "title": "Write rate per provider",
+          "xyChart": {
+            "dataSets": [{ "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "metric.type=\"logging.googleapis.com/user/trajectory_sink_written_total\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_RATE", "crossSeriesReducer": "REDUCE_SUM", "groupByFields": ["metric.label.provider"] }
+            }}}]
+          }
+        }
+      },
+      {
+        "width": 6, "height": 4, "xPos": 6, "yPos": 0,
+        "widget": {
+          "title": "Skip breakdown (no_reasoning vs disabled vs no_messages)",
+          "xyChart": {
+            "dataSets": [{ "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "metric.type=\"logging.googleapis.com/user/trajectory_sink_skipped_total\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_RATE", "crossSeriesReducer": "REDUCE_SUM", "groupByFields": ["metric.label.reason"] }
+            }}}]
+          }
+        }
+      },
+      {
+        "width": 6, "height": 4, "xPos": 0, "yPos": 4,
+        "widget": {
+          "title": "Failure rate",
+          "xyChart": {
+            "dataSets": [{ "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "metric.type=\"logging.googleapis.com/user/trajectory_sink_failed_total\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_RATE" }
+            }}}]
+          }
+        }
+      },
+      {
+        "width": 6, "height": 4, "xPos": 6, "yPos": 4,
+        "widget": {
+          "title": "Payload size histogram",
+          "xyChart": {
+            "dataSets": [{ "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "metric.type=\"logging.googleapis.com/user/trajectory_sink_payload_bytes\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_PERCENTILE_95" }
+            }}}]
+          }
+        }
+      },
+      {
+        "width": 6, "height": 4, "xPos": 0, "yPos": 8,
+        "widget": {
+          "title": "Thinking blocks per invocation",
+          "xyChart": {
+            "dataSets": [{ "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "metric.type=\"logging.googleapis.com/user/trajectory_thinking_block_count\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_MEAN" }
+            }}}]
+          }
+        }
+      },
+      {
+        "width": 6, "height": 4, "xPos": 6, "yPos": 8,
+        "widget": {
+          "title": "Unknown block types observed (regression guard)",
+          "xyChart": {
+            "dataSets": [{ "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "metric.type=\"logging.googleapis.com/user/trajectory_unknown_block_type_total\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_RATE", "crossSeriesReducer": "REDUCE_SUM", "groupByFields": ["metric.label.block_type"] }
+            }}}]
+          }
+        }
+      },
+      {
+        "width": 12, "height": 4, "xPos": 0, "yPos": 12,
+        "widget": {
+          "title": "Nested code_session captures",
+          "xyChart": {
+            "dataSets": [{ "timeSeriesQuery": { "timeSeriesFilter": {
+              "filter": "metric.type=\"logging.googleapis.com/user/trajectory_nested_code_session_total\"",
+              "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_RATE", "crossSeriesReducer": "REDUCE_SUM", "groupByFields": ["metric.label.provider"] }
+            }}}]
+          }
+        }
+      }
+    ]
+  }
+}

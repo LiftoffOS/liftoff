@@ -1,0 +1,272 @@
+.chat-history-modal {
+  text-align: left;
+  max-width: 480px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  /* Never taller than the viewport leaves once the overlay's and the box's
+   * own padding are taken, so a short window shortens the list (which
+   * scrolls) instead of pushing the box past the screen. */
+  max-height: min(80vh, calc(100dvh - 2 * var(--space-4) - 2 * var(--space-6)));
+}
+
+/* Everything above the list keeps its height; the list is the one child that
+ * gives way. The segmented control needs it most: its overflow-x makes its
+ * automatic minimum height zero, so a flex column would squash it first. */
+.chat-history-modal__header,
+.chat-history-modal__views,
+.chat-history-modal__toolbar {
+  flex-shrink: 0;
+}
+
+.chat-history-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.chat-history-modal__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+}
+
+.chat-history-modal__close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--color-gray-400);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.chat-history-modal__close:hover {
+  background: var(--color-gray-100);
+  color: var(--color-black);
+}
+
+/* Its own row above the search, spanning it the way the search row does: it
+ * picks which list the search runs over. */
+.segmented-control.chat-history-modal__views {
+  display: flex;
+  width: 100%;
+  margin-bottom: var(--space-3);
+}
+
+/* Two equal halves. Block rather than the option's inline-flex so the first
+ * one, the open chat's name, can truncate: a team's name can run long, and it
+ * must not push "All" out of the control. */
+.chat-history-modal__views .segmented-control__option {
+  display: block;
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-history-modal__toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.chat-history-modal__search {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The menu trigger beside the search: a circle as tall as the search pill.
+ * 39px is the pill's height: 10px padding
+ * top and bottom, a 1px border, and the 17px line box of 14px text
+ * (.text-input__field). A stretched height cannot also set the width, since a
+ * flex row sizes the width first, so both are given. */
+.chat-history-modal__toolbar .action-menu__trigger {
+  flex-shrink: 0;
+  width: 39px;
+  height: 39px;
+  border-radius: 50%;
+}
+
+.chat-history-modal__list {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  /* Seven and a half rows: the half row cut off at the bottom is what tells
+   * people the list scrolls. A row is 43px (12px padding top and bottom, a
+   * 1px border top and bottom, the title's 17px line) plus the 4px gap, so
+   * 7 × 47 + 21.5. The title's line height is pinned below for this: left at
+   * `normal`, it follows the font's metrics and the half row lands somewhere
+   * else, or nowhere. */
+  max-height: 350.5px;
+  padding-right: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.chat-history-modal__empty {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  padding: var(--space-6) 0;
+  text-align: center;
+}
+
+/* Wrapper for the global .loading-spinner while the thread list loads — keeps
+ * the vertical breathing room the old text loader had and centers the spinner. */
+.chat-history-modal__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) 0;
+}
+
+.chat-history-modal__row {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.chat-history-modal__row:hover {
+  background-color: var(--color-gray-50);
+}
+
+.chat-history-modal__row-select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: inherit;
+  padding: var(--space-3) var(--space-3);
+  cursor: pointer;
+}
+
+.chat-history-modal__row-select:focus-visible {
+  outline: 2px solid var(--color-black);
+  outline-offset: 2px;
+}
+
+/* Row actions sit over the relative time and replace it while the row is
+ * hovered or holds keyboard focus. Hidden with opacity, not display, so a
+ * keyboard user can tab onto them and reveal them that way. */
+.chat-history-modal__row-actions {
+  position: absolute;
+  top: 50%;
+  right: var(--space-2);
+  transform: translateY(-50%);
+  display: flex;
+  gap: var(--space-1);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.chat-history-modal__row:hover .chat-history-modal__row-actions,
+.chat-history-modal__row:focus-within .chat-history-modal__row-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.chat-history-modal__row--has-actions:hover .chat-history-modal__row-time,
+.chat-history-modal__row--has-actions:focus-within .chat-history-modal__row-time {
+  visibility: hidden;
+}
+
+.chat-history-modal__row-action {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--color-gray-400);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.chat-history-modal__row-action:hover {
+  background: var(--color-gray-100);
+  color: var(--color-black);
+}
+
+/* The active row is already gray-100, so the hover needs one step darker. */
+.chat-history-modal__row--active .chat-history-modal__row-action:hover {
+  background: var(--color-gray-200);
+}
+
+.chat-history-modal__row-action:focus-visible {
+  outline: 2px solid var(--color-black);
+  outline-offset: 2px;
+}
+
+.chat-history-modal__row--active {
+  background-color: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+}
+
+/* Third child of the row, ahead of the title. flex: 0 0 auto keeps it out of
+ * the title's business: the title is the flexible one and must stay the thing
+ * that truncates. */
+.chat-history-modal__unread-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.chat-history-modal__row-title {
+  flex: 1;
+  font-size: var(--text-sm);
+  /* What `normal` gives Inter at 14px, pinned so the list height above
+   * holds whichever font is loaded. */
+  line-height: 17px;
+  font-weight: 500;
+  color: var(--color-black);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Who the chat is with, on the "All" list. Capped so a long team name
+ * cannot squeeze the title to nothing. */
+.chat-history-modal__row-source {
+  flex: 0 1 auto;
+  max-width: 40%;
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-history-modal__row-time {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  font-variant-numeric: tabular-nums;
+}
+
+.chat-history-modal__sentinel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) 0;
+  min-height: 1px;
+}

@@ -1,0 +1,14 @@
+{
+  "PLAUSIBLE_ANALYTICS_CHECK_HEALTH": { "stableName": "check_health", "categories": ["read"] },
+  "PLAUSIBLE_ANALYTICS_LIST_TEAMS": { "stableName": "list_teams", "categories": ["read"] },
+  "PLAUSIBLE_ANALYTICS_LIST_SITES": { "stableName": "list_sites", "categories": ["read"] },
+  "PLAUSIBLE_ANALYTICS_GET_SITE": { "stableName": "get_site", "categories": ["read"] },
+  "PLAUSIBLE_ANALYTICS_LIST_GOALS": { "stableName": "list_goals", "categories": ["read"] },
+  "PLAUSIBLE_ANALYTICS_LIST_CUSTOM_PROPS": { "stableName": "list_custom_properties", "categories": ["read"] },
+  "PLAUSIBLE_ANALYTICS_LIST_GUESTS": { "stableName": "list_guests", "categories": ["read"] },
+  "PLAUSIBLE_ANALYTICS_GET_REALTIME_VISITORS": { "stableName": "get_realtime_visitors", "categories": ["read"] },
+  "PLAUSIBLE_ANALYTICS_GET_TIMESERIES_STATS": { "stableName": "get_timeseries", "categories": ["read"] },
+  "PLAUSIBLE_ANALYTICS_GET_BREAKDOWN_STATS": { "stableName": "get_breakdown", "categories": ["read"] },
+  "PLAUSIBLE_ANALYTICS_QUERY_STATS": { "stableName": "query_stats", "categories": ["read"] },
+  "PLAUSIBLE_ANALYTICS_GET_PLUGIN_CAPABILITIES": { "stableName": "get_plugin_capabilities", "categories": ["read"] }
+}

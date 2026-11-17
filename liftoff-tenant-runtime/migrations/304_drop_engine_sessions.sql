@@ -1,0 +1,21 @@
+-- §4.12: retire engine_sessions.
+--
+-- engine_sessions was the v1 SDK-engine pause/resume store. Its writer
+-- (EngineSessionStore.saveSession) was never wired up, so the table was always
+-- empty and every reader was a silent no-op. The live pause/resume contract
+-- superseded it across three working artifacts:
+--   - HybridResumeState in agent_scheduled_invocations.workflow_resume_payload
+--     (the pause snapshot + scheduled resume task),
+--   - agent_run_states (the typed run transcript), and
+--   - agent_run_sessions (the Part C SDK-session JSONL, migration 303).
+--
+-- The HITL decision→resume path now records the decision in the run transcript
+-- and enqueues the resume directly (resolve-and-resume.ts); rejection injects a
+-- tool_result error into the rebuilt conversation rather than the engine_sessions
+-- JSONL; cancel relies on the status='cancelled' guard; and the diagnostics
+-- pause/resume invariants read the live agent_scheduled_invocations rows.
+-- Nothing references engine_sessions anymore.
+--
+-- Renumber on merge if 304 is taken upstream.
+
+DROP TABLE IF EXISTS engine_sessions;

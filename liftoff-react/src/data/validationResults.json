@@ -1,0 +1,167 @@
+{
+  "lastRun": "2024-01-15T14:30:00Z",
+  "status": "completed",
+  "sampleRecords": [
+    {
+      "id": "sample-001",
+      "source": "Web Form",
+      "rawData": {
+        "first_name": "Alex",
+        "last_name": "Thompson",
+        "company": "TechStart Inc",
+        "email": "alex@techstart.io",
+        "phone": "+1-555-0123",
+        "interest": "Implementation Services",
+        "message": "Looking for help migrating to cloud infrastructure"
+      },
+      "mappedFields": {
+        "contactFirstName": "Alex",
+        "contactLastName": "Thompson",
+        "accountName": "TechStart Inc",
+        "contactEmail": "alex@techstart.io",
+        "contactPhone": "+1-555-0123",
+        "serviceLine": "Implementation Services",
+        "notes": "Looking for help migrating to cloud infrastructure"
+      },
+      "workflowResult": {
+        "qualified": true,
+        "segment": "SMB",
+        "priority": "medium",
+        "assignedQueue": "implementation-smb",
+        "suggestedAction": "Schedule discovery call"
+      },
+      "confidence": 92,
+      "status": "passed",
+      "issues": []
+    },
+    {
+      "id": "sample-002",
+      "source": "Email",
+      "rawData": {
+        "from": "sarah.martinez@enterprise-corp.com",
+        "subject": "Re: Partnership Discussion",
+        "body": "Following up on our conversation about managed services...",
+        "received_at": "2024-01-14T10:15:00Z"
+      },
+      "mappedFields": {
+        "contactEmail": "sarah.martinez@enterprise-corp.com",
+        "accountName": "Enterprise Corp",
+        "serviceLine": "Managed Services",
+        "notes": "Following up on our conversation about managed services..."
+      },
+      "workflowResult": {
+        "qualified": true,
+        "segment": "Enterprise",
+        "priority": "high",
+        "assignedQueue": "enterprise-priority",
+        "suggestedAction": "Route to enterprise team"
+      },
+      "confidence": 87,
+      "status": "passed",
+      "issues": []
+    },
+    {
+      "id": "sample-003",
+      "source": "Partner Referral",
+      "rawData": {
+        "partner": "Acme Partners",
+        "company_name": "GlobalTech Solutions",
+        "contact_name": "James Wilson",
+        "contact_email": "jwilson@globaltech.com",
+        "notes": "Referred by partnership team"
+      },
+      "mappedFields": {
+        "contactFirstName": "James",
+        "contactLastName": "Wilson",
+        "accountName": "GlobalTech Solutions",
+        "contactEmail": "jwilson@globaltech.com",
+        "referralSource": "Acme Partners"
+      },
+      "workflowResult": {
+        "qualified": true,
+        "segment": "Mid-Market",
+        "priority": "high",
+        "assignedQueue": "partner-referrals",
+        "suggestedAction": "Priority handling - partner referral"
+      },
+      "confidence": 78,
+      "status": "needs_review",
+      "issues": ["Missing service line information", "Company size unknown"]
+    },
+    {
+      "id": "sample-004",
+      "source": "Web Form",
+      "rawData": {
+        "first_name": "Test",
+        "last_name": "User",
+        "company": "asdf",
+        "email": "test@test.com",
+        "interest": "Other"
+      },
+      "mappedFields": {
+        "contactFirstName": "Test",
+        "contactLastName": "User",
+        "accountName": "asdf",
+        "contactEmail": "test@test.com"
+      },
+      "workflowResult": {
+        "qualified": false,
+        "reason": "Invalid data detected",
+        "suggestedAction": "Discard as test submission"
+      },
+      "confidence": 15,
+      "status": "failed",
+      "issues": ["Invalid company name", "Test email domain", "Missing service line"]
+    },
+    {
+      "id": "sample-005",
+      "source": "Email",
+      "rawData": {
+        "from": "mike.chen@competitor-inc.com",
+        "subject": "Information Request",
+        "body": "We're evaluating solutions similar to yours for our clients..."
+      },
+      "mappedFields": {
+        "contactEmail": "mike.chen@competitor-inc.com",
+        "accountName": "Competitor Inc"
+      },
+      "workflowResult": {
+        "qualified": false,
+        "reason": "Competitor detected",
+        "suggestedAction": "Flag for review - potential competitor"
+      },
+      "confidence": 45,
+      "status": "needs_review",
+      "issues": ["Competitor company detected"]
+    }
+  ],
+  "dryRunSummary": {
+    "totalRecords": 50,
+    "passed": 42,
+    "needsReview": 5,
+    "failed": 3,
+    "averageConfidence": 81,
+    "processingTime": "2.3s average"
+  },
+  "fieldMappingCoverage": {
+    "overall": 94,
+    "bySource": {
+      "webForm": 98,
+      "email": 89,
+      "partnerReferral": 92,
+      "phone": 85
+    }
+  },
+  "unmappedFields": [
+    { "field": "custom_campaign_id", "source": "Web Form", "occurrences": 12 },
+    { "field": "legacy_account_id", "source": "CRM Import", "occurrences": 8 },
+    { "field": "utm_source", "source": "Web Form", "occurrences": 45 }
+  ],
+  "workflowCoverage": {
+    "intake": { "tested": true, "passed": 48, "total": 50 },
+    "qualification": { "tested": true, "passed": 45, "total": 50 },
+    "routing": { "tested": true, "passed": 47, "total": 50 },
+    "scheduling": { "tested": false, "passed": 0, "total": 0 },
+    "handoff": { "tested": false, "passed": 0, "total": 0 }
+  }
+}

@@ -1,0 +1,78 @@
+/* CodexConnector — extends AgentConnector layout */
+/* Mirrors ClaudeCodeConnector: visual → text → actions */
+
+/* Override left circle: don't force color onto OpenAI icon */
+.codex-connector .agent-connector__team--left {
+  color: inherit;
+}
+
+.codex-connector .agent-connector__team--left svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Setup command block — mirrors ClaudeCodeConnector */
+.codex-connector__command {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+/* Self-contained command-chip style: the connector page does not import
+   SettingsPage.css (where .settings-section__code lives), so define it here.
+   Sized like the Settings page chip (--text-xs), the canonical command chip. */
+.codex-connector__command .settings-section__code {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: var(--text-xs);
+  color: var(--color-black);
+  background: var(--color-gray-100);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.codex-connector__command .settings-section__copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.codex-connector__command .settings-section__copy:hover {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+/* Wider subtext for longer description */
+.codex-connector .agent-connector-step__subtext {
+  max-width: 460px;
+}
+
+/* Inline link in subtext */
+.codex-connector__link-inline {
+  color: var(--color-gray-400);
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.codex-connector__link-inline:hover {
+  color: var(--color-black);
+}
+
+/* Inline code within the subtext (e.g. `codex --profile liftoff`) */
+.codex-connector__inline-code {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 0.9em;
+  background: var(--color-gray-100);
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+}

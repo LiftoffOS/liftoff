@@ -1,0 +1,38 @@
+/* AgentMcpPage — thin additions on top of AgentConnector.css +
+   ClaudeCodeConnector.css (imported by the page; same root classes give
+   pixel parity with the npx setup layout, including the self-contained
+   command-chip styles defined there). */
+
+/* One left circle represents both tools: the Claude and OpenAI marks
+   crossfade on the same cadence family as the connector's packet cycle. */
+.team-mcp-page .team-mcp-page__tools svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: team-mcp-tool-swap 10s ease-in-out infinite;
+}
+
+.team-mcp-page .team-mcp-page__tools svg:last-child {
+  animation-delay: -5s;
+}
+
+@keyframes team-mcp-tool-swap {
+  0%,
+  40% {
+    opacity: 1;
+  }
+  50%,
+  90% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* The OpenAI mark renders via currentColor; show it black (brand). */
+.team-mcp-page__openai-mark {
+  color: var(--color-black);
+}
+

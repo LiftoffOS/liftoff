@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/connector-execute-batch.response.schema.json",
+  "title": "ConnectorExecuteBatchResponse",
+  "description": "Response from POST /api/connectors/execute-batch. Per-operation success/error in same order as request.",
+  "type": "object",
+  "required": ["results"],
+  "additionalProperties": false,
+  "properties": {
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["success"],
+        "additionalProperties": false,
+        "properties": {
+          "success": { "type": "boolean" },
+          "result": {},
+          "error": { "type": "string" },
+          "vendorLatencyMs": { "type": "integer", "minimum": 0 },
+          "costUsd": { "type": "number", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

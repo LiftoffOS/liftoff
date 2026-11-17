@@ -1,0 +1,80 @@
+[
+  {
+    "tool": "create_company_employees",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_company_employees",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_company_attendances",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_company_attendances",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_company_attendances",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_company_attendances_projects",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_company_attendances_projects",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_company_attendances_projects",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_company_time_offs",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_company_time_offs",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_company_absence_periods",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_company_absence_periods",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_company_documents",
+    "categories": [
+      "dataChanges"
+    ]
+  }
+]

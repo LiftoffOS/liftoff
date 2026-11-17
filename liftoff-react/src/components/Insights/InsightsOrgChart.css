@@ -1,0 +1,79 @@
+/* Org chart block, rendered inside a chat bubble on /teams/plan.
+ * Node styling deliberately mirrors AgentWorkflowViz so the two diagrams in
+ * the product read as one family. */
+
+.ioc {
+  width: 100%;
+  margin: var(--space-4) 0;
+}
+
+.ioc__title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.ioc__canvas {
+  width: 100%;
+}
+
+/* Invisible handles — the edges attach to them, nobody drags them. */
+.ioc__handle {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 1px !important;
+  height: 1px !important;
+  min-width: unset !important;
+  min-height: unset !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+.ioc__node {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  background: var(--color-white);
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-sans);
+  text-align: center;
+}
+
+.ioc__node-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-black);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ioc__node-meta {
+  font-size: 10px;
+  color: var(--color-gray-400);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Edge labels: the hand-off description sits on the line, so it needs a
+ * background to stay legible where it crosses one. */
+.ioc .react-flow__edge-text {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  fill: var(--color-gray-400);
+}
+
+.ioc .react-flow__edge-textbg {
+  fill: var(--color-white);
+}

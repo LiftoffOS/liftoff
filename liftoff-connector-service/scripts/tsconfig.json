@@ -1,0 +1,16 @@
+// Runtime-only config used by `ts-node` to execute scripts with
+// CommonJS resolution. The shared project tsconfig uses NodeNext which
+// requires explicit `.js` extensions on relative imports — ts-node can't
+// follow those without full ESM mode. This override lets scripts import
+// from `../src/...` without the `.js` suffix. Not used for typecheck;
+// `npm run typecheck` continues to cover src/ with the strict settings.
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "rootDir": "..",
+    "noEmit": true
+  },
+  "include": ["./**/*.ts"]
+}

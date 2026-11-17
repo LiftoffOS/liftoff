@@ -1,0 +1,52 @@
+# Quarterly fixture-age warning.
+#
+# Runs the response-shape fixture-age-test on a quarterly schedule.
+# Posts a Slack alert to #connector-service-alerts when ANY fixture is
+# approaching the 120-day refresh deadline, giving operators 30 days of
+# warning before the test starts failing the CI gate.
+
+name: fixture-age-quarterly
+
+on:
+  schedule:
+    # 09:00 UTC on the 1st of every quarter (Jan/Apr/Jul/Oct).
+    - cron: '0 9 1 1,4,7,10 *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fixture-age-warn:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install deps
+        run: npm ci --no-audit --no-fund
+      - name: Check fixture ages
+        id: check
+        run: |
+          # Run the fixture-age-test; on failure, report which fixtures
+          # are oldest. Exit 0 either way — this workflow ALERTS, it does
+          # not gate on the result. The actual CI gate is the regular
+          # test run.
+          if npx jest src/contract-tests/response-shapes/fixture-age-test.test.ts --json --outputFile=age-report.json; then
+            echo "result=fresh" >> $GITHUB_OUTPUT
+          else
+            echo "result=stale" >> $GITHUB_OUTPUT
+          fi
+      - name: Post Slack alert when fixtures are stale
+        if: steps.check.outputs.result == 'stale'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CONNECTOR_ALERTS_WEBHOOK }}
+        run: |
+          payload=$(cat <<EOF
+          {
+            "text": "Fixture-age warning: at least one connector response-shape fixture in liftoff-connector-service is approaching the 120-day refresh deadline. Run capture-fixtures.ts before the gate trips. See src/contract-tests/response-shapes/__tools__/capture-fixtures.ts for the refresh runbook."
+          }
+          EOF
+          )
+          curl -X POST -H 'Content-Type: application/json' -d "$payload" "$SLACK_WEBHOOK_URL"

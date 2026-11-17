@@ -1,0 +1,36 @@
+# WS-10.3 — canary image build.
+#
+# `gcloud builds submit --tag` can't pass --build-arg, but the tenant-runtime
+# Dockerfile needs ARTIFACT_REGISTRY_TOKEN to pull @liftoffos/* from the
+# private npm Artifact Registry. This config injects it as a build-arg.
+#
+# The token is the BUILD service account's own access token (fetched via the
+# cloud-sdk step, written to /workspace, never placed in a substitution or
+# echoed) — so it does not land in build metadata. The build SA is granted
+# artifactregistry.reader on YOUR_CONTROL_PROJECT_STAGING/npm-packages-dev.
+steps:
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: bash
+    args:
+      - -c
+      - 'gcloud auth print-access-token > /workspace/ar_token'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        docker build \
+          --build-arg ARTIFACT_REGISTRY_TOKEN="$(cat /workspace/ar_token)" \
+          -t "${_IMAGE}" .
+        docker push "${_IMAGE}"
+
+substitutions:
+  _IMAGE: ''
+
+options:
+  # Required when building as the Compute default SA in a fresh project.
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+
+timeout: 1800s

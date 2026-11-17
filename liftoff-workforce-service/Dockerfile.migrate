@@ -1,0 +1,15 @@
+FROM node:20-alpine
+WORKDIR /app
+
+RUN apk add --no-cache postgresql-client
+
+ARG ARTIFACT_REGISTRY_TOKEN
+COPY .npmrc ./
+COPY package.json package-lock.json* ./
+RUN ARTIFACT_REGISTRY_TOKEN=${ARTIFACT_REGISTRY_TOKEN} npm ci --omit=dev
+
+COPY migrations ./migrations
+COPY scripts/migrate-entrypoint.sh scripts/setup_grants.sql ./scripts/
+RUN chmod +x /app/scripts/migrate-entrypoint.sh
+
+CMD ["/app/scripts/migrate-entrypoint.sh"]

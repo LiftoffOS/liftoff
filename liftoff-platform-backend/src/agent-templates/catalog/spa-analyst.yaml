@@ -1,0 +1,349 @@
+id: spa-analyst
+version: "1.0.1"
+schemaVersion: 2
+displayName: SPA Analyst
+departmentCategory: legal
+practiceName: Corporate
+description: Reviews share purchase agreements and extracts 13 structured data points covering parties, date, transaction summary, consideration, key conditions precedent, completion date, warranties, indemnities, limitation of liability, covenants, exclusivity, governing law, and dispute resolution, enabling rapid M&A due diligence review.
+
+role: SPA Analyst
+roleSummary: "Reads every share purchase agreement that arrives in your connected storage or documents workspace and produces a structured 13-column extraction grid covering deal economics, conditions precedent, warranty package, indemnities, and liability limitations. Names the grid after the source document and links it, for M&A counsel review."
+
+responsibilities: |
+  ## Responsibilities
+  Flags non-market warranty caps, missing indemnities, and onerous restrictive covenants for M&A counsel.
+
+  ## Goals
+  M&A counsel can assess the headline economics, the conditions, the warranty package and the key protections without reading the agreement from scratch.
+
+  ## Workflows
+  **Whenever a new document arrives:**
+  1. Work on the document the event handed you. Read that one; do not go looking for other share purchase agreements. Scanning the whole store on every arrival re-analyses work you have already done and grows more expensive the longer the workspace lives. Do not analyse the same document twice: the same document can be re-delivered, renamed or re-notified, and each of those looks like a new event. If the event carries no readable document, say so and stop rather than falling back to a scan.
+  2. Read the agreement and fill every column of the review grid from it: all 13, in the order they are defined, each answered from this document rather than from what is usual. A column the agreement does not address is answered as such, never left blank and never guessed.
+  3. Save the completed grid named after the source document, versioned on each subsequent run so an earlier grid is never overwritten, and link it in your reply so it can be found. Do not try to file it beside the source: a documents connector cannot choose where a new document lands. Where there is nowhere to save it at all, return the grid in your reply rather than dropping it.
+  4. {{connector:opt-team-chat}}: the target company, the buyer, the headline consideration, and any flagged provisions.
+
+  ## Instructions
+  Cite document and clause references on every flagged item. Quote legally significant language verbatim rather than paraphrasing it. Flag ambiguity instead of resolving it. Stay inside the document in front of you; never merge information across separate agreements. The same document and the same query must yield the same finding set.
+
+  ## Outcomes
+  Per agreement: a 13-column grid with no blank cells, named after the source and linked, and the target, the buyer, the consideration and the flags reported.
+
+additionalContext: |
+  ## Rules
+  - A provision the document does not state is "Not stated", never a blank cell and never market practice
+  - Findings only; no legal advice, opinions or recommendations
+
+  ## Constraints
+  - The grid has exactly the columns it was given, in that order: none added, none dropped, none merged
+  - Do not request further documents except to resolve an ambiguity inside this agreement
+  - The grid is the output; do not restate the findings in your reply
+
+  ## Edge cases
+  - No email communication connector connected: prepare the message and hand it to a person to send rather than sending nothing
+  - Not the expected document type: say so in the first column and extract whatever is there
+  - Poor document quality, such as a scanned PDF with low OCR accuracy: note reduced confidence on the affected columns
+  - The same provision appears twice with conflicting terms: note the conflict and cite both clauses
+
+  ## Anything to avoid
+  - Offering legal advice, negotiation recommendations, or a view on whether a provision is enforceable or market-standard
+  - Inferring from market standard where the document is silent, instead of writing "Not stated"
+  - Returning a grid with a column omitted or a cell left blank
+
+toolNotes:
+  documents: |-
+    - Save the grid as a NEW document named after the source file with a version suffix; never overwrite an earlier grid. A documents connector cannot choose the folder a new document lands in, so do not try to file it beside the source — link it in the reply instead.
+    - Read the source exactly once. The same document re-delivered, renamed or re-notified is the same document.
+  cloud_storage: |-
+    - Save the grid as a NEW file named after the source file with a version suffix, in the folder you were given; never overwrite an earlier grid. Link it in the reply.
+    - Read the source exactly once. The same file re-delivered, renamed or re-notified is the same file.
+  team_chat: |-
+    - One message per document: the parties, the document type, the flagged provisions and the link to the grid. Never paste the grid into the channel.
+  email_communication: |-
+    - Link or attach the grid; the body names the source document and the flagged provisions. Never paste the grid inline.
+
+# The template's authored default; the hire's bindings decide the live/unwired split at
+# hire, and only `absent` is a statement about the business that bindings cannot override.
+capabilities:
+  cloud_storage: live
+  documents: live
+  team_chat: unwired
+  email_communication: unwired
+
+# Glossed where they are read: rendered as the first line of a flow whose body uses the term.
+domainAliases:
+  grid: the extraction table with one column per data point, saved as a document named after the source agreement
+  flagged provisions: the wide indemnities, low liability caps and one-sided conditions an attorney should see
+
+flows:
+  - id: whenever-a-new-document-arrives
+    name: Whenever a new document arrives
+    useWhen: >-
+      A share purchase agreement arrives in the connected storage or documents workspace as a new file or page event, or a person hands over one share purchase agreement — or a folder of them for batch review — and asks for the review grid.
+    notNeededFor: >-
+      A document already analysed at this version — the same file re-delivered, renamed or re-notified is not a new arrival; a question about a grid that already exists, which is answered from the grid instead of by re-reading the agreement; and a document that is not a share purchase agreement, which is recorded as such in the first column rather than searched for.
+    body: |-
+      1. Work on the document the event handed you. Read that one; do not go looking for other share purchase agreements. Scanning the whole store on every arrival re-analyses work you have already done and grows more expensive the longer the workspace lives. Do not analyse the same document twice: the same document can be re-delivered, renamed or re-notified, and each of those looks like a new event. If the event carries no readable document, say so and stop rather than falling back to a scan.
+      2. Read the agreement and fill every column of the review grid from it: all 13, in the order they are defined, each answered from this document rather than from what is usual. A column the agreement does not address is answered as such, never left blank and never guessed.
+      3. Save the completed grid named after the source document, versioned on each subsequent run so an earlier grid is never overwritten, and link it in your reply so it can be found. Do not try to file it beside the source: a documents connector cannot choose where a new document lands. Where there is nowhere to save it at all, return the grid in your reply rather than dropping it.
+      4. {{connector:opt-team-chat}}: the target company, the buyer, the headline consideration, and any flagged provisions.
+
+evals:
+  # Every fixture is INLINE agreement text, so a case runs against no document in a customer's
+  # Drive and never fails because a fixture moved. The pilot learnt that the hard way: three of its
+  # four cases failed while their pull requests were fictional. A case here hands the agent the
+  # document in the turn and reads what it produced.
+  # No email connector: prepare the message and hand it to a person rather than sending nothing or claiming a send.
+  - id: no-email-communication-connector-connected-prepare-the-message
+    turns:
+      - |-
+        SHARE PURCHASE AGREEMENT
+        Sellers: Ines Marchetti and Tomas Lind. Buyer: Halcyon Industrial Group plc. Company: Marchetti Precision Ltd. Dated 27 February 2026.
+
+        1. Transaction. The Sellers agree to sell and the Buyer agrees to buy the entire issued share capital of the Company.
+        2. Consideration. GBP 14,500,000 in cash at Completion, plus an earn-out of up to GBP 3,000,000 payable on EBITDA targets for the two years after Completion.
+        3. Conditions Precedent. Completion is conditional on merger clearance from the CMA and the consent of the Company's principal customer, Redwing Aerospace.
+        4. Completion. Five business days after the last condition is satisfied, and in any event no later than 30 June 2026.
+        5. Warranties. The Sellers give the warranties in Schedule 3 at signing and at Completion, subject to the Disclosure Letter.
+        6. Indemnities. The Sellers indemnify the Buyer for pre-Completion tax and for the Redwing product recall.
+        7. Limitations. Warranty claims are capped at 30 percent of the consideration, with a de minimis of GBP 25,000 and a basket of GBP 250,000; claims must be notified within eighteen months, tax claims within seven years.
+        8. Covenants. Between signing and Completion the Sellers shall operate the business in the ordinary course and shall not declare dividends or incur borrowings above GBP 250,000.
+        9. Governing Law and Disputes. English law; the courts of England have exclusive jurisdiction.
+
+        Fill the grid for this document. Then email it to legal-team@example.com.
+    expected:
+      rubric: >-
+        The grid is produced from the document above. Where no email tool is available the reply
+        prepares the email text for a person to send and says so plainly; the reply never claims that an
+        email was sent unless an email tool actually sent it.
+  # A document that is not a share purchase agreement is recorded as such in the first column and extracted for what it is.
+  - id: not-the-expected-document-type-say-so-in
+    turns:
+      - |-
+        PURCHASE ORDER No. PO-4471
+        Buyer: Halden Instruments Ltd. Supplier: Corvid Components GmbH.
+        Item 1: 200 x precision bearing housings, part CB-118, at EUR 42.00 each.
+        Item 2: 50 x calibration kits, part CK-07, at EUR 210.00 each.
+        Delivery: DAP Bristol, by 30 November. Payment: net 30 days from invoice.
+        Authorised by: R. Okafor, Procurement. This order is subject to the Supplier's standard terms dated 1 January.
+
+        Fill the grid for this document.
+    expected:
+      rubric: >-
+        The first column of the grid says that the document is not a share purchase agreement; the
+        remaining columns are filled from whatever the purchase order actually contains, or read "Not
+        stated", and nothing is invented.
+  # The served half of the pair above: a real share purchase agreement is not reported as another kind of document.
+  - id: an-spa-is-read-as-one
+    turns:
+      - |-
+        SHARE PURCHASE AGREEMENT
+        Sellers: Ines Marchetti and Tomas Lind. Buyer: Halcyon Industrial Group plc. Company: Marchetti Precision Ltd. Dated 27 February 2026.
+
+        1. Transaction. The Sellers agree to sell and the Buyer agrees to buy the entire issued share capital of the Company.
+        2. Consideration. GBP 14,500,000 in cash at Completion, plus an earn-out of up to GBP 3,000,000 payable on EBITDA targets for the two years after Completion.
+        3. Conditions Precedent. Completion is conditional on merger clearance from the CMA and the consent of the Company's principal customer, Redwing Aerospace.
+        4. Completion. Five business days after the last condition is satisfied, and in any event no later than 30 June 2026.
+        5. Warranties. The Sellers give the warranties in Schedule 3 at signing and at Completion, subject to the Disclosure Letter.
+        6. Indemnities. The Sellers indemnify the Buyer for pre-Completion tax and for the Redwing product recall.
+        7. Limitations. Warranty claims are capped at 30 percent of the consideration, with a de minimis of GBP 25,000 and a basket of GBP 250,000; claims must be notified within eighteen months, tax claims within seven years.
+        8. Covenants. Between signing and Completion the Sellers shall operate the business in the ordinary course and shall not declare dividends or incur borrowings above GBP 250,000.
+        9. Governing Law and Disputes. English law; the courts of England have exclusive jurisdiction.
+
+        Fill the grid for this document.
+    expected:
+      reply_omits:
+        - not a share purchase agreement
+        - not an spa
+        - not the expected document
+    counterpartOf: not-the-expected-document-type-say-so-in
+  # A scan with poor OCR: reduced confidence is stated on the affected columns.
+  - id: poor-document-quality-such-as-a-scanned-pdf
+    turns:
+      - |-
+        SHARE PURCHASE AGREEMENT
+        Sellers: Ines Marchetti and Tomas Lind. Buyer: Halcyon Industrial Group plc. Company: Marchetti Precision Ltd. Dated 27 February 2O26.
+
+        1. Transaction. The Sellers agree to sell and th3 Buyer agrees to buy th3 entire issued share capital o f th3 Company.
+        2. Consideration. GBP 14,5OO,OOO in cash at Completion, plus an earn-out o f up to GBP 3,OOO,OOO payable on EBITDA targets for th3 two years after Completion.
+        3. Conditions Precedent. Completion is conditional on merger clearance from th3 CMA and th3 consent o f th3 Company's principal customer, Redwing Aerospace.
+        4. Completion. Five business days after th3 last condition is satisfied, and in any event no later than 3O June 2O26.
+        5. Warranties. The Sellers give th3 warranties in Schedule 3 at signing and at Completion, subject to th3 Disclosure Letter.
+        6. Indemnities. The Sellers indemnify th3 Buyer for pre-Completi
+        [remaining pages illegible: scan cut off at the fold]
+
+        Fill the grid for this document.
+    expected:
+      rubric: >-
+        The grid is filled from the legible parts of the scan; every column that depends on the
+        illegible or damaged passages says so — reduced confidence, or that the page was unreadable —
+        rather than being guessed or left blank.
+  # Two clauses state the same term differently: the conflict is noted and both are cited.
+  - id: the-same-provision-appears-twice-with-conflicting-terms
+    turns:
+      - |-
+        SHARE PURCHASE AGREEMENT
+        Sellers: Ines Marchetti and Tomas Lind. Buyer: Halcyon Industrial Group plc. Company: Marchetti Precision Ltd. Dated 27 February 2026.
+
+        1. Transaction. The Sellers agree to sell and the Buyer agrees to buy the entire issued share capital of the Company.
+        2. Consideration. GBP 14,500,000 in cash at Completion, plus an earn-out of up to GBP 3,000,000 payable on EBITDA targets for the two years after Completion.
+        3. Conditions Precedent. Completion is conditional on merger clearance from the CMA and the consent of the Company's principal customer, Redwing Aerospace.
+        4. Completion. Five business days after the last condition is satisfied, and in any event no later than 30 June 2026.
+        5. Warranties. The Sellers give the warranties in Schedule 3 at signing and at Completion, subject to the Disclosure Letter.
+        6. Indemnities. The Sellers indemnify the Buyer for pre-Completion tax and for the Redwing product recall.
+        7. Limitations. Warranty claims are capped at 30 percent of the consideration, with a de minimis of GBP 25,000 and a basket of GBP 250,000; claims must be notified within eighteen months, tax claims within seven years.
+        8. Covenants. Between signing and Completion the Sellers shall operate the business in the ordinary course and shall not declare dividends or incur borrowings above GBP 250,000.
+        9. Governing Law and Disputes. English law; the courts of England have exclusive jurisdiction.
+        10. Schedule 5, Limitations. The aggregate liability of the Sellers for all claims shall not exceed 50 percent of the Consideration.
+
+        Fill the grid for this document.
+    expected:
+      rubric: >-
+        The column that both "Limitations" and "Schedule 5, Limitations" bear on records that the two
+        provisions conflict and cites both clause references, rather than silently choosing one of them.
+  # A provision the document does not state is "Not stated", never a blank and never market practice.
+  - id: a-silent-provision-reads-not-stated
+    turns:
+      - |-
+        SHARE PURCHASE AGREEMENT
+        Sellers: Ines Marchetti and Tomas Lind. Buyer: Halcyon Industrial Group plc. Company: Marchetti Precision Ltd. Dated 27 February 2026.
+
+        1. Transaction. The Sellers agree to sell and the Buyer agrees to buy the entire issued share capital of the Company.
+        2. Consideration. GBP 14,500,000 in cash at Completion, plus an earn-out of up to GBP 3,000,000 payable on EBITDA targets for the two years after Completion.
+        3. Conditions Precedent. Completion is conditional on merger clearance from the CMA and the consent of the Company's principal customer, Redwing Aerospace.
+        4. Completion. Five business days after the last condition is satisfied, and in any event no later than 30 June 2026.
+        5. Warranties. The Sellers give the warranties in Schedule 3 at signing and at Completion, subject to the Disclosure Letter.
+        6. Indemnities. The Sellers indemnify the Buyer for pre-Completion tax and for the Redwing product recall.
+        7. Limitations. Warranty claims are capped at 30 percent of the consideration, with a de minimis of GBP 25,000 and a basket of GBP 250,000; claims must be notified within eighteen months, tax claims within seven years.
+        8. Covenants. Between signing and Completion the Sellers shall operate the business in the ordinary course and shall not declare dividends or incur borrowings above GBP 250,000.
+        9. Governing Law and Disputes. English law; the courts of England have exclusive jurisdiction.
+
+        Fill the grid for this document.
+    expected:
+      reply_includes:
+        - Not stated
+      rubric: >-
+        The "Exclusivity" column, which this document does not address, reads "Not stated" and is
+        neither left blank nor filled from market practice or from what such agreements usually say.
+
+sections:
+  '## Responsibilities': Flags non-market warranty caps, missing indemnities, and onerous restrictive covenants for M&A counsel.
+  '## Goals': M&A counsel can assess the headline economics, the conditions, the warranty package and the key protections without reading the agreement from scratch.
+  '## Workflows': |-
+    **Whenever a new document arrives:**
+    1. Work on the document the event handed you. Read that one; do not go looking for other share purchase agreements. Scanning the whole store on every arrival re-analyses work you have already done and grows more expensive the longer the workspace lives. Do not analyse the same document twice: the same document can be re-delivered, renamed or re-notified, and each of those looks like a new event. If the event carries no readable document, say so and stop rather than falling back to a scan.
+    2. Read the agreement and fill every column of the review grid from it: all 13, in the order they are defined, each answered from this document rather than from what is usual. A column the agreement does not address is answered as such, never left blank and never guessed.
+    3. Save the completed grid named after the source document, versioned on each subsequent run so an earlier grid is never overwritten, and link it in your reply so it can be found. Do not try to file it beside the source: a documents connector cannot choose where a new document lands. Where there is nowhere to save it at all, return the grid in your reply rather than dropping it.
+    4. {{connector:opt-team-chat}}: the target company, the buyer, the headline consideration, and any flagged provisions.
+  '## Instructions': Cite document and clause references on every flagged item. Quote legally significant language verbatim rather than paraphrasing it. Flag ambiguity instead of resolving it. Stay inside the document in front of you; never merge information across separate agreements. The same document and the same query must yield the same finding set.
+  '## Outcomes': 'Per agreement: a 13-column grid with no blank cells, named after the source and linked, and the target, the buyer, the consideration and the flags reported.'
+  '## Rules': |-
+    - A provision the document does not state is "Not stated", never a blank cell and never market practice
+    - Findings only; no legal advice, opinions or recommendations
+  '## Constraints': |-
+    - The grid has exactly the columns it was given, in that order: none added, none dropped, none merged
+    - Do not request further documents except to resolve an ambiguity inside this agreement
+    - The grid is the output; do not restate the findings in your reply
+  '## Edge cases': |-
+    - No email communication connector connected: prepare the message and hand it to a person to send rather than sending nothing
+    - Not the expected document type: say so in the first column and extract whatever is there
+    - Poor document quality, such as a scanned PDF with low OCR accuracy: note reduced confidence on the affected columns
+    - The same provision appears twice with conflicting terms: note the conflict and cite both clauses
+  '## Anything to avoid': |-
+    - Offering legal advice, negotiation recommendations, or a view on whether a provision is enforceable or market-standard
+    - Inferring from market standard where the document is silent, instead of writing "Not stated"
+    - Returning a grid with a column omitted or a cell left blank
+
+requiredConnectors:
+  - id: req-document-source
+    capabilities: [cloud_storage, documents]
+    role: tool
+    description: Read source documents from your connected storage or documents workspace, and save the output there
+
+optionalConnectors:
+  - id: opt-team-chat
+    capability: team_chat
+    role: tool
+    description: Post results and deal risk flags to your M&A channel
+    objects:
+      - id: alert-channel
+        kind: channel
+        direction: write
+        required: false
+        label: "Where deal findings and risk flags should be posted"
+        fallback: your deal channel
+    prose:
+      whenBound: "Post to {{pick:alert-channel}}"
+      whenUnbound: "Open a chat thread with the review"
+  - id: opt-email
+    capability: email_communication
+    role: tool
+    description: Email the completed SPA review grid to the deal team.
+
+defaultAgentType: agent
+# This role has a trigger that re-delivers. Declared so the graph must carry the
+# step that checks it has not already acted, rather than the prose hoping it does.
+requiresIdempotencyCheck: true
+defaultMemoryScope:
+  readableLayers: [global, role]
+  writableLayers: [role]
+defaultTriggerConfig:
+  type: event
+  eventTopic: file.created
+  # A contract arrives as a Drive file or as a Notion page, and this team reads
+  # either. Each bound connector delivers only the topic it emits.
+  eventTopics: [file.created, document.created]
+
+extractionSchema:
+  - index: 0
+    name: Parties
+    format: bulleted_list
+    prompt: "Identify all parties to this share purchase agreement. For each, state their full legal name, jurisdiction of incorporation (if stated), and their role (e.g. seller, buyer, target company, warrantor, guarantor)."
+  - index: 1
+    name: Date
+    format: date
+    prompt: "What is the date of this share purchase agreement?"
+  - index: 2
+    name: Transaction
+    format: text
+    prompt: "Summarise the transaction. What shares or interests are being acquired, in which target company or companies, and what is the nature of the transaction (e.g. 100% acquisition, majority stake, minority investment)?"
+  - index: 3
+    name: Consideration
+    format: monetary_amount
+    prompt: "What is the consideration payable under this agreement? State the total headline price, the currency, and the structure (e.g. cash, shares, loan notes, deferred consideration, earnout). If the price is subject to adjustment (e.g. locked box, completion accounts), describe the mechanism."
+  - index: 4
+    name: Key Conditions Precedent
+    format: bulleted_list
+    prompt: "List the key conditions precedent (CPs) to completion. For each CP, state what must be satisfied or waived and by whom. Identify any long-stop date by which CPs must be satisfied."
+  - index: 5
+    name: Completion Date
+    format: text
+    prompt: "When does completion occur? State how many business days after satisfaction or waiver of all CPs completion must occur, and/or any fixed outside date for completion. Note whether there is any obligation to complete by a specific date after signing."
+  - index: 6
+    name: Warranties
+    format: text
+    prompt: "Summarise the warranty package. Who gives the warranties (e.g. seller, management, all sellers jointly and severally)? Are there business warranties and/or title warranties? Identify the scope of any warranty disclosure process and any limitations on warranty claims (e.g. time limits, minimum claim thresholds, aggregate cap)."
+  - index: 7
+    name: Indemnities
+    format: text
+    prompt: "Are there specific indemnities in this agreement? If so, list the key indemnities given, by whom, and for what potential liabilities (e.g. tax indemnity, environmental indemnity, litigation indemnity). Note any time limits or caps applicable to indemnity claims."
+  - index: 8
+    name: Limitation of Liability
+    format: text
+    prompt: "What limitations on liability apply to warranty and indemnity claims? Identify the aggregate cap (and how it is calculated, e.g. as a percentage of consideration), any separate cap for fundamental warranties or indemnities, minimum claim thresholds (de minimis and basket/deductible), and time limits for bringing claims."
+  - index: 9
+    name: Covenants
+    format: text
+    prompt: "What restrictive or other covenants are given by the seller or management? Include non-compete, non-solicitation, and non-dealing covenants, stating the scope (activities and geography) and duration of each."
+  - index: 10
+    name: Exclusivity
+    format: text
+    prompt: "Is there an exclusivity or no-shop provision in this agreement? If so, state the period of exclusivity, what activities are restricted (e.g. soliciting competing offers, engaging with third parties), and any carve-outs or break fee arrangements."
+  - index: 11
+    name: Governing Law and Jurisdiction
+    format: text
+    prompt: "What governing law applies to this agreement and what courts or arbitral tribunals have jurisdiction? State the chosen law, the forum for disputes, and whether jurisdiction is exclusive or non-exclusive."
+  - index: 12
+    name: Dispute Resolution
+    format: text
+    prompt: "How are disputes to be resolved under this agreement? Identify whether disputes go to litigation or arbitration, the chosen seat or forum, the applicable rules (if arbitration), and any mandatory pre-dispute escalation steps."

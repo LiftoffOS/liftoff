@@ -1,0 +1,50 @@
+[
+ {
+  "slug": "building-a-custom-team",
+  "category": "ai-teams",
+  "categoryLabel": "Agents",
+  "title": "Building a Custom Agent",
+  "description": "Step-by-step guide to creating a new agent using Add Function.",
+  "body": "Building a Custom Agent\n\nBuild a custom team when you have a specific role in mind. To start from a pre-configured team instead, see Hiring Agents.\n\nStep 1: Open the builder\n\nClick Teams in the sidebar.\nClick Add Function.\n\nThe team builder opens.\n\nStep 2: Describe who you need\n\nThe first step asks \"Who do you need on your team?\" Enter a short role, for example \"Competitive intelligence resear"
+ },
+ {
+  "slug": "hiring-ai-teams",
+  "category": "ai-teams",
+  "categoryLabel": "Agents",
+  "title": "Hiring Agents",
+  "description": "Browse the Hire agents catalog and hire a pre-configured team in a few clicks.",
+  "body": "Hiring Agents\n\nHiring a pre-configured team is the fastest way to get started. Each one ships with a role, responsibilities, and a recommended set of connections. You can adjust everything after hiring.\n\nTo configure a team from scratch instead, see Building a Custom Agent.\n\nBrowse the catalog\n\nClick Teams in the sidebar.\nClick Explore agents.\n\nThe Hire agents page opens. Teams are grouped"
+ },
+ {
+  "slug": "managing-your-teams",
+  "category": "ai-teams",
+  "categoryLabel": "Agents",
+  "title": "Managing Your Agents",
+  "description": "Edit team settings, pause and archive teams, and find them in the Teams page.",
+  "body": "Managing Your Agents\n\nDay-to-day team management happens in two places: the Teams page for lifecycle actions, and each team's Settings tab for configuration.\n\nEdit a team's settings\n\nClick Teams in the sidebar.\nClick the team you want to edit.\nOpen the Settings tab.\n\nFrom here you can edit:\n\nRole - The plain-language description of who the team is.\nResponsibilities - What the team should do.\nInt"
+ },
+ {
+  "slug": "messaging-your-team",
+  "category": "ai-teams",
+  "categoryLabel": "Agents",
+  "title": "Messaging Your Agent",
+  "description": "Send instructions to an agent in the Chat tab and get good results back.",
+  "body": "Messaging Your Agent\n\nThe Chat tab is your direct line to an agent. Send instructions, ask for status, and review responses in a familiar messaging interface.\n\nSend a message\n\nClick Teams in the sidebar.\nClick the team you want to message.\nOpen the Chat tab.\nType your message in the input field.\nPress Enter, or click Send.\n\nThe team acknowledges and starts working. Sensitive actions or actions"
+ },
+ {
+  "slug": "planning-your-ai-workforce",
+  "category": "ai-teams",
+  "categoryLabel": "Agents",
+  "title": "Planning Your AI Workforce",
+  "description": "How to scope agent roles, choose autonomy, and add the right connections as you add more teams.",
+  "body": "Planning Your AI Workforce\n\nAdding one agent is easy. As you add more, the choices that matter are role scope, autonomy, and connections. This article walks through each.\n\nScope each team narrowly\n\nVague mandates like \"General Research Team\" or \"Marketing AI\" make it hard to write good instructions and hard to know which connections the team actually needs.\n\nStart each team with a specific job. "
+ },
+ {
+  "slug": "what-is-an-ai-team",
+  "category": "ai-teams",
+  "categoryLabel": "Agents",
+  "title": "What is an Agent?",
+  "description": "What an agent is, how it's structured, and where to find one in the Liftoff interface.",
+  "body": "What is an Agent?\n\nAn agent handles a specific role in your workspace. Send them work in their Chat tab and they carry it out using the tools and connections you've authorized.\n\nAll your agents are in Teams. Click any team to open its Chat, Activity, and Settings tabs.\n\nHow a team is structured\n\nEvery agent has three parts:\n\nRole description. A plain-language statement of what the team doe"
+ }
+]

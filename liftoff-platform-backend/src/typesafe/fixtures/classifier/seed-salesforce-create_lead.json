@@ -1,0 +1,35 @@
+{
+  "set": {
+    "id": "classifier",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "tool": {
+      "name": "create_lead",
+      "description": ""
+    }
+  },
+  "expect": {
+    "customerCommunication": {
+      "choice": "no",
+      "advisory": true
+    },
+    "financialActions": {
+      "choice": "no",
+      "advisory": true
+    },
+    "dataChanges": {
+      "choice": "yes"
+    },
+    "externalPublishing": {
+      "choice": "no",
+      "advisory": true
+    },
+    "hiringDecisions": {
+      "choice": "no",
+      "advisory": true
+    }
+  },
+  "note": "Exported from migrations/082_seed_mcp_tool_classifications.sql (mcp_seed_v1). The seed's reviewer value is a seed marker, not human adjudication; the row was written from the vendor's tool inventory with no description. The \"no\" expectations are advisory: the contract claims a category is omitted only on a confident no, not that Jev never adds one the seed lacks; an addition is reported, never a failure."
+}

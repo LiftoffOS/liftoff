@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/connector-warm.request.schema.json",
+  "title": "ConnectorWarmRequest",
+  "description": "Request body for POST /api/connectors/warm — pre-fetch OAuth tokens for listed connectors before first tool call.",
+  "type": "object",
+  "required": ["tenantId", "connectorTypes"],
+  "additionalProperties": false,
+  "properties": {
+    "tenantId": { "type": "string", "minLength": 1 },
+    "connectorTypes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

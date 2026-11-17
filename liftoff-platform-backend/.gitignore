@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+node_modules
+
+.claire/
+
+# Build output
+dist/
+
+# TypeScript project-references incremental build state.
+# Created next to tsconfig.json by tsc -b for build caching; not source.
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+
+# Secrets
+*.pem
+*.key
+credentials.json
+
+
+# Eval-harness recordings: local run artifacts, not source. A committed one
+# goes stale silently and then reads as an expected result.
+.eval-recordings/
+
+# Built by the migration gate from a freshly migrated database and carried into
+# the migrate image, where the live registry is compared against it. A build
+# artifact, never a checked-in source of truth: committing it would make it a
+# second place the chain's answer lives, which is the drift it exists to catch.
+registry-baseline.json

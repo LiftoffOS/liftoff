@@ -1,0 +1,35 @@
+{
+  "set": {
+    "id": "memory_save",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "content": "The HubSpot deals export omits rows whose region field is empty; filter on region before summing.",
+    "layer": "individual",
+    "requestedTags": [
+      "agent-initiated"
+    ],
+    "contract": {
+      "kind": "instructions",
+      "instructions": "Every Monday, read the CRM for last week's closed deals, append one summary row to the Sales tracking sheet, and notify #sales-ops when done. Route billing questions to the finance team.",
+      "role": "You are the Sales Ops assistant for Acme."
+    },
+    "neighbours": []
+  },
+  "expect": {
+    "admit": {
+      "choice": "durable_knowledge",
+      "min": 0.5
+    },
+    "kind": {
+      "choice": "fact",
+      "min": 0.7
+    },
+    "classification": {
+      "choice": "internal",
+      "min": 0.5
+    }
+  },
+  "note": "A durable fact about a system. Pins KIND_T."
+}

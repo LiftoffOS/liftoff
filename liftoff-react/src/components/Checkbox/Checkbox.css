@@ -1,0 +1,61 @@
+/* Checkbox — extracted from OversightPage sensitive work pattern */
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  cursor: pointer;
+}
+
+.checkbox--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.checkbox input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkbox__checkmark {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-300);
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.checkbox:hover .checkbox__checkmark {
+  border-color: var(--color-gray-400);
+}
+
+.checkbox input:checked + .checkbox__checkmark {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.checkbox input:checked + .checkbox__checkmark::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox__label {
+  font-size: var(--text-sm);
+  color: var(--color-black);
+}

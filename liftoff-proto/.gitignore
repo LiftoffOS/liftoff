@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+
+# Generated stubs are committed (verified by CI). Local `buf generate`
+# output shouldn't be in a separate ignore block — `gen/` is tracked.
+.pack-tarballs/
+liftoffos-proto-gen-*.tgz
+

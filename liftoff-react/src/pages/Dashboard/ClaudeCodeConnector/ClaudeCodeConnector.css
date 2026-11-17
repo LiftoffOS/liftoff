@@ -1,0 +1,79 @@
+/* ClaudeCodeConnector — extends AgentConnector layout */
+/* Same structure as ConnectionTypeStep: visual → text → actions */
+
+/* Override left circle: don't force color onto Claude icon */
+.claude-code-connector .agent-connector__team--left {
+  color: inherit;
+}
+
+.claude-code-connector .agent-connector__team--left svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Self-contained command-chip style: the connector page does not import
+   SettingsPage.css (where .settings-section__code lives), so define it here.
+   Sized like the Settings page chip (--text-xs), the canonical command chip. */
+.claude-code-connector__command .settings-section__code {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: var(--text-xs);
+  color: var(--color-black);
+  background: var(--color-gray-100);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.claude-code-connector__command .settings-section__copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.claude-code-connector__command .settings-section__copy:hover {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+.claude-code-connector__command {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.claude-code-connector__command-code {
+  word-break: break-all;
+}
+
+/* Wider subtext for longer description */
+.claude-code-connector .agent-connector-step__subtext {
+  max-width: 460px;
+}
+
+/* Inline link in subtext */
+.claude-code-connector__link-inline {
+  color: var(--color-gray-400);
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.claude-code-connector__link-inline:hover {
+  color: var(--color-black);
+}
+
+/* Hint text below command — matches agent-connector-step__subtext */
+.claude-code-connector__hint {
+  font-size: var(--text-base);
+  color: var(--color-gray-400);
+  margin: 0;
+  line-height: 1.5;
+}

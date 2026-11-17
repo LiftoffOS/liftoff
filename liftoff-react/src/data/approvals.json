@@ -1,0 +1,186 @@
+{
+  "queues": {
+    "needsApproval": 5,
+    "lowConfidence": 3,
+    "escalated": 2
+  },
+  "items": [
+    {
+      "id": "REV-2024-0892",
+      "customer": "GlobalFinance Ltd",
+      "type": "Needs Approval",
+      "title": "Contract commitment - Enterprise tier",
+      "description": "Customer requesting to proceed without standard compliance docs. High-value enterprise deal worth $420K annually.",
+      "systemAction": "Proceed with modified compliance checklist",
+      "reasoning": "Customer is publicly traded company with existing regulatory oversight. Risk score: Medium-Low.",
+      "evidence": [
+        "SEC filing confirms regulatory compliance",
+        "Existing relationship with legal team",
+        "Previous successful engagements"
+      ],
+      "confidence": 88,
+      "urgency": "critical",
+      "status": "pending"
+    },
+    {
+      "id": "REV-2024-0891",
+      "customer": "TechStart Inc",
+      "type": "Needs Approval",
+      "title": "$240K annual deal - Custom scope",
+      "description": "Custom implementation scope needs approval. Non-standard terms requested.",
+      "systemAction": "Approve custom implementation with 90-day timeline",
+      "reasoning": "Deal size justifies custom work. Implementation team has capacity.",
+      "evidence": [
+        "500+ employees",
+        "Deal size: $240K ACV",
+        "Timeline: 90 days"
+      ],
+      "confidence": 91,
+      "urgency": "high",
+      "status": "pending"
+    },
+    {
+      "id": "REV-2024-0890",
+      "customer": "Manufacturing Plus",
+      "type": "Needs Approval",
+      "title": "Enterprise tier pricing approval",
+      "description": "Non-standard pricing requested for multi-year commitment.",
+      "systemAction": "Approve 15% discount for 3-year term",
+      "reasoning": "Customer requested multi-year term. Discount aligns with volume pricing guidelines.",
+      "evidence": [
+        "3-year commitment",
+        "$180K total contract value",
+        "Strategic account potential"
+      ],
+      "confidence": 94,
+      "urgency": "medium",
+      "status": "pending"
+    },
+    {
+      "id": "REV-2024-0889",
+      "customer": "HealthCare Plus",
+      "type": "Needs Approval",
+      "title": "Renewal at risk - Intervention needed",
+      "description": "Account showing churn signals. Retention offer needs approval.",
+      "systemAction": "Offer 20% renewal discount + dedicated support",
+      "reasoning": "Customer NPS dropped from 8 to 5 last quarter. Competitor evaluation detected.",
+      "evidence": [
+        "NPS decline: 8 → 5",
+        "Support tickets up 150%",
+        "Competitor mentioned in calls"
+      ],
+      "confidence": 76,
+      "urgency": "high",
+      "status": "pending"
+    },
+    {
+      "id": "REV-2024-0888",
+      "customer": "RetailMax",
+      "type": "Needs Approval",
+      "title": "Customer data correction request",
+      "description": "Customer reported incorrect data in their profile. Requesting update to financial information.",
+      "systemAction": "Update company revenue from $50M to $75M",
+      "reasoning": "Customer provided updated financial statements. Change affects account tier and routing.",
+      "evidence": [
+        "Customer request via support",
+        "Attached: Q4 financial statement",
+        "Tier change: Mid-market → Enterprise"
+      ],
+      "confidence": 85,
+      "urgency": "low",
+      "status": "pending"
+    },
+    {
+      "id": "REV-2024-0887",
+      "customer": "DataFlow Systems",
+      "type": "Low Confidence",
+      "title": "Routing decision unclear",
+      "description": "Multiple valid routing options. System confidence below threshold.",
+      "systemAction": "Route to Enterprise Sales team",
+      "reasoning": "Company size suggests enterprise, but deal size aligns with mid-market. Request is for quick implementation.",
+      "evidence": [
+        "Company size: 200 employees",
+        "Deal size: $35K ACV",
+        "Timeline: 30 days"
+      ],
+      "confidence": 58,
+      "urgency": "medium",
+      "status": "pending"
+    },
+    {
+      "id": "REV-2024-0886",
+      "customer": "CloudNine Tech",
+      "type": "Low Confidence",
+      "title": "Qualification scoring uncertain",
+      "description": "Mixed signals on company health and buying intent.",
+      "systemAction": "Mark as qualified with caution flag",
+      "reasoning": "Website shows recent funding, but job posts suggest cost-cutting. Intent signals mixed.",
+      "evidence": [
+        "Series B funding: $15M",
+        "Layoffs announced last month",
+        "Active on product pages"
+      ],
+      "confidence": 52,
+      "urgency": "low",
+      "status": "pending"
+    },
+    {
+      "id": "REV-2024-0885",
+      "customer": "StartupXYZ",
+      "type": "Low Confidence",
+      "title": "Account tier classification",
+      "description": "Revenue data conflicts with employee count for tier assignment.",
+      "systemAction": "Assign to mid-market tier",
+      "reasoning": "Self-reported revenue suggests enterprise, but headcount is startup-level.",
+      "evidence": [
+        "Reported revenue: $50M",
+        "LinkedIn employees: 45",
+        "Founded: 2022"
+      ],
+      "confidence": 61,
+      "urgency": "low",
+      "status": "pending"
+    },
+    {
+      "id": "REV-2024-0884",
+      "customer": "LegalEase Partners",
+      "type": "Escalated",
+      "title": "Conflicting qualification signals",
+      "description": "System detected multiple conflicting data points. Manual review required.",
+      "systemAction": "Hold for qualification review",
+      "reasoning": "Company website shows growth, but financial data suggests contraction. Contact info partially invalid.",
+      "evidence": [
+        "Website: Hiring 20+ positions",
+        "D&B: Revenue down 15%",
+        "Email bounced: 2 of 3 contacts"
+      ],
+      "confidence": 34,
+      "urgency": "high",
+      "status": "pending"
+    },
+    {
+      "id": "REV-2024-0883",
+      "customer": "MegaCorp Industries",
+      "type": "Escalated",
+      "title": "Executive escalation request",
+      "description": "VP of Sales requested direct involvement. Customer threatening to cancel.",
+      "systemAction": "Escalate to executive sponsor",
+      "reasoning": "High-value account with renewal in 30 days. Executive involvement may save deal.",
+      "evidence": [
+        "Account value: $500K ARR",
+        "Renewal in 30 days",
+        "3 support escalations this week"
+      ],
+      "confidence": 42,
+      "urgency": "critical",
+      "status": "pending"
+    }
+  ],
+  "reviewerPerformance": {
+    "totalReviews": 847,
+    "avgReviewTime": "4.2 min",
+    "overrideRate": 12.3,
+    "agreementRate": 87.7,
+    "trainingOpportunities": 3
+  }
+}

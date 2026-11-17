@@ -1,0 +1,127 @@
+/* Naming a destination inside a connected tool. Mirrors the knowledge modal's
+   proportions so the two read as the same kind of question. */
+
+.object-picker__title {
+  font-size: var(--text-xl);
+  color: var(--color-black);
+  margin-bottom: var(--space-2);
+}
+
+.object-picker__subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin-bottom: var(--space-5);
+}
+
+/* What each kind of row answers.
+   A tree routes a pick by what it IS — a folder answers the folder question, a
+   file answers the file question — and that routing is invisible from the rows
+   alone. Both questions are stated here so a person choosing a document knows
+   which one they are answering. */
+.object-picker__picks {
+  list-style: none;
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.object-picker__pick {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  /* Reset the body's variable-font weight so this reads as explanation rather
+     than as a second heading under the title. */
+  font-variation-settings: "wght" 400;
+  letter-spacing: normal;
+}
+
+/* Shown only when a connection needs more than one thing named, so answering
+   this one does not look like the end of the task. */
+.object-picker__step {
+  display: inline-block;
+  margin-right: var(--space-2);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-gray-100);
+  color: var(--color-gray-500);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.object-picker__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  /* Capped so a workspace with hundreds of channels scrolls inside the modal
+     instead of pushing Confirm off the screen. */
+  max-height: 46vh;
+  overflow-y: auto;
+}
+
+.object-picker__search {
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  outline: none;
+}
+
+.object-picker__search:focus-visible {
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+
+.object-picker__state {
+  padding: var(--space-4) 0;
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  text-align: center;
+}
+
+.object-picker__row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.object-picker__row:hover {
+  background: var(--color-gray-50);
+}
+
+.object-picker__row--selected {
+  background: var(--color-gray-50);
+  border-color: var(--color-accent);
+}
+
+/* Re-applied explicitly: a <button> does not inherit the body's variation
+   settings, so without these the row text renders heavier than the prose
+   around it. Same reason the other custom buttons in this codebase repeat it. */
+.object-picker__row-title {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  font-variation-settings: "opsz" 32, "wght" 320;
+  letter-spacing: -0.01em;
+  color: var(--color-black);
+}
+
+.object-picker__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}

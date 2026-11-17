@@ -1,0 +1,5 @@
+# Generated tool-set data (JSON, read at runtime; validated at generation time).
+# Never hand-edited — linting it is pointless and, at 8037 Oracle tools, expensive.
+src/catalog/generated/
+dist/
+node_modules/

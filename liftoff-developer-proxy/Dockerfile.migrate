@@ -1,0 +1,12 @@
+# Migration runner image — invoked as a Cloud Run Job by the
+# developer-proxy-migrate trigger. Runs node-pg-migrate against the `developer_proxy`
+# database using the developer_proxy_migrate role (the only role with DDL privilege).
+FROM node:20-alpine
+ARG ARTIFACT_REGISTRY_TOKEN
+WORKDIR /app
+COPY package.json package-lock.json* .npmrc ./
+RUN ARTIFACT_REGISTRY_TOKEN="${ARTIFACT_REGISTRY_TOKEN}" npm ci --omit=dev
+COPY migrations ./migrations
+COPY scripts/migrate-entrypoint.sh ./scripts/
+RUN chmod +x /app/scripts/migrate-entrypoint.sh
+CMD ["/app/scripts/migrate-entrypoint.sh"]

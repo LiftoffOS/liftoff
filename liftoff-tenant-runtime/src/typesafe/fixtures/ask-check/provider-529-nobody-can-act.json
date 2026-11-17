@@ -1,0 +1,33 @@
+{
+  "set": {
+    "id": "ask_check",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "ask": {
+      "kind": "escalation",
+      "text": "The model provider returned 529 overloaded on three consecutive attempts.",
+      "requestedAction": "Retry later.",
+      "whoCanUnblock": "customer"
+    },
+    "contract": {
+      "kind": "instructions",
+      "instructions": "Every Monday, read the CRM for last week's closed deals and append one summary row to the Sales tracking sheet. Notify #sales-ops when done.",
+      "role": "You are the Sales Ops assistant for Acme."
+    },
+    "known": {
+      "inputs": "{\"week\": \"2026-W38\"}",
+      "recentToolResults": "[{\"name\": \"llm_reason\", \"success\": false, \"error\": \"529 overloaded_error\"}, {\"name\": \"llm_reason\", \"success\": false, \"error\": \"529 overloaded_error\"}]",
+      "stepOutputs": ""
+    },
+    "setting": "important"
+  },
+  "expect": {
+    "person_can_act": {
+      "choice": "no",
+      "min": 0.8
+    }
+  },
+  "note": "A provider outage is nobody's in the workspace to fix. Pins NOT_ACTIONABLE_T."
+}

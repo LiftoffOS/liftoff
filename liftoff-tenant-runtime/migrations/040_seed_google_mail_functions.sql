@@ -1,0 +1,3 @@
+-- Migration 040: Original Google Mail manifest seed (already applied)
+-- Kept as placeholder for node-pg-migrate ordering.
+-- Superseded by 042_seed_all_connector_manifest_functions.sql

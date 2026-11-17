@@ -1,0 +1,32 @@
+# connector-pg migration runner.
+# Mirror of tenant-runtime's Dockerfile.migrate — runs node-pg-migrate
+# against the connector-service's dedicated Cloud SQL instance.
+
+FROM node:20-slim
+
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY .npmrc ./
+
+ARG ARTIFACT_REGISTRY_TOKEN=""
+
+RUN npm ci --only=production
+RUN npm install node-pg-migrate
+
+COPY migrations ./migrations
+
+# Run migrations via Cloud SQL proxy (Unix socket under /cloudsql).
+# DB_USER, DB_NAME, DB_PASSWORD (secret), CLOUD_SQL_CONNECTION_NAME set
+# via Cloud Run job env vars.
+RUN echo '#!/bin/bash' > /app/run-migrations.sh && \
+    echo 'set -e' >> /app/run-migrations.sh && \
+    echo 'export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@localhost/${DB_NAME}?host=/cloudsql/${CLOUD_SQL_CONNECTION_NAME}"' >> /app/run-migrations.sh && \
+    echo 'echo "Running migrations against ${CLOUD_SQL_CONNECTION_NAME}/${DB_NAME}..."' >> /app/run-migrations.sh && \
+    echo 'npx node-pg-migrate up --migrations-dir=migrations --no-check-order --ignore-pattern ".*\.md"' >> /app/run-migrations.sh && \
+    echo 'echo "Migrations complete"' >> /app/run-migrations.sh && \
+    chmod +x /app/run-migrations.sh
+
+CMD ["/app/run-migrations.sh"]

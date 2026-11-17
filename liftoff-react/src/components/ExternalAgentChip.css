@@ -1,0 +1,109 @@
+/* External Agent Chip Styles */
+/* Follows integration chip pattern from AgentBuilder */
+
+.external-agent-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  text-align: left;
+  font-family: var(--font-sans);
+}
+
+.external-agent-chip:hover {
+  border-color: var(--border-medium);
+  background: var(--color-gray-50);
+}
+
+.external-agent-chip--selected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+}
+
+.external-agent-chip--selected:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+}
+
+.external-agent-chip__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--color-gray-100);
+  border-radius: var(--radius-md);
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.external-agent-chip--selected .external-agent-chip__icon {
+  background: var(--color-accent);
+  color: var(--color-white);
+}
+
+.external-agent-chip__icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.external-agent-chip__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.external-agent-chip__name {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-black);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.external-agent-chip__status {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  text-transform: capitalize;
+}
+
+.external-agent-chip__status--pending,
+.external-agent-chip__status--pending_review {
+  color: var(--color-warning);
+}
+
+.external-agent-chip__status--error {
+  color: var(--color-error);
+}
+
+.external-agent-chip__status--disconnected {
+  color: var(--color-gray-400);
+}
+
+.external-agent-chip__check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.external-agent-chip--selected .external-agent-chip__check {
+  background: var(--color-accent);
+  color: var(--color-white);
+}
+
+.external-agent-chip__check svg {
+  width: 12px;
+  height: 12px;
+}

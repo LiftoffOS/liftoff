@@ -1,0 +1,82 @@
+# aio-sandbox-coding — the sandbox image `code_session` runs in.
+#
+# The standard `aio-sandbox` plus the vendor coding CLIs, and nothing else.
+# It exists so `code_session` can run the coding agent in an isolated container
+# instead of in the tenant runtime's own: the runtime's service account holds
+# project-level secretmanager.secretAccessor, aiplatform.user and
+# cloudsql.client, while `sandbox-runtime` holds ZERO project roles. The
+# metadata server is reachable from both — a VPC firewall cannot block a
+# link-local address, which this estate proved with an in-sandbox curl — so the
+# difference that matters is what the token is worth, not whether it can be
+# minted.
+#
+# A SEPARATE TAG, not additions to the base. Every browser and vscode sandbox
+# pulls the base image, and these CLIs are ~400MB they would pay for on every
+# cold start without ever invoking them. `CloudRunSandboxProvider` picks the
+# repository from `SandboxConfig.template`, and only `code_session` asks for
+# this one.
+#
+# ── Pins ───────────────────────────────────────────────────────────────────
+# Every version is exact, never `@latest` or a floating range. The runtime
+# Dockerfile records why in more detail: opencode-ai publishes 10+ builds a day
+# and `@latest` once gave dev and prod different versions from builds minutes
+# apart, one of which had a startup regression that broke an engine.
+#
+# Each pin below was checked rather than guessed:
+#
+#   @anthropic-ai/claude-code   the `stable` dist-tag, not `latest`. The runner
+#                               parses `--output-format stream-json`, whose
+#                               messages are the SDK's own SDKMessage union.
+#   @openai/codex               0.144.6 advertises `--json`; the SDK at 0.146.0
+#                               passes `--experimental-json`, which THIS version
+#                               does not accept. The flag moved, so the runner's
+#                               flag and this pin have to move together —
+#                               runners/sandboxed/codex.ts names the pair.
+#   @google/gemini-cli          matched to the runtime image's pin, because the
+#                               runner reads the `stats` blob whose shape was
+#                               verified against exactly this version.
+#   opencode-ai                 matched to the RUNTIME image's pin, and they have
+#                               to move together: one runner serves both the
+#                               sandboxed and in-process families, so a version
+#                               here that differs from the runtime's means the
+#                               same code parses two different event streams
+#                               depending only on CODE_SESSION_EXECUTION.
+#
+# Bump deliberately, and re-check the flags when you do.
+
+ARG BASE_IMAGE
+# hadolint ignore=DL3006
+FROM ${BASE_IMAGE}
+
+# root ONLY for the install, then straight back.
+#
+# The base runs as `sandbox` (verified: `docker image inspect` reports
+# USER=sandbox, WORKDIR=/sidecar), and a global npm install needs to write to
+# the shared prefix. Building this without the switch fails with an npm
+# permissions error, which is how it was found — and because the build step is
+# deliberately non-blocking, the failure would otherwise have surfaced as a
+# missing image at the moment someone first set CODE_SESSION_EXECUTION=sandbox.
+#
+# npm is expected to be present in the base. If it is not, this fails at BUILD
+# time with "npm: not found", which is the right place to find out — the
+# alternative is a sandbox that provisions happily and then reports
+# "command not found" to an agent midway through a coding task.
+USER root
+RUN npm install -g \
+      @anthropic-ai/claude-code@2.1.236 \
+      @openai/codex@0.144.6 \
+      @google/gemini-cli@0.52.0 \
+      opencode-ai@1.18.7 \
+ && npm cache clean --force
+
+# Back to the base's own user. Agent code must not gain root here just because
+# the image was extended: the isolation this whole path buys is a container and
+# a service account, and running as root inside it gives some of that back.
+USER sandbox
+
+# Prove the binaries are on PATH — AS THE USER THAT WILL RUN THEM, which is why
+# this comes after the USER switch rather than beside the install. A missing
+# binary here is a build failure; the same missing binary at run time is exit
+# 127 inside a sandbox, which reaches the calling agent as a coding session that
+# did nothing and explained nothing.
+RUN command -v claude && command -v codex && command -v gemini && command -v opencode

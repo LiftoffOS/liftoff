@@ -1,0 +1,131 @@
+/* Insights Chat History Modal — follows the .assignment-modal pattern from
+ * src/pages/Dashboard/AgentsPage.css. Same outer shape (centered, fixed
+ * width, scrollable list, max-height clamp), but no .modal-actions footer
+ * because there's nothing to save or cancel. */
+
+.insights-chat-history-modal {
+  text-align: left;
+  max-width: 480px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+}
+
+.insights-chat-history-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.insights-chat-history-modal__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+}
+
+.insights-chat-history-modal__close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--color-gray-400);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.insights-chat-history-modal__close:hover {
+  background: var(--color-gray-100);
+  color: var(--color-black);
+}
+
+.insights-chat-history-modal > .text-input {
+  margin-bottom: var(--space-3);
+}
+
+.insights-chat-history-modal__list {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  max-height: 480px;
+  padding-right: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.insights-chat-history-modal__empty {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  padding: var(--space-6) 0;
+  text-align: center;
+}
+
+/* Wrapper for the global .loading-spinner while the thread list loads — keeps
+ * the vertical breathing room the old text loader had and centers the spinner. */
+.insights-chat-history-modal__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) 0;
+}
+
+.insights-chat-history-modal__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-3);
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.insights-chat-history-modal__row:hover {
+  background-color: var(--color-gray-50);
+}
+
+.insights-chat-history-modal__row:focus-visible {
+  outline: 2px solid var(--color-black);
+  outline-offset: 2px;
+}
+
+.insights-chat-history-modal__row--active {
+  background-color: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+}
+
+.insights-chat-history-modal__row-title {
+  flex: 1;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-black);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.insights-chat-history-modal__row-time {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  font-variant-numeric: tabular-nums;
+}
+
+.insights-chat-history-modal__sentinel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) 0;
+  min-height: 1px;
+}

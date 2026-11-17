@@ -1,0 +1,119 @@
+#!/usr/bin/env sh
+# docs/invariants.md fitness functions, before the branch leaves the machine.
+#
+# The CI job (.github/workflows/ci.yml: `invariants`) is the real gate, but
+# whether it can BLOCK a merge is branch-protection configuration that does not
+# live in this repo — so a check that exists in CI is not the same as a check
+# that stops anything. This hook closes that gap from the side the repo does
+# control, and gives the faster feedback besides: a violation surfaces before
+# the push rather than after the PR is open.
+#
+# pre-push rather than pre-commit on purpose. The change-rules diff against
+# origin/main, so they are a property of the BRANCH, not of one commit, and
+# running them per-commit would re-check the same diff on every amend.
+#
+# INV-PB-002 / 006 / 007 have no other automated enforcement — the rest delegate
+# to eslint, a grep gate, or a verification test.
+scripts/check-invariants.sh --changed
+
+# And the migrations, when they changed.
+#
+# This repo has 300+ of them and a test suite with no database, so a migration's
+# SQL is not executed anywhere until the migrate step runs it against Cloud SQL,
+# after the images are built. The tenant-runtime lost a morning to exactly that
+# (42803, a window function inside an aggregate's arguments) and took an
+# unrelated colleague's migration down with it, because node-pg-migrate applies
+# the pending batch in ONE transaction.
+#
+# The freshly migrated scratch database is also the only place the registry
+# drift ratchet can run — every model id a request can reach must have an
+# approved `models` row, and every tier must resolve to the same id in the
+# registry and in the code constant. The unit suite has no database and excludes
+# *.integration.test.ts, so without a migrated database that ratchet runs
+# nowhere.
+#
+# CI is the gate; this is the fast half. It SKIPS rather than fails when there is
+# no local Postgres, because refusing a push over a missing optional dependency
+# teaches people to pass --no-verify, which costs the real protection to keep a
+# fake one.
+# The range comes from git itself, on stdin: one line per ref being pushed,
+# `<local ref> <local sha> <remote ref> <remote sha>`. That is the only source
+# that describes what this push actually contains.
+#
+# Deriving it instead is what the first version of this hook did, and it was
+# wrong on its own first push: a topic branch with no upstream fell back to
+# HEAD~1...HEAD, the migrations had changed two commits earlier, and the check
+# skipped without a word on the very push it was written for. A hook that is
+# silent when it should run is worse than no hook, because the silence reads
+# like a pass.
+#
+# An all-zero remote sha means the branch is new on the remote, so there is no
+# "before" to diff against; fall back to where it left origin/main.
+MIGRATIONS_CHANGED=''
+while read -r _local_ref local_sha _remote_ref remote_sha; do
+  [ -z "$local_sha" ] && continue
+  case "$local_sha" in *[!0]*) ;; *) continue ;; esac   # a deletion, nothing to check
+  case "$remote_sha" in
+    *[!0]*) BASE="$remote_sha" ;;
+    *)      BASE=$(git merge-base "$local_sha" origin/main 2>/dev/null || echo '') ;;
+  esac
+  if [ -n "$BASE" ]; then
+    CHANGED=$(git diff --name-only "$BASE" "$local_sha" -- migrations/ 2>/dev/null || echo '')
+  else
+    CHANGED=$(git show --name-only --format= "$local_sha" -- migrations/ 2>/dev/null || echo '')
+  fi
+  MIGRATIONS_CHANGED="$MIGRATIONS_CHANGED$CHANGED"
+done
+
+# Run by hand rather than by git, so stdin carried nothing: check the branch.
+if [ -z "$MIGRATIONS_CHANGED" ] && [ ! -t 0 ]; then
+  :
+elif [ -z "$MIGRATIONS_CHANGED" ]; then
+  BASE=$(git merge-base HEAD origin/main 2>/dev/null || echo '')
+  [ -n "$BASE" ] && MIGRATIONS_CHANGED=$(git diff --name-only "$BASE" HEAD -- migrations/ 2>/dev/null || echo '')
+fi
+
+if [ -n "$MIGRATIONS_CHANGED" ]; then
+  if ! command -v createdb >/dev/null 2>&1 || ! pg_isready -q >/dev/null 2>&1; then
+    echo "pre-push: migrations changed, but no local Postgres — skipping the migration check (CI still runs it)"
+  else
+    DB="pb_migrate_verify_$$"
+    createdb "$DB" >/dev/null 2>&1 && {
+      URL="postgres://$(whoami)@localhost:5432/$DB"
+      DATABASE_URL="$URL" sh scripts/ci/verify-migrations.sh
+      STATUS=$?
+      # Only worth asking whether the registry agrees with the code constants
+      # once the migrations actually applied — otherwise the database in front
+      # of us is not the one the answer is about.
+      DRIFT=0
+      READS=0
+      ROWS=0
+      FLAGS=0
+      if [ $STATUS -eq 0 ]; then
+        DATABASE_URL="$URL" sh scripts/ci/check-registry-drift.sh
+        DRIFT=$?
+        # Same database, same reasoning: the export's reads are asserted
+        # against the schema the migrations just produced.
+        DATABASE_URL="$URL" sh scripts/ci/check-workspace-export-reads.sh
+        READS=$?
+        # And the continuation rows' states, on the same database.
+        DATABASE_URL="$URL" sh scripts/ci/check-chat-continuations.sh
+        ROWS=$?
+        # And that the rows a gate is switched on by survived the chain: a
+        # missing feature_flags row reads exactly like a gate turned off.
+        DATABASE_URL="$URL" sh scripts/ci/check-seeded-feature-flags.sh
+        FLAGS=$?
+      fi
+      dropdb --if-exists "$DB" >/dev/null 2>&1 || true
+      [ $STATUS -eq 1 ] && exit 1
+      [ $DRIFT -eq 1 ] && exit 1
+      [ $READS -eq 1 ] && exit 1
+      [ $ROWS -eq 1 ] && exit 1
+      [ $FLAGS -eq 1 ] && exit 1
+      # The block's status is its last command's, and a passing check leaves
+      # `[ 0 -eq 1 ]` false: without this the "could not create" line below
+      # printed after every green run.
+      :
+    } || echo "pre-push: could not create a scratch database — skipping (CI still runs it)"
+  fi
+fi

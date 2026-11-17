@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/governance-preflight.response.schema.json",
+  "title": "GovernancePreflightResponse",
+  "description": "Response from POST /api/governance/preflight.",
+  "type": "object",
+  "required": [
+    "admissionStatus",
+    "hitlLevel",
+    "killSwitchState",
+    "allowlists",
+    "preflightToken",
+    "version"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "admissionStatus": {
+      "type": "string",
+      "enum": ["admitted", "throttled", "blocked"]
+    },
+    "admissionReason": {
+      "type": "string",
+      "enum": [
+        "credits_exhausted",
+        "rate_limit",
+        "kill_switch_global",
+        "kill_switch_tenant",
+        "kill_switch_agent",
+        "kill_switch_connector",
+        "abuse_suspected"
+      ]
+    },
+    "hitlLevel": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "killSwitchState": {
+      "type": "object",
+      "required": ["global"],
+      "additionalProperties": false,
+      "properties": {
+        "global": { "type": "boolean" },
+        "tenant": { "type": "boolean" },
+        "agent": { "type": "array", "items": { "type": "string" } },
+        "connector": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "allowlists": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["connector", "entityType", "actionType"],
+        "additionalProperties": false,
+        "properties": {
+          "connector": { "type": "string", "minLength": 1 },
+          "entityType": { "type": "string", "minLength": 1 },
+          "actionType": { "type": "string", "minLength": 1 },
+          "scopePattern": { "type": "string" }
+        }
+      }
+    },
+    "preflightToken": { "type": "string", "minLength": 1 },
+    "version": { "type": "integer", "minimum": 0 }
+  }
+}

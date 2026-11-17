@@ -1,0 +1,1680 @@
+[
+  {
+    "tool": "create_resources_api_public_webhook_subscriptions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_api_public_webhook_subscriptions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_api_public_webhook_subscriptions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_approvals_materialized_approvals_flows_appr",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_approvals_materialized_approvals_flows_reje",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_ats_answers",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_ats_applications",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_ats_applications",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_ats_applications",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_ats_applications_apply",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_ats_applications_move_to_phase",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_ats_candidates",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_ats_candidates",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_ats_candidates",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_ats_evaluation_forms_save_as_template",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_ats_feedbacks",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_ats_feedbacks",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_ats_feedbacks",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_ats_job_postings",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_ats_job_postings",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_ats_job_postings",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_ats_job_postings_duplicate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_ats_messages",
+    "categories": [
+      "dataChanges",
+      "customerCommunication"
+    ]
+  },
+  {
+    "tool": "create_resources_ats_questions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_ats_questions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_ats_questions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_attendance_break_configurations",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_attendance_break_configurations",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_attendance_edit_timesheet_requests",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_attendance_edit_timesheet_requests",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_attendance_edit_timesheet_requests",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_attendance_overtime_requests",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_attendance_overtime_requests",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_attendance_overtime_requests",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_attendance_overtime_requests_approve",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_attendance_overtime_requests_reject",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_attendance_reviews_bulk_create",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_attendance_reviews_bulk_destroy",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_attendance_shifts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_attendance_shifts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_attendance_shifts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_attendance_shifts_autofill",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_attendance_shifts_break_end",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_attendance_shifts_break_start",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_attendance_shifts_clock_in",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_attendance_shifts_clock_out",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_attendance_shifts_toggle_clock",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_banking_bank_accounts_create_manual",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_resources_bookkeepers_management_incidences",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_companies_legal_entities",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_contracts_compensations",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_resources_contracts_compensations",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "delete_resources_contracts_compensations",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_resources_contracts_contract_versions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_contracts_contract_versions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_contracts_contract_versions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_contracts_spanish_contract_types",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_contracts_spanish_education_levels",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_contracts_spanish_professional_categories",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_contracts_spanish_working_day_types",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_custom_fields_fields",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_custom_fields_fields",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_custom_fields_options",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_custom_fields_resource_fields",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_custom_fields_values",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_custom_fields_values",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_custom_resources_schemas",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_custom_resources_values",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_documents_documents",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_documents_documents",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_documents_documents",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_documents_documents_move_to_trash_bin",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_documents_documents_restore_from_trash_bin",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_documents_download_urls_bulk_create",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_documents_folders",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_documents_folders",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_employees_employees",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_employees_employees_create_with_contract",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_employees_employees_invite",
+    "categories": [
+      "dataChanges",
+      "customerCommunication"
+    ]
+  },
+  {
+    "tool": "create_resources_employees_employees_set_regular_access_star",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_employees_employees_terminate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_employees_employees_unterminate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_expenses_expensables_bulk_set_to_paid",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_expenses_expensables_update_reimbursable_am",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_finance_accounts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_finance_accounts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_finance_accounting_settings_upsert",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_finance_contacts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_finance_contacts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_finance_cost_centers",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_finance_cost_centers",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_finance_cost_centers_edit",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_finance_cost_center_memberships_bulk_create",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_finance_journal_entries",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_finance_ledger_account_resources_upsert",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_finance_tax_rates",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_resources_finance_tax_rates",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_resources_finance_tax_types",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_resources_finance_tax_types",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_resources_integrations_sync_run_outputs",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_integrations_syncable_sync_runs",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_it_management_it_assets",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_it_management_it_assets",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_it_management_it_assets",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_it_management_it_asset_models",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_it_management_it_asset_models",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_locations_locations",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_locations_locations",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_locations_locations",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_locations_work_areas",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_locations_work_areas",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_locations_work_areas_archive",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_locations_work_areas_unarchive",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_marketplace_installations",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_payroll_family_situations",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_resources_payroll_family_situations",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_resources_payroll_policy_periods_change_status",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_resources_payroll_supplements",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_resources_payroll_supplements",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "delete_resources_payroll_supplements",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_resources_payroll_employees_identifiers",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_resources_payroll_employees_identifiers",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "delete_resources_payroll_employees_identifiers",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_resources_payroll_integrations_base_codes",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_resources_payroll_integrations_base_codes",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "delete_resources_payroll_integrations_base_codes",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_agreements_bulk_initiate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_agreements_initiate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_company_employee_score_scales_s",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_evaluations_replace_revi",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_performance_review_owners",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_owners_bulk_create",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_performance_review_processes",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_create_from_te",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_duplicate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_remind_in_bulk",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_remove_schedul",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_reopen",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_schedule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_start",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_stop",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_toggle_archive",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_update_agreeme",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_update_basic_i",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_update_compete",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_update_deadlin",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_update_employe",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_update_reviewe",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_update_schedul",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_processes_update_target_",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_performance_review_process_targets",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_process_targets_add_peer",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_process_targets_bulk_cre",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_process_targets_remove_p",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_questionnaire_by_strateg",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_performance_review_questionnaire_by_strateg_update_questionnaire_for_strategy",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_performance_review_visibility_settings",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_posts_comments",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_posts_comments",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_posts_comments",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_posts_groups",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_posts_groups",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_posts_groups",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_posts_groups_archive",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_posts_posts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_posts_posts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_posts_posts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_budget_strategies",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_project_management_budget_strategies",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_project_management_budget_strategies",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_project_management_planned_records",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_project_management_planned_records",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_planned_records_bulk_cre",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_projects",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_project_management_projects",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_projects_activate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_projects_change_assignme",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_projects_change_status",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_projects_close",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_projects_soft_delete",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_project_tasks",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_project_management_project_tasks",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_project_tasks_bulk_destr",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_project_tasks_bulk_dupli",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_project_workers",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_project_workers_bulk_ass",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_project_workers_bulk_cre",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_project_workers_unassign",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_subprojects",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_project_management_subprojects",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_project_management_subprojects",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_subprojects_rename",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_time_records",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_project_management_time_records",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_time_records_bulk_delete",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_time_records_bulk_proces",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_project_management_time_records_update_proj",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_shift_management_shifts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_shift_management_shifts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_shift_management_shifts_bulk_create",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_shift_management_shifts_bulk_delete",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_tasks_tasks",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_tasks_tasks",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_tasks_tasks",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_tasks_tasks_bulk_create",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_tasks_tasks_bulk_delete",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_tasks_tasks_bulk_update",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_tasks_tasks_copy",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_tasks_tasks_create_comment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_tasks_task_files",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_tasks_task_files",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_teams_memberships",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_teams_memberships",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_teams_memberships",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_teams_teams",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_teams_teams",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_teams_teams",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_timeoff_allowances",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_timeoff_allowances",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_timeoff_allowances",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_timeoff_allowances_delete_with_alt_allowanc",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_timeoff_allowance_incidences",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_timeoff_allowance_incidences",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_timeoff_allowance_incidences",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_timeoff_blocked_periods",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_timeoff_blocked_periods",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_timeoff_blocked_periods",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_timeoff_leaves",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_timeoff_leaves",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_timeoff_leaves",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_timeoff_leaves_approve",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_timeoff_leaves_approve_all",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_timeoff_leaves_reject",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_timeoff_leave_types",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_timeoff_leave_types",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_timeoff_policies",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_timeoff_policies",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_timeoff_policies",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_timeoff_policy_assignments",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_timeoff_policy_assignments",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_timeoff_policy_assignments",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_time_planning_planned_breaks_bulk_create",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_time_planning_planning_versions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_time_planning_planning_versions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_time_planning_planning_versions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_time_planning_planning_versions_bulk_create",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_time_settings_break_configurations",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_time_settings_break_configurations",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_trainings_categories",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_trainings_categories",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_trainings_sessions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_trainings_sessions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_trainings_sessions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_trainings_session_access_memberships_bulk_c",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_trainings_session_access_memberships_bulk_d",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_trainings_session_attendances_bulk_update",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_trainings_trainings",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_trainings_trainings",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_trainings_trainings",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_trainings_trainings_bulk_delete",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_trainings_trainings_bulk_update_catalog",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_trainings_trainings_update_status",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_trainings_training_classes",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_trainings_training_classes",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_trainings_training_classes",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_trainings_training_memberships",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_trainings_training_memberships_bulk_create",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_trainings_training_memberships_bulk_destroy",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_work_schedule_day_configurations_bulk_cud",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_work_schedule_overlap_periods",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_work_schedule_overlap_periods",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_resources_work_schedule_overlap_periods",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_work_schedule_schedules",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_resources_work_schedule_schedules",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_resources_work_schedule_schedules_toggle_archive",
+    "categories": [
+      "dataChanges"
+    ]
+  }
+]

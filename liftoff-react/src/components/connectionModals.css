@@ -1,0 +1,306 @@
+/* Connection-modal styles — shared by ConnectionsPage's connection-management
+   modal AND ConnectIntegrationModal (rendered by IntegrationsSelector on the
+   AgentBuilder/TeamUpdate pages). Single source of truth: imported from the
+   route-level modules (ConnectionsPage, IntegrationsStep, AgentUpdatePage), never
+   from the components themselves — those are re-exported by the components barrel
+   App.tsx pulls, so a CSS side-effect import there would leak into the entry chunk. */
+/* Sync Info */
+.connection-modal__sync-info {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  margin: 0 0 var(--space-4);
+}
+/* Modal Content Styles */
+.connection-modal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--space-4);
+  background: var(--color-gray-50);
+  border-radius: 12px;
+}
+.connection-modal__icon svg {
+  width: 32px;
+  height: 32px;
+}
+.connection-modal__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0 0 var(--space-2);
+}
+.connection-modal__description {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin: 0 0 var(--space-4);
+  line-height: 1.5;
+}
+.connection-modal__help-link {
+  font-size: var(--text-xs);
+  margin: 0 0 var(--space-4);
+}
+.connection-modal__help-link a {
+  color: var(--color-black);
+  text-decoration: underline;
+}
+.connection-modal__step-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-2);
+}
+.connection-modal__step-indicator {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-gray-400);
+}
+.connection-modal__step-title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+}
+.connection-modal__status-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-gray-400);
+  margin-bottom: var(--space-4);
+}
+.connection-modal__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.connection-modal__status-dot--connected {
+  background: var(--status-success);
+}
+.connection-modal__status-row .status-dot--connected {
+  background: var(--status-success);
+}
+.connection-modal__objects {
+  text-align: left;
+  padding: var(--space-3);
+  background: var(--color-gray-50);
+  border-radius: 8px;
+  margin-bottom: var(--space-4);
+}
+.connection-modal__objects-label {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-gray-700);
+  margin-bottom: var(--space-2);
+}
+.connection-modal__objects-list {
+  font-size: var(--text-sm);
+  color: var(--color-gray-700);
+}
+
+/* The list is a <span> in the syncing-objects case and a <p> in the
+   disconnect-consequences case; the paragraph needs its default margins gone
+   and its line length made readable. */
+p.connection-modal__objects-list {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.connection-modal__objects .connection-modal__help-link {
+  margin: var(--space-2) 0 0;
+}
+.connection-modal__objects-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.connection-modal__object-tag {
+  padding: 4px 10px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-black);
+  background: var(--color-white);
+  border-radius: 9999px;
+}
+/* Footer actions. Every button here is the shared <Button> component at its
+   standard size — exactly one primary CTA (Done / Save / Continue / Connect X /
+   Add), the rest grey outline. Buttons stay on ONE row (no flex-wrap — wrapping
+   onto a second line looks broken). To keep the three-button reconnect footer
+   from exceeding the modal, the reconnect CTA is just "Connect" (no connector
+   name) — see ConnectIntegrationModal. */
+.connection-modal__actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+}
+/* API Key Modal Fields */
+
+.connection-modal__fields {
+  text-align: left;
+  margin-bottom: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.connection-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.connection-modal__field-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-black);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.connection-modal__field-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: var(--text-sm);
+  font-family: inherit;
+  color: var(--color-black);
+  background: var(--color-white);
+  border: 1px solid var(--border-medium, #d4d4d4);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+.connection-modal__field-input::placeholder {
+  color: var(--color-gray-400);
+}
+.connection-modal__field-input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(251, 65, 31, 0.1);
+}
+.connection-modal__field-input:disabled {
+  background: var(--color-gray-50);
+  cursor: not-allowed;
+}
+.connection-modal__field-input--error {
+  border-color: #ef4444;
+}
+.connection-modal__field-input--error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+.connection-modal__field-error {
+  font-size: var(--text-xs);
+  color: #ef4444;
+}
+/* GitHub App install-target picker (GitHubInstallTargetModal). One row per
+   account the connected user could install on. Every row stays selectable:
+   a non-owner is allowed to REQUEST an install, so `canInstall` only changes
+   the hint text. */
+.install-target-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-align: left;
+  margin-bottom: var(--space-4);
+}
+
+.install-target {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px var(--space-3);
+  background: var(--color-white);
+  border: 1px solid var(--border-medium, #d4d4d4);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.install-target:hover {
+  border-color: var(--color-gray-300);
+}
+
+.install-target--selected {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(251, 65, 31, 0.1);
+}
+
+.install-target__radio {
+  accent-color: var(--color-accent);
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.install-target__login {
+  /* An org login has no spaces to break at, so it needs an explicit escape or
+     it pushes the hint out of the box. */
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-black);
+}
+
+.install-target__hint {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}
+
+/* Credential Hint (masked API key display) */
+
+.connection-modal__credential-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px var(--space-3);
+  background: var(--color-gray-50);
+  border-radius: 8px;
+  margin-bottom: var(--space-4);
+}
+.connection-modal__credential-hint-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.connection-modal__credential-hint-value {
+  /* Match the label's size (--text-xs) — a 14px monospace value next to an 11px
+     uppercase label reads as oversized/unbalanced. */
+  font-size: var(--text-xs);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--color-black);
+  letter-spacing: 0.02em;
+  /* A URL or a key has no spaces to break at, so without this it runs past the
+     modal edge. It also keeps this row out of the width calculation on a
+     .modal-overlay__content--fit box, where an unbreakable value would size the
+     whole modal to the length of one endpoint. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+/* The shared Dropdown is full-width by default, which in this space-between row
+   would stretch the control across everything the label does not use. Sizing it
+   to its own widest option keeps it looking like the TextInput in the row above. */
+.connection-modal__credential-hint .dropdown {
+  width: auto;
+}
+.connection-modal__loading {
+  padding: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+}
+
+/* Separate from __loading, which also carries prose (the orphaned-entry
+   message in ManageCustomMcpServerModal) and must stay left-aligned text. */
+.connection-modal__spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}

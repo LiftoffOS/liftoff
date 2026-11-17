@@ -1,0 +1,205 @@
+/* FormLayout — shared form layout utilities used across all pages.
+   Provides consistent form row spacing, label styling, input sizing,
+   dropdown overrides, and action button positioning. */
+
+.form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.form-layout__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.form-layout__row-group {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.form-layout__row--flex {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-layout__row--small {
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.form-layout__label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+}
+
+.form-layout__input {
+  width: 100%;
+  padding: 14px 20px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: 9999px;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.form-layout__input:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+
+.form-layout__input::placeholder {
+  color: var(--color-gray-400);
+}
+
+.form-layout__select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+/* Dropdown sized to match form inputs */
+.form-layout__dropdown {
+  display: block;
+  width: 100%;
+}
+
+.form-layout__dropdown .dropdown__trigger {
+  width: 100%;
+  padding: 14px 20px;
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: 9999px;
+  font-size: var(--text-sm);
+  justify-content: space-between;
+}
+
+.form-layout__dropdown .dropdown__trigger-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.form-layout__dropdown .dropdown__menu {
+  width: 100%;
+}
+
+.form-layout__hint {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}
+
+.form-layout__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.form-layout__actions > * {
+  min-width: 100px;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Page Form Layout — shared page shell for all form-heavy pages
+   ────────────────────────────────────────────────────────────── */
+.page-form {
+  position: relative;
+  min-height: 100vh;
+  padding: var(--space-6);
+  background: var(--color-white);
+}
+
+.page-form__content {
+  max-width: 640px;
+  margin: 0 auto;
+  padding-top: calc(40px + var(--space-6));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.page-form__header {
+  margin-bottom: 0;
+}
+
+.page-form__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-2xl);
+  color: var(--color-black);
+  margin-bottom: var(--space-1);
+}
+
+.page-form__subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+}
+
+.page-form__sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.page-form__next-step {
+  margin-top: var(--space-6);
+  text-align: center;
+}
+
+.page-form__next-step p {
+  margin: 0 0 var(--space-3);
+  color: var(--color-gray-400);
+}
+
+@media (max-width: 640px) {
+  .page-form {
+    padding: var(--space-4);
+  }
+
+  .page-form__content {
+    gap: var(--space-6);
+  }
+}
+
+/* Legacy aliases — form classes map to form-layout for backwards compatibility */
+.form { display: flex; flex-direction: column; gap: var(--space-4); }
+.form__row { display: flex; flex-direction: column; gap: var(--space-2); }
+.form__row-group { display: flex; gap: var(--space-3); }
+.form__row-group .dropdown__trigger { width: 100%; padding: 14px 20px; background: var(--color-gray-50); border: 1px solid var(--border-light); border-radius: 9999px; font-size: var(--text-sm); justify-content: space-between; }
+.form__row--flex { flex: 1; min-width: 0; }
+.form__row--small { width: 100px; flex-shrink: 0; }
+.form__label { font-size: var(--text-sm); font-weight: 600; color: var(--color-black); margin: 0; }
+.form__input { width: 100%; padding: 14px 20px; font-family: var(--font-sans); font-size: var(--text-sm); color: var(--color-black); background: var(--color-gray-50); border: 1px solid var(--border-light); border-radius: 9999px; outline: none; transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out); }
+.form__input:focus-visible { outline: none; border-color: var(--color-accent); box-shadow: var(--focus-ring); }
+.form__input::placeholder { color: var(--color-gray-400); }
+.form__input--ein { max-width: 200px; }
+.form__select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; cursor: pointer; }
+.form__dropdown { display: block; width: 100%; }
+.form__dropdown .dropdown__trigger { width: 100%; padding: 14px 20px; background: var(--color-gray-50); border: 1px solid var(--border-light); border-radius: 9999px; font-size: var(--text-sm); justify-content: space-between; }
+.form__dropdown .dropdown__trigger-icon { width: 12px; height: 12px; flex-shrink: 0; }
+.form__dropdown .dropdown__menu { width: 100%; }
+.form__hint { font-size: var(--text-xs); color: var(--color-gray-400); }
+/* Centers the global .loading-spinner where a form or page-form section is
+   waiting on data, keeping the vertical room the old text loader occupied. */
+.form__loading { display: flex; align-items: center; justify-content: center; padding: var(--space-6) 0; }
+.form__actions { display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-6); }
+.form__actions > * { min-width: 100px; }
+
+/* Read/act list rows — a labelled row with a trailing status or action button.
+   No chrome (no background, border, or divider); the label matches form labels. */
+.form__list { display: flex; flex-direction: column; gap: var(--space-3); }
+.form__list-item { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.form__list-item-label { font-size: var(--text-sm); font-weight: 600; color: var(--color-black); margin: 0; }
+.form__list-item-meta { font-size: var(--text-sm); color: var(--color-gray-400); }
+.form__list-item-text { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }

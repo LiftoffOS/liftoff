@@ -1,0 +1,43 @@
+{
+  "set": {
+    "id": "memory_used",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "memories": [
+      {
+        "memory": 0,
+        "id": "m-hubspot",
+        "content": "The HubSpot deals export omits rows whose region field is empty; filter on region before summing."
+      },
+      {
+        "memory": 1,
+        "id": "m-priya",
+        "content": "Priya prefers the weekly summary as short bullet points."
+      },
+      {
+        "memory": 2,
+        "id": "m-printer",
+        "content": "The office printer on floor 2 needs the manual feed for A3 paper."
+      }
+    ],
+    "run": {
+      "objective": "Answer a billing question from a customer.",
+      "toolTrail": "[{\"name\": \"gmail-3c1d__get_thread\", \"success\": true}, {\"name\": \"gmail-3c1d__send_email\", \"success\": true}]",
+      "outcomeSummary": "Routed the customer's invoice question to the finance team and confirmed receipt by email."
+    }
+  },
+  "expect": {
+    "used_0": {
+      "max": 0.3
+    },
+    "used_1": {
+      "max": 0.3
+    },
+    "used_2": {
+      "max": 0.3
+    }
+  },
+  "note": "A run that never touched any memory's subject."
+}

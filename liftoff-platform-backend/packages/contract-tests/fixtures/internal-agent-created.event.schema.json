@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/internal-agent-created.event.schema.json",
+  "title": "InternalAgentCreatedEvent",
+  "description": "Pub/Sub envelope for the tenant.internal_agent.created event published by platform-backend and consumed by tenant-runtime.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "entityType",
+    "entityId",
+    "entityVersion",
+    "eventVersion",
+    "eventType",
+    "tenantId",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "entityType": { "const": "internal_agent" },
+    "entityId": { "type": "string", "format": "uuid" },
+    "entityVersion": { "type": "integer", "minimum": 1 },
+    "eventVersion": { "type": "integer", "minimum": 1 },
+    "eventType": { "const": "tenant.internal_agent.created" },
+    "tenantId": { "type": "string", "format": "uuid" },
+    "payload": {
+      "type": "object",
+      "required": ["internalAgentId", "name", "agentType"],
+      "allOf": [
+        {
+          "if": {
+            "properties": { "agentType": { "const": "workflow" } },
+            "required": ["agentType"]
+          },
+          "then": {
+            "required": ["workflowSteps", "triggerConfig"]
+          }
+        }
+      ],
+      "properties": {
+        "internalAgentId": { "type": "string", "format": "uuid" },
+        "name": { "type": "string", "minLength": 1 },
+        "agentType": { "enum": ["agent", "workflow"] },
+        "hitlLevel": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "triggerConfig": {
+          "type": "object",
+          "properties": {
+            "type": { "enum": ["cron", "event", "manual"] },
+            "cronExpr": { "type": "string" },
+            "eventTopic": { "type": "string" },
+            "timezone": { "type": "string" }
+          },
+          "required": ["type"]
+        },
+        "workflowSteps": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/WorkflowStep" },
+          "maxItems": 50
+        },
+        "systemPrompt": { "type": ["string", "null"] },
+        "userInstructions": { "type": ["string", "null"] }
+      }
+    }
+  },
+  "definitions": {
+    "WorkflowStep": {
+      "type": "object",
+      "required": ["stepId", "description"],
+      "properties": {
+        "stepId": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "toolName": { "type": "string" },
+        "toolInput": { "type": "object" },
+        "toolInputTemplate": { "type": "string", "maxLength": 16384 },
+        "outputField": { "type": "string" },
+        "condition": { "type": "string" },
+        "onSuccess": { "type": "string" },
+        "onFailure": { "type": "string" },
+        "loop": {
+          "type": "object",
+          "required": ["over"],
+          "properties": {
+            "over": { "type": "string" },
+            "itemVar": { "type": "string" },
+            "maxIterations": { "type": "integer", "minimum": 1, "maximum": 1000 },
+            "collect": { "type": "boolean" }
+          }
+        },
+        "retry": {
+          "type": "object",
+          "required": ["maxAttempts"],
+          "properties": {
+            "maxAttempts": { "type": "integer", "minimum": 1 },
+            "backoffMs": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "timeoutMs": { "type": "integer", "minimum": 1 },
+        "requiresApproval": { "type": "boolean" },
+        "idempotencyKey": { "type": "string" }
+      }
+    }
+  }
+}

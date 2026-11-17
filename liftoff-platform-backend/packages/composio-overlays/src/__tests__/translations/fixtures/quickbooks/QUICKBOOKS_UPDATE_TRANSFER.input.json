@@ -1,0 +1,7 @@
+{
+  "Id": "example-Id",
+  "SyncToken": "example-SyncToken",
+  "Amount": "example-Amount",
+  "FromAccountRef": {},
+  "ToAccountRef": {}
+}

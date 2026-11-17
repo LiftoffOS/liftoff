@@ -1,0 +1,755 @@
+{
+  "connectorType": "omnisend",
+  "harvestedAt": "2026-09-15",
+  "source": "live_unauthenticated",
+  "sourceUrl": "https://mcp.omnisend.com/mcp",
+  "tools": [
+    {
+      "name": "execute",
+      "description": "Execute an Omnisend API call by tool name. You must have called tool_schema and tool_documentation for this tool_name in the session before calling execute; payload must match inputSchema from tool_schema.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tool_name": {
+            "type": "string",
+            "description": "Exact tool name as returned by search"
+          },
+          "payload": {
+            "type": "object",
+            "description": "Object whose keys match the tool input schema (path params, query, or body)",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "tool_name",
+          "payload"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "search",
+      "description": "List all Omnisend API tools available through execute, with short descriptions. The full list is always returned (any query argument is ignored).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Ignored; kept for compatibility. All tools are always returned."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "tool_documentation",
+      "description": "Return markdown for an API tool: curated notes plus a generated appendix from the live JSON Schema (enums, required fields). For raw schema only, use tool_schema.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tool_name": {
+            "type": "string",
+            "description": "Exact tool name as returned by search"
+          }
+        },
+        "required": [
+          "tool_name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "tool_schema",
+      "description": "Return the JSON Schema (inputSchema) and annotation summary for a single API tool by name.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tool_name": {
+            "type": "string",
+            "description": "Exact tool name as returned by search"
+          }
+        },
+        "required": [
+          "tool_name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "execute:delete_ab_setup_id",
+      "description": "Delete a form A/B setup",
+      "httpMethod": "DELETE",
+      "path": "/api/form-ab-setups/{abSetupID}"
+    },
+    {
+      "name": "execute:delete_automations_id",
+      "description": "Delete automation workflow",
+      "httpMethod": "DELETE",
+      "path": "/api/automations/{id}"
+    },
+    {
+      "name": "execute:delete_campaigns_id",
+      "description": "Delete campaign",
+      "httpMethod": "DELETE",
+      "path": "/api/campaigns/{id}"
+    },
+    {
+      "name": "execute:delete_category_id",
+      "description": "Delete product category",
+      "httpMethod": "DELETE",
+      "path": "/api/product-categories/{categoryID}"
+    },
+    {
+      "name": "execute:delete_contacts_tags",
+      "description": "Batch remove tags",
+      "httpMethod": "DELETE",
+      "path": "/api/contacts/tags"
+    },
+    {
+      "name": "execute:delete_email_templates_id",
+      "description": "Delete email template",
+      "httpMethod": "DELETE",
+      "path": "/api/email-templates/{id}"
+    },
+    {
+      "name": "execute:delete_email_universal_layouts_id",
+      "description": "Delete universal layout",
+      "httpMethod": "DELETE",
+      "path": "/api/email-universal-layouts/{id}"
+    },
+    {
+      "name": "execute:delete_form_id",
+      "description": "Delete form",
+      "httpMethod": "DELETE",
+      "path": "/api/forms/{formID}"
+    },
+    {
+      "name": "execute:delete_images_id",
+      "description": "Delete image",
+      "httpMethod": "DELETE",
+      "path": "/api/images/{id}"
+    },
+    {
+      "name": "execute:delete_product_id",
+      "description": "Delete product",
+      "httpMethod": "DELETE",
+      "path": "/api/products/{productID}"
+    },
+    {
+      "name": "execute:delete_segment_id",
+      "description": "Delete segment",
+      "httpMethod": "DELETE",
+      "path": "/api/segments/{segmentID}"
+    },
+    {
+      "name": "execute:get_ab_setup_id",
+      "description": "Get a form A/B setup",
+      "httpMethod": "GET",
+      "path": "/api/form-ab-setups/{abSetupID}"
+    },
+    {
+      "name": "execute:get_automations",
+      "description": "List automation workflows",
+      "httpMethod": "GET",
+      "path": "/api/automations"
+    },
+    {
+      "name": "execute:get_automations_id",
+      "description": "Get automation workflow",
+      "httpMethod": "GET",
+      "path": "/api/automations/{id}"
+    },
+    {
+      "name": "execute:get_automations_id_blocks_block_id_utm",
+      "description": "Get UTM tags for an automation block",
+      "httpMethod": "GET",
+      "path": "/api/automations/{id}/blocks/{blockID}/utm"
+    },
+    {
+      "name": "execute:get_automations_id_utm",
+      "description": "Get aggregated UTM tags for all blocks",
+      "httpMethod": "GET",
+      "path": "/api/automations/{id}/utm"
+    },
+    {
+      "name": "execute:get_batch_id",
+      "description": "Get batch information",
+      "httpMethod": "GET",
+      "path": "/api/batches/{batchID}"
+    },
+    {
+      "name": "execute:get_batches",
+      "description": "Get batches",
+      "httpMethod": "GET",
+      "path": "/api/batches"
+    },
+    {
+      "name": "execute:get_batches_batch_id_items",
+      "description": "Get batch items",
+      "httpMethod": "GET",
+      "path": "/api/batches/{batchID}/items"
+    },
+    {
+      "name": "execute:get_brand_assets_current",
+      "description": "Get brand assets",
+      "httpMethod": "GET",
+      "path": "/api/brand-assets/current"
+    },
+    {
+      "name": "execute:get_brands_current",
+      "description": "Get information about brand",
+      "httpMethod": "GET",
+      "path": "/api/brands/current"
+    },
+    {
+      "name": "execute:get_campaigns",
+      "description": "List campaigns with filtering, sorting, and cursor pagination",
+      "httpMethod": "GET",
+      "path": "/api/campaigns"
+    },
+    {
+      "name": "execute:get_campaigns_id",
+      "description": "Get campaign",
+      "httpMethod": "GET",
+      "path": "/api/campaigns/{id}"
+    },
+    {
+      "name": "execute:get_campaigns_id_utm",
+      "description": "Get campaign UTM settings",
+      "httpMethod": "GET",
+      "path": "/api/campaigns/{id}/utm"
+    },
+    {
+      "name": "execute:get_category_id",
+      "description": "Get product category",
+      "httpMethod": "GET",
+      "path": "/api/product-categories/{categoryID}"
+    },
+    {
+      "name": "execute:get_contacts",
+      "description": "List contacts",
+      "httpMethod": "GET",
+      "path": "/api/contacts"
+    },
+    {
+      "name": "execute:get_contacts_id",
+      "description": "Get contact",
+      "httpMethod": "GET",
+      "path": "/api/contacts/{id}"
+    },
+    {
+      "name": "execute:get_email_content_id",
+      "description": "Get email content",
+      "httpMethod": "GET",
+      "path": "/api/email-content/{id}"
+    },
+    {
+      "name": "execute:get_email_templates",
+      "description": "Get email templates",
+      "httpMethod": "GET",
+      "path": "/api/email-templates"
+    },
+    {
+      "name": "execute:get_email_templates_id",
+      "description": "Get email template",
+      "httpMethod": "GET",
+      "path": "/api/email-templates/{id}"
+    },
+    {
+      "name": "execute:get_email_universal_layouts",
+      "description": "Get universal layouts",
+      "httpMethod": "GET",
+      "path": "/api/email-universal-layouts"
+    },
+    {
+      "name": "execute:get_email_universal_layouts_id",
+      "description": "Get universal layout",
+      "httpMethod": "GET",
+      "path": "/api/email-universal-layouts/{id}"
+    },
+    {
+      "name": "execute:get_form_ab_setups",
+      "description": "List form A/B setups",
+      "httpMethod": "GET",
+      "path": "/api/form-ab-setups"
+    },
+    {
+      "name": "execute:get_form_id",
+      "description": "Get form",
+      "httpMethod": "GET",
+      "path": "/api/forms/{formID}"
+    },
+    {
+      "name": "execute:get_form_templates",
+      "description": "List form templates",
+      "httpMethod": "GET",
+      "path": "/api/form-templates"
+    },
+    {
+      "name": "execute:get_forms",
+      "description": "List forms",
+      "httpMethod": "GET",
+      "path": "/api/forms"
+    },
+    {
+      "name": "execute:get_forms_form_id_ab_setup_reports",
+      "description": "List A/B setup reports for a form",
+      "httpMethod": "GET",
+      "path": "/api/forms/{formID}/ab-setup/reports"
+    },
+    {
+      "name": "execute:get_forms_form_id_contacts",
+      "description": "Get form submitted contacts",
+      "httpMethod": "GET",
+      "path": "/api/forms/{formID}/contacts"
+    },
+    {
+      "name": "execute:get_forms_form_id_report",
+      "description": "Get form report",
+      "httpMethod": "GET",
+      "path": "/api/forms/{formID}/report"
+    },
+    {
+      "name": "execute:get_forms_form_id_report_periodic",
+      "description": "Get form periodic report",
+      "httpMethod": "GET",
+      "path": "/api/forms/{formID}/report/periodic"
+    },
+    {
+      "name": "execute:get_images",
+      "description": "List images",
+      "httpMethod": "GET",
+      "path": "/api/images"
+    },
+    {
+      "name": "execute:get_images_id",
+      "description": "Get image",
+      "httpMethod": "GET",
+      "path": "/api/images/{id}"
+    },
+    {
+      "name": "execute:get_product_categories",
+      "description": "List product categories",
+      "httpMethod": "GET",
+      "path": "/api/product-categories"
+    },
+    {
+      "name": "execute:get_product_id",
+      "description": "Get product",
+      "httpMethod": "GET",
+      "path": "/api/products/{productID}"
+    },
+    {
+      "name": "execute:get_products",
+      "description": "List products",
+      "httpMethod": "GET",
+      "path": "/api/products"
+    },
+    {
+      "name": "execute:get_reference_documentation",
+      "description": "Load Omnisend reference markdown for a topic (payloads, events, analytics, etc.). Use get_reference_topics to list topic ids.",
+      "httpMethod": "GET",
+      "path": "/_reference/documentation"
+    },
+    {
+      "name": "execute:get_reference_topics",
+      "description": "List configured reference topics (id, title, description). Optional query filters by substring on id, title, or description.",
+      "httpMethod": "GET",
+      "path": "/_reference/topics"
+    },
+    {
+      "name": "execute:get_segment_id",
+      "description": "Get segment",
+      "httpMethod": "GET",
+      "path": "/api/segments/{segmentID}"
+    },
+    {
+      "name": "execute:get_segments",
+      "description": "List segments",
+      "httpMethod": "GET",
+      "path": "/api/segments"
+    },
+    {
+      "name": "execute:get_segments_segment_id_statistics",
+      "description": "Get segment statistics",
+      "httpMethod": "GET",
+      "path": "/api/segments/{segmentID}/statistics"
+    },
+    {
+      "name": "execute:get_template_id",
+      "description": "Get template",
+      "httpMethod": "GET",
+      "path": "/api/form-templates/{templateID}"
+    },
+    {
+      "name": "execute:patch_automations_id",
+      "description": "Patch automation workflow",
+      "httpMethod": "PATCH",
+      "path": "/api/automations/{id}"
+    },
+    {
+      "name": "execute:patch_campaigns_id",
+      "description": "Update campaign (draft status only)",
+      "httpMethod": "PATCH",
+      "path": "/api/campaigns/{id}"
+    },
+    {
+      "name": "execute:patch_category_id",
+      "description": "Update product category",
+      "httpMethod": "PATCH",
+      "path": "/api/product-categories/{categoryID}"
+    },
+    {
+      "name": "execute:patch_contacts",
+      "description": "Update contact by email",
+      "httpMethod": "PATCH",
+      "path": "/api/contacts"
+    },
+    {
+      "name": "execute:patch_contacts_id",
+      "description": "Update contact by ID",
+      "httpMethod": "PATCH",
+      "path": "/api/contacts/{id}"
+    },
+    {
+      "name": "execute:patch_form_id",
+      "description": "Update form",
+      "httpMethod": "PATCH",
+      "path": "/api/forms/{formID}"
+    },
+    {
+      "name": "execute:post_analytics_reports",
+      "description": "Generate campaign analytics report grouped by send date",
+      "httpMethod": "POST",
+      "path": "/api/analytics/reports"
+    },
+    {
+      "name": "execute:post_analytics_statistics",
+      "description": "Generate campaign analytics report grouped by event date",
+      "httpMethod": "POST",
+      "path": "/api/analytics/statistics"
+    },
+    {
+      "name": "execute:post_automations",
+      "description": "Create automation workflow",
+      "httpMethod": "POST",
+      "path": "/api/automations"
+    },
+    {
+      "name": "execute:post_automations_id_blocks_block_id_test_email",
+      "description": "Send test email",
+      "httpMethod": "POST",
+      "path": "/api/automations/{id}/blocks/{blockID}/test-email"
+    },
+    {
+      "name": "execute:post_automations_id_copy",
+      "description": "Copy automation workflow",
+      "httpMethod": "POST",
+      "path": "/api/automations/{id}/copy"
+    },
+    {
+      "name": "execute:post_automations_id_disable",
+      "description": "Disable automation workflow",
+      "httpMethod": "POST",
+      "path": "/api/automations/{id}/disable"
+    },
+    {
+      "name": "execute:post_automations_id_enable",
+      "description": "Enable automation workflow",
+      "httpMethod": "POST",
+      "path": "/api/automations/{id}/enable"
+    },
+    {
+      "name": "execute:post_batches",
+      "description": "Create batch",
+      "httpMethod": "POST",
+      "path": "/api/batches"
+    },
+    {
+      "name": "execute:post_brands_current",
+      "description": "Connect brand",
+      "httpMethod": "POST",
+      "path": "/api/brands/current"
+    },
+    {
+      "name": "execute:post_campaigns",
+      "description": "Create campaign",
+      "httpMethod": "POST",
+      "path": "/api/campaigns"
+    },
+    {
+      "name": "execute:post_campaigns_id_ab_test_resume",
+      "description": "Resume A/B test",
+      "httpMethod": "POST",
+      "path": "/api/campaigns/{id}/ab-test/resume"
+    },
+    {
+      "name": "execute:post_campaigns_id_ab_test_stop",
+      "description": "Stop A/B test",
+      "httpMethod": "POST",
+      "path": "/api/campaigns/{id}/ab-test/stop"
+    },
+    {
+      "name": "execute:post_campaigns_id_ab_test_winner",
+      "description": "Select A/B test winner",
+      "httpMethod": "POST",
+      "path": "/api/campaigns/{id}/ab-test/winner"
+    },
+    {
+      "name": "execute:post_campaigns_id_cancel",
+      "description": "Cancel campaign",
+      "httpMethod": "POST",
+      "path": "/api/campaigns/{id}/cancel"
+    },
+    {
+      "name": "execute:post_campaigns_id_copy",
+      "description": "Copy campaign",
+      "httpMethod": "POST",
+      "path": "/api/campaigns/{id}/copy"
+    },
+    {
+      "name": "execute:post_campaigns_id_restore_to_draft",
+      "description": "Restore campaign to draft",
+      "httpMethod": "POST",
+      "path": "/api/campaigns/{id}/restoreToDraft"
+    },
+    {
+      "name": "execute:post_campaigns_id_send",
+      "description": "Send campaign",
+      "httpMethod": "POST",
+      "path": "/api/campaigns/{id}/send"
+    },
+    {
+      "name": "execute:post_campaigns_id_test_email",
+      "description": "Send campaign test email",
+      "httpMethod": "POST",
+      "path": "/api/campaigns/{id}/test-email"
+    },
+    {
+      "name": "execute:post_contacts",
+      "description": "Create or update existing contact",
+      "httpMethod": "POST",
+      "path": "/api/contacts"
+    },
+    {
+      "name": "execute:post_contacts_tags",
+      "description": "Batch add tags",
+      "httpMethod": "POST",
+      "path": "/api/contacts/tags"
+    },
+    {
+      "name": "execute:post_email_content_id_render",
+      "description": "Render email content",
+      "httpMethod": "POST",
+      "path": "/api/email-content/{id}/render"
+    },
+    {
+      "name": "execute:post_email_templates",
+      "description": "Create email template",
+      "httpMethod": "POST",
+      "path": "/api/email-templates"
+    },
+    {
+      "name": "execute:post_email_templates_id_render",
+      "description": "Render email template",
+      "httpMethod": "POST",
+      "path": "/api/email-templates/{id}/render"
+    },
+    {
+      "name": "execute:post_email_templates_import",
+      "description": "Import email template from HTML",
+      "httpMethod": "POST",
+      "path": "/api/email-templates/import"
+    },
+    {
+      "name": "execute:post_email_universal_layouts",
+      "description": "Create universal layout",
+      "httpMethod": "POST",
+      "path": "/api/email-universal-layouts"
+    },
+    {
+      "name": "execute:post_event_metadata",
+      "description": "Create custom event metadata",
+      "httpMethod": "POST",
+      "path": "/api/event-metadata"
+    },
+    {
+      "name": "execute:post_event_metadata_query",
+      "description": "Query events metadata",
+      "httpMethod": "POST",
+      "path": "/api/event-metadata/query"
+    },
+    {
+      "name": "execute:post_events_property_values_query",
+      "description": "Query event property values",
+      "httpMethod": "POST",
+      "path": "/api/events/property-values/query"
+    },
+    {
+      "name": "execute:post_events_query",
+      "description": "Query contact events",
+      "httpMethod": "POST",
+      "path": "/api/events/query"
+    },
+    {
+      "name": "execute:post_form_ab_setups",
+      "description": "Create a form A/B setup",
+      "httpMethod": "POST",
+      "path": "/api/form-ab-setups"
+    },
+    {
+      "name": "execute:post_form_ab_setups_ab_setup_id_start",
+      "description": "Start a form A/B setup",
+      "httpMethod": "POST",
+      "path": "/api/form-ab-setups/{abSetupID}/start"
+    },
+    {
+      "name": "execute:post_form_ab_setups_ab_setup_id_winner",
+      "description": "Select a form A/B setup winner",
+      "httpMethod": "POST",
+      "path": "/api/form-ab-setups/{abSetupID}/winner"
+    },
+    {
+      "name": "execute:post_form_templates_template_id_render",
+      "description": "Render a form template",
+      "httpMethod": "POST",
+      "path": "/api/form-templates/{templateID}/render"
+    },
+    {
+      "name": "execute:post_forms",
+      "description": "Create form",
+      "httpMethod": "POST",
+      "path": "/api/forms"
+    },
+    {
+      "name": "execute:post_forms_form_id_disable",
+      "description": "Disable form",
+      "httpMethod": "POST",
+      "path": "/api/forms/{formID}/disable"
+    },
+    {
+      "name": "execute:post_forms_form_id_enable",
+      "description": "Enable form",
+      "httpMethod": "POST",
+      "path": "/api/forms/{formID}/enable"
+    },
+    {
+      "name": "execute:post_forms_form_id_render",
+      "description": "Render a form",
+      "httpMethod": "POST",
+      "path": "/api/forms/{formID}/render"
+    },
+    {
+      "name": "execute:post_images",
+      "description": "Upload image by URL",
+      "httpMethod": "POST",
+      "path": "/api/images"
+    },
+    {
+      "name": "execute:post_images_upload",
+      "description": "Upload image file",
+      "httpMethod": "POST",
+      "path": "/api/images/upload"
+    },
+    {
+      "name": "execute:post_product_categories",
+      "description": "Create product category",
+      "httpMethod": "POST",
+      "path": "/api/product-categories"
+    },
+    {
+      "name": "execute:post_products",
+      "description": "Create product",
+      "httpMethod": "POST",
+      "path": "/api/products"
+    },
+    {
+      "name": "execute:post_segments",
+      "description": "Create segment",
+      "httpMethod": "POST",
+      "path": "/api/segments"
+    },
+    {
+      "name": "execute:put_automations_id_blocks",
+      "description": "Replace automation workflow blocks",
+      "httpMethod": "PUT",
+      "path": "/api/automations/{id}/blocks"
+    },
+    {
+      "name": "execute:put_automations_id_blocks_block_id_utm",
+      "description": "Update UTM tags for an automation block",
+      "httpMethod": "PUT",
+      "path": "/api/automations/{id}/blocks/{blockID}/utm"
+    },
+    {
+      "name": "execute:put_campaigns_id_utm",
+      "description": "Update campaign UTM settings",
+      "httpMethod": "PUT",
+      "path": "/api/campaigns/{id}/utm"
+    },
+    {
+      "name": "execute:put_email_content_id",
+      "description": "Update email content",
+      "httpMethod": "PUT",
+      "path": "/api/email-content/{id}"
+    },
+    {
+      "name": "execute:put_email_templates_id",
+      "description": "Update email template",
+      "httpMethod": "PUT",
+      "path": "/api/email-templates/{id}"
+    },
+    {
+      "name": "execute:put_email_universal_layouts_id",
+      "description": "Update universal layout",
+      "httpMethod": "PUT",
+      "path": "/api/email-universal-layouts/{id}"
+    },
+    {
+      "name": "execute:put_event_metadata",
+      "description": "Update custom event metadata",
+      "httpMethod": "PUT",
+      "path": "/api/event-metadata"
+    },
+    {
+      "name": "execute:put_product_id",
+      "description": "Replace product",
+      "httpMethod": "PUT",
+      "path": "/api/products/{productID}"
+    },
+    {
+      "name": "execute:put_segment_id",
+      "description": "Update segment",
+      "httpMethod": "PUT",
+      "path": "/api/segments/{segmentID}"
+    }
+  ],
+  "operationKey": {
+    "tool": "execute",
+    "arg": "tool_name"
+  }
+}

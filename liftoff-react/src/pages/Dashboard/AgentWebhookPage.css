@@ -1,0 +1,252 @@
+/* AgentWebhookPage — page-specific affordances on top of AgentUpdatePage.css.
+   Layout (.agent-update / .agent-update__content / .agent-update__section)
+   is reused verbatim so the page is structurally identical to /teams/update.
+   Component vocabulary borrows from SettingsPage.css for the code+copy row. */
+
+.webhook-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* Wraps every section below the master Status toggle. When the webhook is
+   off, the wrapper fades — the controls themselves are also disabled via
+   their own `disabled` props (kept for keyboard/screen-reader correctness
+   and as a defense-in-depth backstop on top of the visual cue). */
+.webhook-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.webhook-controls--inactive {
+  opacity: 0.5;
+}
+
+/* Credential row: tight, left-anchored code block + copy button. The code
+   block sits at its natural width (no flex:1) and ellipses when the URL
+   is wider than the container — matches the Workspace ID compact look. */
+.webhook-credential-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+
+.webhook-muted {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin: 0;
+}
+
+.webhook-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) 0;
+}
+
+.webhook-muted-inline {
+  color: var(--color-gray-400);
+}
+
+/* Code + copy — duplicated from SettingsPage.css (.settings-section__code
+   and .settings-section__copy) because that stylesheet is lazy-loaded only
+   when /dashboard/settings/* is visited. Without these rules the <code>
+   block falls back to browser defaults (large font, no background) on this
+   page when the user hasn't recently been in Settings. Keep the values
+   byte-identical to SettingsPage.css so the visual is exactly the
+   Workspace ID component. */
+.settings-section__code {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  background: var(--color-gray-100);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.settings-section__copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.settings-section__copy:hover {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+.settings-section__copy:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Webhook URL/secret strings can be ~80 chars — the workspace ID is only
+   36, so the Settings styles never had to deal with overflow. We cap the
+   code block width to the parent and ellipsis-truncate; the value is
+   still copyable in full via the copy button. */
+.webhook-code {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Inline warning under the revealed secret */
+.webhook-warning {
+  font-size: var(--text-xs);
+  color: #b45309;
+  margin: var(--space-2) 0 0 0;
+  line-height: 1.4;
+}
+
+/* Reset button row sits below the credential */
+.webhook-reset-row {
+  display: flex;
+  align-items: flex-start;
+  margin-top: var(--space-3);
+}
+
+/* Webhook confirmation dialogs (rotate-secret / reset) — a centered, icon-led
+   confirmation layout. These classes are LOCAL to this page. They previously
+   reused the connect-modal's shared class names to inherit its look, but webhook
+   confirmation and connecting an integration are unrelated features, so they now
+   live in their own webhook-dialog namespace with the same rules — no shared
+   stylesheet, no cross-feature naming coupling. */
+.webhook-dialog__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--space-4);
+  background: var(--color-gray-50);
+  border-radius: 12px;
+}
+
+.webhook-dialog__icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.webhook-dialog__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0 0 var(--space-2);
+  text-align: center;
+}
+
+.webhook-dialog__description {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin: 0 0 var(--space-4);
+  line-height: 1.5;
+  text-align: center;
+}
+
+.webhook-dialog__actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+
+
+/* Sync icon button — mirrors KnowledgePage's .knowledge-item__resync-btn */
+.webhook-sync-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--color-gray-400);
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.webhook-sync-btn:hover {
+  color: var(--color-black);
+  background: var(--color-gray-100);
+}
+
+.webhook-sync-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* While refetching: keep the icon visible (override disabled opacity) and
+   spin it clockwise. Matches KnowledgePage's .knowledge-item__resync-btn
+   pattern so the affordance reads identically across pages. */
+.webhook-sync-btn--syncing,
+.webhook-sync-btn--syncing:disabled {
+  opacity: 1;
+  cursor: default;
+  color: var(--color-gray-500);
+}
+
+@keyframes webhook-sync-btn__spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.webhook-sync-btn--syncing svg {
+  animation: webhook-sync-btn__spin 0.9s linear infinite;
+}
+
+/* Recent deliveries header sits flush with the Sync button */
+.webhook-deliveries-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.webhook-deliveries__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.webhook-deliveries__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  font-size: var(--text-sm);
+}
+
+.webhook-deliveries__time {
+  color: var(--color-gray-500);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: var(--text-xs);
+}
+
+.webhook-deliveries__status {
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+.webhook-deliveries__status--accepted { color: #16a34a; }
+.webhook-deliveries__status--duplicate { color: var(--color-gray-500); }
+.webhook-deliveries__status--rejected { color: #dc2626; }

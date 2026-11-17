@@ -1,0 +1,31 @@
+{
+  "name": "@liftoffos/database",
+  "version": "0.1.7",
+  "description": "Shared database helpers (RLS tenant-scope, pool stats) for Liftoff platform services",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LiftoffOS/liftoff.git",
+    "directory": "liftoff-platform-backend/packages/database"
+  },
+  "author": "Liftoff",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "@types/pg": "^8.20.4",
+    "pg": "^8.11.3",
+    "typescript": "^5.3.3"
+  },
+  "peerDependencies": {
+    "pg": "^8.11.3"
+  }
+}

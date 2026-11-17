@@ -1,0 +1,6 @@
+# Pinned to majors known compatible as of 2026-06; bump deliberately.
+deepeval>=2.0,<4
+google-genai>=1.0           # DeepEval's built-in GeminiModel (vertex-gemini provider)
+fastapi>=0.110,<1
+uvicorn[standard]>=0.29,<1
+pydantic>=2.5,<3

@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/connector-execute-batch.request.schema.json",
+  "title": "ConnectorExecuteBatchRequest",
+  "description": "Request body for POST /api/connectors/execute-batch — N operations in one round trip.",
+  "type": "object",
+  "required": ["tenantId", "operations"],
+  "additionalProperties": false,
+  "properties": {
+    "tenantId": { "type": "string", "minLength": 1 },
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["connectorId", "functionName", "input", "idempotencyKey"],
+        "additionalProperties": false,
+        "properties": {
+          "connectorId": { "type": "string", "minLength": 1 },
+          "functionName": { "type": "string", "minLength": 1 },
+          "input": { "type": "object" },
+          "idempotencyKey": { "type": "string", "minLength": 1 },
+          "traceId": { "type": "string" }
+        }
+      }
+    }
+  }
+}

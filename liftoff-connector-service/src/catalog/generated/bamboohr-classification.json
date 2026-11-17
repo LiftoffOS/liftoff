@@ -1,0 +1,964 @@
+[
+  {
+    "tool": "create_alert_configurations",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_alert_configurations",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_compensation_equity_settings",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_compensation_planning_cycles",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_compensation_planning_cycles",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "delete_compensation_planning_cycles",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_compensation_planning_cycles_employees",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "delete_compensation_planning_cycles_employees",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_compensation_planning_cycles_admins",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_compensation_planning_cycles_launch",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_compensation_planning_cycles_complete",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_compensation_planning_cycles_budgets_guidelines",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_compensation_planning_cycles_budgets_breakdown",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_compensation_planning_cycles_budgets_import",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_compensation_planning_cycles_approvals",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_compensation_planning_cycles_approvals_final_approver",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "delete_compensation_planning_cycles_approvals_employee",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_compensation_planning_cycles_recommendations",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_compensation_planning_cycles_recommendations_send",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "delete_compensation_planning_cycles_admins",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_compensation_planning_cycles_change_comm_template",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "send_employee_verification_lifecycle_email_by_user",
+    "categories": [
+      "dataChanges",
+      "customerCommunication"
+    ]
+  },
+  {
+    "tool": "update_employee_verification",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_employee_verification_integration",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_new_hire_packets",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_new_hire_packets",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_new_hire_packets",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_new_hire_packet_gtky_answer_visibility",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_new_hire_packets_send",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_new_hire_packets_cancel",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_employees_onboarding_experiences",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_time_tracking_project",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "scheduling_create_schedule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "scheduling_update_schedule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "scheduling_delete_schedule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "scheduling_update_shift",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "scheduling_delete_shift",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "scheduling_create_shift",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "scheduling_publish_shifts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_break",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_break",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_break",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "replace_breaks_for_break_policy",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "assign_employees_to_break_policy",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "set_break_policy_employees",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "unassign_employees_from_break_policy",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_break_policy",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_break_policy",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_break_policy",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "sync_break_policy",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "get_break_policy_suggestions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_project",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_project",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_project",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_project_task",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_task",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_task",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_shift_differential",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_shift_differential",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_shift_differential",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_timesheet_clock_entries_via_post",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_timesheet_hour_entries_via_post",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_timesheet_clock_in_entry",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_timesheet_clock_out_entry",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_or_update_timesheet_clock_entries",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_or_update_timesheet_hour_entries",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_webhook",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_webhook",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_webhook",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "get_data_from_dataset_v1",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "get_field_options_v1",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "get_field_options_v1_2",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "get_data_from_dataset_v2",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_candidate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_job_opening",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "put_company_industry_codes",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "patch_company_profile_company_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "put_company_profile_display_name",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_compensation_benchmark",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_compensation_benchmark",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "delete_compensation_benchmark",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_compensation_benchmark_source",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_compensation_benchmark_sources",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "delete_compensation_benchmark_source",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "import_compensation_benchmarks",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_employee",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_employee",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_employee",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_table_row",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_employee_table_row",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_company_file",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_company_file",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_employee_file",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_employee_file",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_pay_grades_and_bands_levels",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_pay_grades_and_bands_pay_bands",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "update_pay_grades_and_bands_job_titles",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_pay_grades_and_bands_publish",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_pay_grades_and_bands_import",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "delete_pay_grades_and_bands_levels",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_goal",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_goal_v1",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_goal",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_goal_progress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_goal_milestone_progress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_goal_sharing",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_goal_comment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_goal_comment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_goal_comment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "close_goal",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "reopen_goal",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_goal_v1_1",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_time_tracking_hour_record",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_or_update_time_tracking_hour_records",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_time_tracking_record",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_time_tracking_hour_record",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "add_total_rewards_employees",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "remove_total_rewards_employees",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "set_total_rewards_onboarding_step",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "set_total_rewards_custom_disclaimer",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "remove_total_rewards_custom_disclaimer",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "create_location",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_location",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_location",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_table_row",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_table_row_v1_1",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_table_row_v1_1",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "request_custom_report",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_employee_file_category",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_company_file_category",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "upload_employee_file",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "upload_company_file",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "assign_time_off_policies",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "assign_time_off_policies_v1_1",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_application_comment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_applicant_status",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_employee_dependent",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_employee_dependent",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "login",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_list_field_values",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_time_off_history",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "adjust_time_off_balance",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_time_off_request",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_time_off_request_status",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_training_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_training_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_training_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_training_category",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_training_category",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_training_category",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "create_employee_training_record",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_employee_training_record",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "delete_employee_training_record",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "upload_employee_photo",
+    "categories": [
+      "dataChanges"
+    ]
+  }
+]

@@ -1,0 +1,2360 @@
+# Cloud Build Configuration for Tenant Runtime
+# Per Section 2: Cloud Run for all services
+# Per Section 22 Phase 3: Run fault injection tests
+# Triggered by pushes to dev, staging, or main branches
+#
+# ARCHITECTURE:
+# - Images are built and pushed to central artifact registry (platform-control)
+# - Deployment goes to the specific tenant project (tenant-<id>-<env>)
+# - Each tenant trigger sets _TENANT_ID substitution
+
+substitutions:
+  _ENVIRONMENT: 'dev'
+  _REGION: 'us-west1'
+  _TENANT_ID: 'YOUR_TENANT_ID'  # Override per tenant trigger
+  _SERVICE_NAME: 'tenant-runtime'
+  # Post-deploy smoke runner image. Defaults to a generic builder so the
+  # cloudbuild parses cleanly when a trigger hasn't set _SMOKE_IMAGE yet
+  # (the smoke step itself no-ops via the empty-canary check inside the
+  # step body when _CANARY_TENANT_ID / _CANARY_AGENT_ID are unset).
+  _SMOKE_IMAGE: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+  _CANARY_TENANT_ID: ''
+  _CANARY_AGENT_ID: ''
+  # B3 deploy canary enforcement. 'false' (default) = LOG-ONLY: the agent-canary
+  # step runs the active canary (agent-diagnostics --run) and records its exit,
+  # but a canary failure neither rolls back nor fails the build. 'true' = ENFORCE:
+  # a canary failure rolls back the revision and fails the build, same as smoke.
+  # The evaluator is calibrated (Cohen's kappa on the golden set), so flip to
+  # 'true' per env once the live canary is observed stable across a few deploys.
+  _CANARY_ENFORCE: 'false'
+  # Phase 3 cutover dial. off = legacy only. shadow = legacy serves, RPC
+  # observed + mismatch logged. on = RPC only, fail-closed on unreachable.
+  # Override per-trigger in Terraform to progress envs independently.
+  _GOVERNANCE_SERVICE_ENABLED: 'off'
+  # HITL trust-shadow flag. off/false = inert. DEFAULT-ON for every tenant in every env: the
+  # shadow gate reads the decisions-derived trust tier and logs what it WOULD do, never changing
+  # a live gate. No trigger overrides this, so this default is what ships everywhere; set the
+  # substitution to 'false' on a trigger to hold a specific env back.
+  _HITL_TRUST_SHADOW: 'true'
+  # Agent Conversation Recall (plan v13): registers the recall_conversations
+  # gateway tool on attributable interactive turns. Dev trigger flips to
+  # 'true' first; prod after the dev E2E (rollout step 4/6).
+  _RECALL_CONVERSATIONS_ENABLED: 'false'
+  # ISO timestamp of the migration-312 rollout. Backfill treats a run completing
+  # at/before this with no correlated HITL rows as unattributable (null counts),
+  # after it as a real zero. Set per-env in the rollout PR.
+  _COLLAB_HITL_CORRELATION_SINCE: '2026-07-23T00:00:00Z'
+  # aio-sandbox image tag — wired into tool-gateway-service so
+  # CloudRunSandboxProvider knows which image to spawn per sandbox.
+  # Set via Terraform var aio_sandbox_image_tag (see infra repo) or override
+  # per-trigger; bump alongside the sandbox-sidecar Cloud Build trigger that
+  # produces the image.
+  _AIO_SANDBOX_IMAGE_TAG: 'latest'
+  # Post-deploy smoke scenario tags (comma-separated). Default = the calibrated,
+  # self-contained suites that run against the generic canary agent. To activate the
+  # adversarial safety suite, first rebuild the smoke image with agent-test-scenarios
+  # ^0.4.0 (Dockerfile.smoke) and point _SMOKE_IMAGE at it, THEN add `adversarial` here.
+  # A substitution flip — not a code change — so a not-yet-rebuilt image (whose runner
+  # would spread an undefined ADVERSARIAL_SCENARIOS) can never crash the gating smoke.
+  _SMOKE_TAGS: 'memory,web,delegation,failure-mode'
+  # C4 — SWE external-checks smoke (NON-GATING, log-only). DORMANT by default: the
+  # swe-external-checks step skips cleanly unless BOTH _SWE_FIXTURE_REPO and _SWE_AGENT_ID
+  # are set. When configured it drives a code-capable software-engineer agent against the
+  # just-deployed revision, has it open a real PR on the fixture repo under a run-id branch
+  # namespace, polls the side effect (branch/PR/checks green), then tears the run down.
+  _SWE_FIXTURE_REPO: ''            # owner/name of the GitHub fixture repo (e.g. owner/repo-name)
+  _SWE_TENANT_ID: ''              # tenant of the swe agent; falls back to _CANARY_TENANT_ID when empty
+  _SWE_AGENT_ID: ''              # UUID of a code-capable (GitHub-bound) software-engineer agent
+  _SWE_HARNESS_BASE: ''          # base URL of the agent-service that hosts /api/internal/test-harness/run-agent (e.g. https://agent-service-<hash>-uw.a.run.app)
+  _SWE_FIXTURE_TOKEN_SECRET: 'github-fixture-token'  # Secret Manager secret (in the tenant secret project) holding the GitHub fixture token
+  # SHORT_SHA is provided by Cloud Build triggers, or must be passed via --substitutions
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  # machineType omitted → Cloud Build default (e2-standard-2: 2 vCPU, 8 GB).
+  # ~2.5x cheaper per minute than E2_HIGHCPU_8. Cloud Build's machineType
+  # enum only accepts UNSPECIFIED / E2_MEDIUM / E2_HIGHCPU_8 / E2_HIGHCPU_32
+  # (no E2_STANDARD_* variants exist), so default is the right mid-tier.
+  substitution_option: 'ALLOW_LOOSE'
+
+steps:
+  # Step 0: Cancel any older builds for this environment so only the newest runs.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'cancel-stale-builds'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Skip when not started by a trigger (manual `gcloud builds submit`):
+        # those builds carry no TRIGGER_NAME, and the filter would otherwise
+        # match every other manual build in flight.
+        if [ -z "${TRIGGER_NAME}" ]; then
+          echo "Manual build (no TRIGGER_NAME); skipping stale-build cancellation."
+          exit 0
+        fi
+        # `--region=${LOCATION}` is required: builds are regional (us-west1),
+        # and cloud-sdk:slim's gcloud 571+ defaults to the global region for
+        # `gcloud builds list`, which returns zero rows for regional builds.
+        # Older gcloud versions silently fell back to scanning all regions,
+        # masking this requirement.
+        gcloud builds list \
+          --project=${PROJECT_ID} \
+          --region=${LOCATION} \
+          --filter="status=WORKING OR status=QUEUED" \
+          --format='value(id,substitutions.TRIGGER_NAME)' \
+          | awk -v me="${BUILD_ID}" -v key="${TRIGGER_NAME}" '$$1!=me && $$2==key {print $$1}' \
+          | while read OLD_ID; do
+              echo "Cancelling stale build: $$OLD_ID"
+              gcloud builds cancel "$$OLD_ID" --project=${PROJECT_ID} --region=${LOCATION} --quiet 2>/dev/null || true
+            done
+    waitFor: ['-']
+
+  # Lint cloudbuild.yaml: every service in REQUIRED_ENV_PER_SERVICE must have
+  # its required env wired up in this file. Catches a service shipping without
+  # required env (e.g. coordinator-service without TENANT_RUNTIME_URL).
+  - name: 'node:20-alpine'
+    id: 'lint-cloudbuild'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - 'cd /workspace && node scripts/lint-cloudbuild.mjs'
+    waitFor: ['-']
+
+  # Step 1: Fetch an Artifact Registry access token for @liftoffos/*
+  # package installs. Written to /workspace/.ar-token for later steps to
+  # export as ARTIFACT_REGISTRY_TOKEN (referenced by .npmrc).
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'ar-token'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud auth print-access-token > /workspace/.ar-token
+        echo "Artifact Registry token fetched (length=$$(wc -c < /workspace/.ar-token))"
+
+  # Step 1: Install dependencies (pulls @liftoffos/* from Artifact Registry).
+  # node:20-slim ships without python3 + build toolchain — `re2` carries a
+  # native binding that node-gyp builds at install time, so we install
+  # python3/make/g++ before `npm ci`. Other native modules (if any) benefit
+  # too; the apt-get bundle adds ~150MB to the install layer.
+  - name: 'node:20-slim'
+    id: 'install'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        apt-get update -qq
+        apt-get install -y --no-install-recommends python3 python3-pip make g++
+        ARTIFACT_REGISTRY_TOKEN=$$(cat /workspace/.ar-token) npm ci
+    waitFor: ['ar-token']
+
+  # Step 2: Build workspace packages (must run before typecheck)
+  - name: 'node:20-slim'
+    id: 'build-packages'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'npm run build --workspaces --if-present'
+    waitFor: ['install']
+
+  # Step 2.4: CI fences.
+  #
+  # The voice block is carried by every customer-facing surface across this repo and
+  # platform-backend, and no test inside one checkout can see the other's copy. Exit 2
+  # is INCONCLUSIVE (no sibling checkout on a single-repo runner) and does not block,
+  # the same convention verify-migrations uses; exit 1 means the two trees genuinely
+  # disagree about what every AI team is told, and does.
+  - name: 'node:20-slim'
+    id: 'ci-fences'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # $$ escapes: Cloud Build expands a single $ as a substitution before the
+        # shell ever sees it, so $? and $rc would arrive empty and the build would
+        # be rejected at validation with an empty log. The repo's cloudbuild lint
+        # catches this; it caught this exact line.
+        scripts/ci-fences/agent-voice-parity.sh; rc=$$?
+        if [ "$$rc" -eq 1 ]; then exit 1; fi
+    waitFor: ['install']
+
+  # Step 2.5: Migration collision check (prevents future NNN duplicates)
+  - name: 'node:20-slim'
+    id: 'check-migration-collisions'
+    entrypoint: 'bash'
+    args: ['scripts/check-migration-collisions.sh', 'migrations']
+    waitFor: ['install']
+
+  # Step 2.6a: a throwaway Postgres for the migration check below.
+  #
+  # pgvector/pgvector:pg15, and both halves of that are load-bearing:
+  #
+  #   pg15 — Cloud SQL runs POSTGRES_15. A gate on a different major version
+  #   answers a question nobody asked: it can reject SQL production accepts, and
+  #   accept SQL production rejects. The first attempt used postgres:16.
+  #
+  #   pgvector — `CREATE EXTENSION vector` is in the migration set and the stock
+  #   postgres image does not ship it, so a plain image fails at migration 0A000
+  #   with "extension not available" and reports a perfectly good migration as
+  #   broken. Cloud SQL provides it; the test database has to as well.
+  #
+  # Detached on the `cloudbuild` network so later steps reach it by container
+  # name. Nothing depends on it afterwards and Cloud Build discards the VM, so
+  # it is never cleaned up explicitly.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'migration-verify-db'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        docker run -d --network=cloudbuild --name migration-verify-pg \
+          -e POSTGRES_PASSWORD=verify -e POSTGRES_USER=verify -e POSTGRES_DB=verify \
+          pgvector/pgvector:pg15 >/dev/null
+        echo "migration-verify-pg started (pgvector/pgvector:pg15, matching Cloud SQL)"
+    waitFor: ['-']
+
+  # Step 2.6a-guard: the gate's Postgres major must equal Cloud SQL's.
+  #
+  # The tag above is pinned by hand, so it drifts the day someone upgrades Cloud
+  # SQL without thinking about CI — and a gate on the wrong major version is
+  # worse than no gate, because it is green while answering a question about a
+  # database nobody runs. This makes the two move together.
+  #
+  # Runs in parallel with everything; it needs no workspace state.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'migration-gate-version-guard'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        bash scripts/ci/check-migration-gate-version.sh \
+          "tenant-${_TENANT_ID}-${_ENVIRONMENT}" \
+          "tenant-${_TENANT_ID}-pg-${_ENVIRONMENT}"
+    waitFor: ['-']
+
+  # Step 2.6b: apply every migration to that empty database.
+  #
+  # The one class of defect nothing else here can see. The suite has no
+  # database, so a migration's SQL is never executed until the migrate step runs
+  # it against Cloud SQL — well into the build, after the images are built. An
+  # invalid statement (e.g. 42803, a window function inside an aggregate's
+  # arguments) fails there, and because node-pg-migrate applies the pending
+  # batch in ONE transaction it rolls back unrelated migrations with it and
+  # blocks every deploy behind it.
+  #
+  # Placed beside the collision check rather than after the image builds: this
+  # needs no artifact, so failing here costs a minute instead of twenty.
+  - name: 'node:20-slim'
+    id: 'verify-migrations'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        # Wait for the server to accept connections. `pg` is already a
+        # dependency, so no extra install just to poll a port.
+        node -e '
+          const {Client} = require("pg");
+          const url = "postgres://verify:verify@migration-verify-pg:5432/verify";
+          (async () => {
+            for (let i = 0; i < 60; i++) {
+              const c = new Client({connectionString: url});
+              try { await c.connect(); await c.end(); process.exit(0); }
+              catch { await new Promise(r => setTimeout(r, 1000)); }
+            }
+            console.error("migration-verify-pg never became ready");
+            process.exit(1);
+          })();
+        '
+        set +e
+        DATABASE_URL=postgres://verify:verify@migration-verify-pg:5432/verify \
+          bash scripts/ci/verify-migrations.sh
+        STATUS=$$?
+        set -e
+        # exit 1 = a migration Postgres refused: block the deploy, that is the job.
+        # exit 2 = the check could not run: do NOT block. It has no information
+        # about the SQL, and a gate that fails the build over its own broken
+        # plumbing gets deleted rather than fixed. It is loud instead — this
+        # exact case happened on the gate's first real run.
+        if [ $$STATUS -eq 2 ]; then
+          echo "############################################################"
+          echo "# verify-migrations could NOT RUN. Migrations are UNCHECKED."
+          echo "# Not failing the build: an inconclusive check knows nothing."
+          echo "# Fix the runner — this protection is off until you do."
+          echo "############################################################"
+          exit 0
+        fi
+        if [ $$STATUS -ne 0 ]; then exit $$STATUS; fi
+        # RLS posture, on the database the migrations just built. It has to be
+        # read from a catalog rather than from the SQL: migration 079 enables
+        # row security inside a DO block over every table carrying a tenant_id,
+        # so no text scan of migrations/ can enumerate the set.
+        set +e
+        DATABASE_URL=postgres://verify:verify@migration-verify-pg:5432/verify node scripts/ci/check-rls-posture.cjs
+        RLS_STATUS=$$?
+        set -e
+        if [ $$RLS_STATUS -eq 2 ]; then
+          echo "check-rls-posture could not run; not blocking (it knows nothing about the schema)."
+          exit 0
+        fi
+        exit $$RLS_STATUS
+    waitFor: ['install', 'migration-verify-db']
+
+  # Step 3: Run linting
+  - name: 'node:20-slim'
+    id: 'lint'
+    entrypoint: 'npm'
+    args: ['run', 'lint']
+    waitFor: ['build-packages', 'check-migration-collisions']
+
+  # Step 4: Run type checking — parallel with lint, frees memory before test starts.
+  - name: 'node:20-slim'
+    id: 'typecheck'
+    entrypoint: 'npm'
+    args: ['run', 'typecheck']
+    waitFor: ['build-packages']
+
+  # Step 5: Run unit tests — starts after typecheck exits so its ~1.5 GB heap
+  # is freed before Jest workers spin up. tsc + 2 Jest workers simultaneously
+  # would push the 8 GB machine to ~6.5–7 GB, too close to the limit.
+  # 2 workers × 2 GB heap = 4 GB + ~1.5 GB OS = ~5.5 GB total on 8 GB machine.
+  #
+  # No `|| echo …` swallow: test failures must fail the build. Prior
+  # swallow let a broken suite ship silently — companion PB cloudbuild
+  # commit removed the same pattern there.
+  - name: 'node:20-slim'
+    id: 'test'
+    entrypoint: 'bash'
+    env:
+      - 'NODE_OPTIONS=--max-old-space-size=2048'
+    args:
+      - '-c'
+      - 'npm test -- --ci --passWithNoTests --maxWorkers=2'
+    waitFor: ['typecheck']
+
+  # Step 5.5: Real-Chromium tests (`*.browser.test.ts`, jest.browser.config.js).
+  #
+  # Takeover capture attaches to a person's browser over CDP and installs a
+  # recorder in an isolated world; whether a trusted click is recorded, whether
+  # page code can reach the binding, what a closed port or a killed browser does
+  # to the lease — none of that can be shown without a browser, so this step
+  # runs those suites in Playwright's own image at the version playwright-core
+  # is pinned to (1.62.1; the two must move together). Blocking, like `test`:
+  # a capture that stops recording ships nothing worth having.
+  - name: 'mcr.microsoft.com/playwright:v1.62.1-jammy'
+    id: 'test-browser'
+    entrypoint: 'bash'
+    env:
+      - 'NODE_OPTIONS=--max-old-space-size=2048'
+    args:
+      - '-c'
+      - 'npm run test:browser -- --ci'
+    waitFor: ['typecheck']
+
+  # Step 5.6: The TypeSafe fixture contract (src/typesafe/__tests__/fixtures.live.test.ts).
+  #
+  # Every recorded fixture under src/typesafe/fixtures/<item>/ against the LIVE
+  # vendor on the pinned model: the browser loop's step and goal-check sets, the
+  # contract check, the ask check, the memory admission and usefulness sets and
+  # the message check. Their kills default ON in this build, so the build ships
+  # with this as its evidence, and a MISSING OR UNREADABLE KEY FAILS THE BUILD
+  # rather than letting the contract skip itself. The key is read on the
+  # fetch-catalog-auth pattern: one step reads the secret into the workspace,
+  # the test step exports it.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'typesafe-contract-key'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -euo pipefail
+        gcloud secrets versions access latest \
+          --secret=typesafe-api-key \
+          --project=YOUR_GCP_PROJECT \
+          > /workspace/.typesafe-api-key
+        if [ ! -s /workspace/.typesafe-api-key ]; then
+          echo "typesafe-contract: the typesafe-api-key secret is missing or empty in YOUR_GCP_PROJECT." >&2
+          echo "  The browser loop, the contract check, the ask check, the message check and the memory checks default ON" >&2
+          echo "  in this build and ship with the fixture contract as their evidence. Restore the secret, or set the kills to 0." >&2
+          exit 1
+        fi
+    waitFor: ['-']
+
+  - name: 'node:20-slim'
+    id: 'typesafe-contract'
+    entrypoint: 'bash'
+    timeout: '900s'
+    env:
+      - 'NODE_OPTIONS=--max-old-space-size=2048'
+    args:
+      - '-c'
+      - |
+        export TYPESAFE_API_KEY="$$(cat /workspace/.typesafe-api-key)"
+        set +e
+        bash scripts/ci/run-typesafe-contract.sh
+        STATUS=$$?
+        set -e
+        # exit 1 = a fixture band moved, or no key: block, that is the job.
+        # exit 2 = the vendor never answered: do NOT block. It has no information
+        # about the fixtures, and a gate that fails the build over a third party's
+        # uptime gets deleted rather than fixed. Loud instead.
+        if [ $$STATUS -eq 2 ]; then
+          echo "############################################################"
+          echo "# typesafe-contract could NOT RUN. Fixtures are UNJUDGED."
+          echo "# Not failing the build: an inconclusive check knows nothing."
+          echo "# The browser loop, contract/ask/message checks and the memory"
+          echo "# checks are shipping on evidence that was NOT re-confirmed."
+          echo "############################################################"
+          exit 0
+        fi
+        exit $$STATUS
+    waitFor: ['typecheck', 'typesafe-contract-key']
+
+  # Step 6: Build TypeScript
+  - name: 'node:20-slim'
+    id: 'build'
+    entrypoint: 'npm'
+    args: ['run', 'build']
+    env:
+      # emit needs more heap than `tsc --noEmit`; the Node default OOMs (exit 134) on the
+      # grown codebase. Fits inside the default e2-standard-2 machine (8 GB). Matches the
+      # platform-backend build step.
+      - 'NODE_OPTIONS=--max-old-space-size=4096'
+    waitFor: ['lint', 'typecheck', 'test', 'test-browser', 'typesafe-contract']
+
+  # Step 6.5: Refresh the AR token AFTER the slow test+build steps but BEFORE
+  # the docker-build-{app,migrate} steps. gcloud access tokens TTL at ~60 min;
+  # the test suite alone takes ~50-60 min, which pushes docker-build-migrate's
+  # `npm ci --only=production` past the token's expiry and produces a 403 from
+  # the Artifact Registry npm proxy. Refreshing here keeps the token <5 min
+  # old when the docker steps read it.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'ar-token-refresh'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud auth print-access-token > /workspace/.ar-token
+        echo "Artifact Registry token refreshed (length=$$(wc -c < /workspace/.ar-token))"
+    waitFor: ['build']
+
+  # Step 6: Build Docker images (app and migration). Both need an
+  # ARTIFACT_REGISTRY_TOKEN at build time so `npm ci` can pull
+  # @liftoffos/* from us-west1-npm.pkg.dev. The token comes from
+  # `gcloud auth print-access-token` on the Cloud Build SA, which has
+  # artifactregistry.reader on npm-packages-dev.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build-app'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        TOKEN=$$(cat /workspace/.ar-token)
+        docker build \
+          --build-arg ARTIFACT_REGISTRY_TOKEN=$$TOKEN \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+          .
+    waitFor: ['build', 'ar-token-refresh']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build-migrate'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        TOKEN=$$(cat /workspace/.ar-token)
+        docker build \
+          --build-arg ARTIFACT_REGISTRY_TOKEN=$$TOKEN \
+          -f Dockerfile.migrate \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA} \
+          .
+    waitFor: ['build', 'ar-token-refresh']
+
+  # Step 7: Push to Artifact Registry — SHA-only. AR vulnerability scanning
+  # bills per unique image; the old :latest + :${ENVIRONMENT} floating tags
+  # each counted as distinct scans per build (~3x the cost per image).
+  # Pushes retry. Artifact Registry occasionally rejects a push mid-transfer
+  # with "unauthorized: not authenticated" after the layers have already
+  # uploaded — the blobs land and the manifest PUT is refused. It is transient
+  # and unrelated to build duration (one such failure hit 9 minutes into a
+  # build whose successful runs take ~40). Without a retry, a blip on any one
+  # of these four pushes discards the entire build, including the ~10 minutes
+  # of install, lint, typecheck and tests that already passed.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-app'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        IMAGE="${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}"
+        for attempt in 1 2 3; do
+          if docker push "$$IMAGE"; then exit 0; fi
+          echo "push attempt $$attempt failed for $$IMAGE; retrying in $$((attempt * 10))s"
+          sleep $$((attempt * 10))
+        done
+        echo "push failed after 3 attempts: $$IMAGE" >&2
+        exit 1
+    waitFor: ['docker-build-app']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-migrate'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        IMAGE="${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA}"
+        for attempt in 1 2 3; do
+          if docker push "$$IMAGE"; then exit 0; fi
+          echo "push attempt $$attempt failed for $$IMAGE; retrying in $$((attempt * 10))s"
+          sleep $$((attempt * 10))
+        done
+        echo "push failed after 3 attempts: $$IMAGE" >&2
+        exit 1
+    waitFor: ['docker-build-migrate']
+
+  # Step 7b: Build and push sandbox sidecar image
+  # The sidecar runs inside each sandbox Cloud Run Service instance and
+  # COPYs packages/sandbox-{validators,contracts} + packages/agent-sdk —
+  # those live above sandbox-sidecar/, so the build context is the repo root.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build-sidecar'
+    args:
+      - 'build'
+      - '-f'
+      - 'sandbox-sidecar/Dockerfile'
+      - '--build-arg'
+      # SHA256 of openvscode-server-v1.92.1-linux-x64.tar.gz (gitpod-io releases).
+      # Recomputed via `shasum -a 256` whenever OPENVSCODE_VERSION is bumped in
+      # the Dockerfile ARG.
+      - 'OPENVSCODE_SHA256=e82b1d3f8b462b7430795b42c1fe0a213bc05d737dd7625bfc8f63ca67438e48'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/sandbox-sidecar:${SHORT_SHA}'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/sandbox-sidecar:latest'
+      - '.'
+    waitFor: ['test']
+
+  # Push both the SHA and :latest tags. The :latest tag is the one Terraform's
+  # google_cloud_run_v2_service.sandbox_executor pins to via
+  # var.sandbox_sidecar_image, and any prod TF apply that creates a new
+  # sandbox-executor revision will fail with "image not found" if :latest
+  # is missing from the registry.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-sidecar'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        REPO="${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/sandbox-sidecar"
+        push_with_retry() {
+          for attempt in 1 2 3; do
+            if docker push "$$1"; then return 0; fi
+            echo "push attempt $$attempt failed for $$1; retrying in $$((attempt * 10))s"
+            sleep $$((attempt * 10))
+          done
+          echo "push failed after 3 attempts: $$1" >&2
+          return 1
+        }
+        push_with_retry "$$REPO:${SHORT_SHA}"
+        push_with_retry "$$REPO:latest"
+    waitFor: ['docker-build-sidecar']
+
+  # aio-sandbox-coding: the base sandbox image plus the vendor coding CLIs.
+  #
+  # Derived rather than built from scratch, and derived HERE rather than
+  # wherever `aio-sandbox` is produced, because the only thing it adds is a set
+  # of pins this repo's runners depend on: the Codex JSONL flag and the Gemini
+  # `stats` shape are read by code in src/, so the versions belong next to that
+  # code and move with it.
+  #
+  # Same tag as the base on purpose. `CloudRunSandboxProvider` composes
+  # `<registry>/<repo>:<AIO_SANDBOX_IMAGE_TAG>` and picks the REPO from the
+  # template, so base and coding images must answer to the same tag or a
+  # sandbox asks for a tag that does not exist there.
+  #
+  # Two failure modes, treated differently on purpose.
+  #
+  # A MISSING BASE image is a skip: `code_session` defaults to the in-process
+  # workspace, so blocking a deploy of everything else on an image only one flag
+  # consumes would be the wrong trade.
+  #
+  # A FAILING BUILD blocks. It means the Dockerfile and the base have diverged —
+  # which has already happened once: the base runs as `USER sandbox`, so the
+  # global npm install needed root, and the first version of this step failed on
+  # a permissions error. Swallowing that would have produced no image and no
+  # signal, and the next person to set CODE_SESSION_EXECUTION=sandbox would have
+  # met it as a sandbox that would not start.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build-sandbox-coding'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        REGISTRY="${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/sandbox-images"
+        BASE="$$REGISTRY/aio-sandbox:${_AIO_SANDBOX_IMAGE_TAG}"
+        TARGET="$$REGISTRY/aio-sandbox-coding:${_AIO_SANDBOX_IMAGE_TAG}"
+
+        if ! docker pull "$$BASE"; then
+          echo "SKIP: base image $$BASE not available; aio-sandbox-coding not rebuilt."
+          echo "      code_session runs in-process unless CODE_SESSION_EXECUTION=sandbox."
+          exit 0
+        fi
+
+        # Not guarded: a build failure here is a real defect and must be seen.
+        docker build -f Dockerfile.sandbox-coding --build-arg "BASE_IMAGE=$$BASE" -t "$$TARGET" .
+
+        for attempt in 1 2 3; do
+          if docker push "$$TARGET"; then exit 0; fi
+          echo "push attempt $$attempt failed for $$TARGET; retrying in $$((attempt * 10))s"
+          sleep $$((attempt * 10))
+        done
+        echo "ERROR: could not push $$TARGET after 3 attempts; sandboxed code_session would not start" >&2
+        exit 1
+    waitFor: ['test']
+
+  # Step 7c: Build and push framer-secret-rotate image
+  # Runs on every push so the rotation job always uses the latest code.
+  # Cloud Scheduler fires it every 90 days with no human involvement.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build-framer-rotate'
+    args:
+      - 'build'
+      - '--platform'
+      - 'linux/amd64'
+      - '-f'
+      - 'tools/framer-rotate/Dockerfile'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/framer-secret-rotate:${SHORT_SHA}'
+      - 'tools/framer-rotate/'
+    waitFor: ['test']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-framer-rotate'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        IMAGE="${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/framer-secret-rotate:${SHORT_SHA}"
+        for attempt in 1 2 3; do
+          if docker push "$$IMAGE"; then exit 0; fi
+          echo "push attempt $$attempt failed for $$IMAGE; retrying in $$((attempt * 10))s"
+          sleep $$((attempt * 10))
+        done
+        echo "push failed after 3 attempts: $$IMAGE" >&2
+        exit 1
+    waitFor: ['docker-build-framer-rotate']
+
+  # Step 8: Create or update migration Cloud Run job (in tenant project)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-migrate-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        echo "Creating/updating migration job for tenant ${_TENANT_ID} in ${_ENVIRONMENT}..."
+
+        # The runtime's database is `tenant_runtime` on the control plane's
+        # instance, reached through this project's Private Service Connect
+        # endpoint (Liftoff-Infrastructure-GCP, tenant-runtime-template/
+        # control_db_psc.tf). The runtime keeps its own network; nothing it
+        # sends crosses the control VPC.
+        # $$VAR notation prevents Cloud Build from treating these as substitutions.
+        DB_HOST=$$(gcloud compute addresses describe control-pg-psc \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+          --format="value(address)")
+        if [ -z "$$DB_HOST" ]; then
+          echo "ERROR: failed to resolve DB_HOST"
+          exit 1
+        fi
+        echo "Resolved DB_HOST=$$DB_HOST"
+        # Share with the deploy step via workspace file.
+        echo -n "$$DB_HOST" > /workspace/db_host
+
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+
+        # Check if job exists
+        if gcloud run jobs describe ${_SERVICE_NAME}-migrate --region ${_REGION} --project tenant-${_TENANT_ID}-${_ENVIRONMENT} 2>/dev/null; then
+          echo "Updating existing migration job..."
+          gcloud run jobs update ${_SERVICE_NAME}-migrate \
+            --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA} \
+            --region ${_REGION} \
+            --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+            --clear-cloudsql-instances \
+            --network tenant-${_TENANT_ID}-vpc --subnet tenant-${_TENANT_ID}-subnet \
+            --vpc-egress all-traffic \
+            --set-env-vars "CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=tenant_app,DB_NAME=tenant_runtime,DB_HOST=$$DB_HOST,RESET_SCHEMA=false" \
+            --set-secrets "DB_PASSWORD=tenant-db-password:latest"
+        else
+          echo "Creating new migration job..."
+          gcloud run jobs create ${_SERVICE_NAME}-migrate \
+            --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA} \
+            --region ${_REGION} \
+            --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+            --network tenant-${_TENANT_ID}-vpc --subnet tenant-${_TENANT_ID}-subnet \
+            --vpc-egress all-traffic \
+            --set-env-vars "CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=tenant_app,DB_NAME=tenant_runtime,DB_HOST=$$DB_HOST,RESET_SCHEMA=false" \
+            --set-secrets "DB_PASSWORD=tenant-db-password:latest" \
+            --memory 512Mi \
+            --cpu 1 \
+            --task-timeout 600 \
+            --max-retries 1
+        fi
+    waitFor: ['docker-push-migrate']
+
+  # Step 8b: Refresh the psql break-glass job's image.
+  #
+  # That job (terraform: psql_break_glass in the tenant-runtime-template module)
+  # runs the migrate image with its CMD overridden by a one-shot psql wrapper.
+  # Terraform owns its whole container spec EXCEPT the image, which it disclaims
+  # via lifecycle.ignore_changes = [...containers[0].image] on the assumption that
+  # CI keeps it current. Every image in the platform-control repository is
+  # swept by the `delete-older-than-30d` cleanup policy with tagState ANY, so a
+  # pin nobody refreshes stops existing after a month and the job dies with it.
+  #
+  # Image ONLY, unlike the create-or-update step above: the migrate job is created
+  # by CI, so CI re-declares its command, args and env. This one is created by
+  # terraform, and the image is the single field terraform hands over. Passing
+  # --set-env-vars or --command here would clobber the psql wrapper.
+  #
+  # Never creates, and never fails the build. If the job is absent, terraform has
+  # not made it for this tenant yet, and inventing a half-configured one here
+  # would be worse than skipping.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'refresh-psql-job-image'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        JOB="${_SERVICE_NAME}-psql"
+        PROJECT="tenant-${_TENANT_ID}-${_ENVIRONMENT}"
+        IMAGE="${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA}"
+
+        if gcloud run jobs describe "$$JOB" --region ${_REGION} \
+             --project "$$PROJECT" >/dev/null 2>&1; then
+          echo "Refreshing $$JOB image -> $$IMAGE"
+          gcloud run jobs update "$$JOB" \
+            --image "$$IMAGE" \
+            --region ${_REGION} \
+            --project "$$PROJECT" \
+            || echo "WARNING: could not refresh $$JOB image; break-glass queries may fail until this is fixed."
+        else
+          echo "$$JOB does not exist in $$PROJECT (terraform has not created it) — skipping."
+        fi
+    waitFor: ['docker-push-migrate']
+
+  # Step 9: Run database migrations BEFORE deploy (schema must be ready for new code)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'migrate'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        echo "Running database migrations for tenant ${_TENANT_ID} in ${_ENVIRONMENT}..."
+        gcloud run jobs execute ${_SERVICE_NAME}-migrate \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+          --wait
+        echo "Migrations completed successfully"
+    waitFor: ['create-migrate-job', 'verify-migrations']
+
+  # Step 9a: Create or update the embedding-backfill Cloud Run Job.
+  # Re-embeds any rows with embedding IS NULL across memories,
+  # agent_skills, and connector_content. Migration 259 (PR-2) NULLs
+  # every embedding when it ships; this job refills them. Subsequent
+  # deploys see no NULL rows and the job exits in <1s.
+  #
+  # Uses the APP image (not the migrate image) because it needs
+  # dist/workers/embedding-backfill/main.js plus the embedding client.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-embedding-backfill-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        echo "Creating/updating embedding-backfill job for tenant ${_TENANT_ID} in ${_ENVIRONMENT}..."
+
+        DB_HOST=$$(cat /workspace/db_host)
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+        IMAGE="${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}"
+
+        if gcloud run jobs describe ${_SERVICE_NAME}-embedding-backfill --region ${_REGION} --project tenant-${_TENANT_ID}-${_ENVIRONMENT} 2>/dev/null; then
+          echo "Updating existing embedding-backfill job..."
+          gcloud run jobs update ${_SERVICE_NAME}-embedding-backfill \
+            --image $$IMAGE \
+            --region ${_REGION} \
+            --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+            --clear-cloudsql-instances \
+            --service-account tenant-${_TENANT_ID}-runtime@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com \
+            --network tenant-${_TENANT_ID}-vpc --subnet tenant-${_TENANT_ID}-subnet \
+            --vpc-egress all-traffic \
+            --command node \
+            --args dist/workers/embedding-backfill/main.js \
+            --set-env-vars "CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=tenant_app,DB_NAME=tenant_runtime,DB_HOST=$$DB_HOST,GCP_PROJECT_ID=tenant-${_TENANT_ID}-${_ENVIRONMENT},GCP_LOCATION=${_REGION},EMBED_BACKFILL_BATCH=32,EMBED_BACKFILL_MAX_RPS=5,MEM_SKIP_DIM_BIND=1,NODE_ENV=production,ENVIRONMENT=${_ENVIRONMENT},TENANT_ID=${_TENANT_ID}" \
+            --set-secrets "DB_PASSWORD=tenant-db-password:latest"
+        else
+          echo "Creating new embedding-backfill job..."
+          gcloud run jobs create ${_SERVICE_NAME}-embedding-backfill \
+            --image $$IMAGE \
+            --region ${_REGION} \
+            --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+            --service-account tenant-${_TENANT_ID}-runtime@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com \
+            --network tenant-${_TENANT_ID}-vpc --subnet tenant-${_TENANT_ID}-subnet \
+            --vpc-egress all-traffic \
+            --command node \
+            --args dist/workers/embedding-backfill/main.js \
+            --set-env-vars "CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=tenant_app,DB_NAME=tenant_runtime,DB_HOST=$$DB_HOST,GCP_PROJECT_ID=tenant-${_TENANT_ID}-${_ENVIRONMENT},GCP_LOCATION=${_REGION},EMBED_BACKFILL_BATCH=32,EMBED_BACKFILL_MAX_RPS=5,MEM_SKIP_DIM_BIND=1,NODE_ENV=production,ENVIRONMENT=${_ENVIRONMENT},TENANT_ID=${_TENANT_ID}" \
+            --set-secrets "DB_PASSWORD=tenant-db-password:latest" \
+            --memory 1Gi \
+            --cpu 1 \
+            --task-timeout 3600 \
+            --max-retries 1 \
+            --parallelism 1
+        fi
+    waitFor: ['migrate', 'docker-push-app']
+
+  # Workstream C — create/update (NOT execute on deploy) the engine-certification
+  # canary Cloud Run Job. It runs dist/scripts/certify-engines.js — the LIVE
+  # (level 3) certification: real provider/SDK calls that DRIVE EVERY engine's
+  # adapter and assert the §7.2 behaviors, then emit a per-engine
+  # engine_live_certification result log (a log-based metric + alert watch it).
+  #
+  # Certifies ALL engines by default — the platform is deliberately
+  # provider-switchable, so each engine must be proven live-ready before a switch,
+  # not just the one currently active. It runs as the tenant-runtime SA with
+  # ENVIRONMENT set, so the runtime loads OpenAI/OpenRouter keys from the
+  # control-project secrets (secrets.ts) and Gemini authenticates over Vertex ADC;
+  # ANTHROPIC_API_KEY is provided as env (matching the agent-service). An engine
+  # that cannot authenticate/construct in this env fails closed and the canary
+  # surfaces exactly which — a real readiness gap, not silence.
+  # Cloud Scheduler fires it on a cadence (tenant-runtime-template); NOT run here.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-engine-certification-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        echo "Creating/updating engine-certification canary job for tenant ${_TENANT_ID} in ${_ENVIRONMENT}..."
+        IMAGE="${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}"
+        SA="tenant-${_TENANT_ID}-runtime@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com"
+        VPC="--network tenant-${_TENANT_ID}-vpc --subnet tenant-${_TENANT_ID}-subnet"
+        # Full provider-auth surface so EVERY engine can authenticate: ENVIRONMENT
+        # drives runtime control-project loading of OpenAI/OpenRouter keys; the
+        # GOOGLE_* vars enable Gemini/ADK over Vertex ADC; ANTHROPIC is hydrated
+        # from the tenant project by certify-engines.js, like the agent-service.
+        # Gemini 3 is served ONLY at the `global` Vertex location for these tenant
+        # projects (us-west1/us-central1 return 404) — the genai adapter reads
+        # GCP_LOCATION, the ADK adapter reads GOOGLE_CLOUD_LOCATION, so BOTH are
+        # pinned to global here (the region still drives the image/subnet).
+        ENVVARS="SERVICE_TYPE=agent,NODE_ENV=production,ENVIRONMENT=${_ENVIRONMENT},TENANT_ID=${_TENANT_ID},GCP_PROJECT_ID=tenant-${_TENANT_ID}-${_ENVIRONMENT},GCP_PROJECT=tenant-${_TENANT_ID}-${_ENVIRONMENT},GCP_LOCATION=global,GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=tenant-${_TENANT_ID}-${_ENVIRONMENT},GOOGLE_CLOUD_LOCATION=global,IMAGE_REVISION=${SHORT_SHA},CERTIFICATION_OUTPUT=/tmp/certification-results.json"
+        # Sized like the service it certifies (agent-service: 4 CPU / 8Gi).
+        #
+        # It ran at 1 CPU / 1Gi and OOM'd on EVERY execution, driving all eight
+        # engines in one process — one of which spawns a Bun server. The verdicts
+        # were not reproducible: on one image, two consecutive runs disagreed
+        # about three engines, with streams stalling past the 30s drain deadline.
+        # A certification whose answer changes run to run cannot gate a promotion,
+        # and the flakiness reads as engine defects.
+        #
+        # The RESOURCE FLAGS ARE ON BOTH BRANCHES. They were on `create` only, so
+        # an existing job kept whatever it was created with no matter what this
+        # file said — the update path carried the image and the env and silently
+        # dropped the sizing.
+        RESOURCES="--memory 8Gi --cpu 4 --task-timeout 3600 --max-retries 0 --parallelism 1"
+        if gcloud run jobs describe ${_SERVICE_NAME}-engine-certification --region ${_REGION} --project tenant-${_TENANT_ID}-${_ENVIRONMENT} 2>/dev/null; then
+          gcloud run jobs update ${_SERVICE_NAME}-engine-certification \
+            --image $$IMAGE --region ${_REGION} --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+            --service-account $$SA $$VPC --vpc-egress all-traffic \
+            --command node --args dist/scripts/certify-engines.js \
+            --set-env-vars "$$ENVVARS" --clear-secrets $$RESOURCES
+        else
+          gcloud run jobs create ${_SERVICE_NAME}-engine-certification \
+            --image $$IMAGE --region ${_REGION} --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+            --service-account $$SA $$VPC --vpc-egress all-traffic \
+            --command node --args dist/scripts/certify-engines.js \
+            --set-env-vars "$$ENVVARS" --clear-secrets $$RESOURCES
+        fi
+    waitFor: ['docker-push-app']
+
+  # Certify against the live vendors when — and only when — a pinned engine
+  # SDK or CLI moves.
+  #
+  # The suite splits in two. Our own contract surface runs at level 1 on every
+  # PR against mocked transports, plus the per-adapter fixture suites, so a
+  # calendar would re-test code that did not change. The vendor-shaped checks
+  # are the ones that need a live run, and the only thing that can invalidate
+  # them is a pin moving.
+  #
+  # SIX PINS, not one. This keyed on `@anthropic-ai/claude-agent-sdk` alone
+  # for as long as Anthropic's was the only engine a default ran on. Codex,
+  # opencode and the Gemini CLI are defaults now — Codex for OpenAI, opencode
+  # for xAI and the open-weights families, the Gemini CLI for Google — and the
+  # first two are each TWO pins that have to agree with each other: the SDK in
+  # package-lock.json and the CLI it spawns, pinned in the Dockerfile. With
+  # nothing watching the pair, an image can carry an SDK against a mismatched
+  # CLI; live evidence of a pair is only evidence of THAT pair,
+  # and this is what keeps it from drifting silently afterwards. The Gemini CLI
+  # has no SDK on npm yet, so it is the one pin. A move of any one of the six
+  # triggers the live run.
+  #
+  # So the trigger is the pins themselves, not a schedule: a calendar is not a
+  # trigger, it is a way of not choosing one.
+  #
+  # The last certified fingerprint is stamped on the JOB as a label, so the
+  # check is self-contained: no extra bucket, no state file, and the job
+  # carries the answer to "which SDKs was this last proven against". Labels
+  # cannot hold dots, so each version is written with dashes and the six are
+  # joined with underscores, in this order: agent-sdk, codex-sdk, codex-cli,
+  # opencode-sdk, opencode-cli, gemini-cli — e.g.
+  # 0-3-220_0-146-0_0-139-0_1-18-15_1-18-7_0-52-0. A label value holds 63
+  # characters; six short versions fit.
+  #
+  # Placed BEFORE the deploy and gating it: if a pin bump breaks the hook
+  # contract, the image is built but the service is not moved onto it. That is
+  # the whole value of running this on the pin rather than on a Monday.
+  #
+  # This gate stands between a bad pin bump and production.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'certify-on-sdk-change'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        # Runs in prod: this is the place a bad engine-SDK pin bump is stopped
+        # before it serves.
+        # It runs only when the six-pin fingerprint changes, so the prod keys it
+        # spends are one certification per SDK bump.
+
+        PROJ="tenant-${_TENANT_ID}-${_ENVIRONMENT}"
+        JOB="${_SERVICE_NAME}-engine-certification"
+
+        # python3, not node. This step runs on the cloud-sdk image, which has
+        # gcloud (and therefore python) but no node — `node -p` exits 127,
+        # command not found, and with `set -e` that failed the build on a step
+        # that had learned nothing about the contract.
+        #
+        # The SDKs are read from package-lock.json — the version actually
+        # installed in the image — because two of the three are caret ranges
+        # in package.json, and a caret can resolve to a new version on a lock
+        # refresh with no change to the pin a reader would look at. The CLIs
+        # are read from the Dockerfile's `npm install -g` line, where they are
+        # pinned exactly.
+        PINNED=$$(python3 - <<'PY' 2>/dev/null || echo ""
+        import json, re
+        lock = json.load(open('/workspace/package-lock.json'))['packages']
+        sdk = lambda name: lock['node_modules/' + name]['version']
+        docker = open('/workspace/Dockerfile').read()
+        cli = lambda name: re.search(r'npm install -g[^\n]*\s' + re.escape(name) + r'@([0-9][^\s]*)', docker).group(1)
+        print('_'.join([
+            sdk('@anthropic-ai/claude-agent-sdk'),
+            sdk('@openai/codex-sdk'),
+            cli('@openai/codex'),
+            sdk('@opencode-ai/sdk'),
+            cli('opencode-ai'),
+            cli('@google/gemini-cli'),
+        ]))
+        PY
+        )
+        if [ -z "$$PINNED" ]; then
+          echo "############################################################"
+          echo "# certify-on-sdk-change could NOT read the pinned versions."
+          echo "# The engine contracts are UNVERIFIED for this build."
+          echo "# Not blocking: this step knows nothing about the contract,"
+          echo "# and a gate that fails over its own plumbing gets deleted."
+          echo "############################################################"
+          exit 0
+        fi
+        PINNED_LABEL=$$(echo "$$PINNED" | tr '.' '-')
+        CERTIFIED=$$(gcloud run jobs describe "$$JOB" --project "$$PROJ" --region ${_REGION} \
+          --format="value(metadata.labels.certified-sdk)" 2>/dev/null || echo "")
+
+        echo "pinned engine SDKs/CLIs: $$PINNED (label $$PINNED_LABEL); last certified: $${CERTIFIED:-none}"
+
+        if [ "$$PINNED_LABEL" = "$$CERTIFIED" ]; then
+          echo "No engine SDK or CLI pin has moved since the last certification — skipping the live run."
+          exit 0
+        fi
+
+        echo "An engine SDK or CLI pin moved. Running live certification before this deploy proceeds."
+        if ! gcloud run jobs execute "$$JOB" --project "$$PROJ" --region ${_REGION} --wait; then
+          # Exit 2 from the job is INCONCLUSIVE: every failure was a vendor
+          # refusing an unfunded account, which says nothing about the SDK.
+          # Proceed without stamping, so the next build certifies again.
+          EXEC=$$(gcloud run jobs executions list --job "$$JOB" --project "$$PROJ" --region ${_REGION} \
+            --sort-by=~metadata.creationTimestamp --limit 1 --format="value(metadata.name)" 2>/dev/null || echo "")
+          CODE=$$(gcloud run jobs executions tasks list --execution "$$EXEC" --project "$$PROJ" --region ${_REGION} \
+            --format="value(status.lastAttemptResult.exitCode)" 2>/dev/null | head -1 || echo "")
+          if [ "$$CODE" = "2" ]; then
+            echo "############################################################"
+            echo "# LIVE CERTIFICATION INCONCLUSIVE ($$EXEC): a vendor account"
+            echo "# is unfunded (outcome=unfunded in engine_live_certification)."
+            echo "# Proceeding; NOT stamped, so the next build certifies again."
+            echo "# Fund the account: production runs on it are failing too."
+            echo "############################################################"
+            exit 0
+          fi
+          echo "############################################################"
+          echo "# LIVE CERTIFICATION FAILED after an engine SDK/CLI pin change."
+          echo "# The image is built but the service has NOT been moved onto"
+          echo "# it. Read the engine_live_certification logs for the failing"
+          echo "# category before retrying."
+          echo "############################################################"
+          exit 1
+        fi
+
+        # Stamp only after a pass, so a failed run leaves the old value and the
+        # next build tries again rather than recording an unproven version.
+        gcloud run jobs update "$$JOB" --project "$$PROJ" --region ${_REGION} \
+          --update-labels "certified-sdk=$$PINNED_LABEL" >/dev/null
+        echo "certified and stamped: $$PINNED"
+    waitFor: ['create-engine-certification-job']
+
+  # Step 9b: Kick the backfill job WITHOUT --wait. The job runs in the
+  # background; service deploys can proceed in parallel. Retrieval falls
+  # back to BM25+recency for NULL-embedding rows during the gap.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'kick-embedding-backfill'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        echo "Kicking embedding-backfill (non-blocking) for tenant ${_TENANT_ID} in ${_ENVIRONMENT}..."
+        gcloud run jobs execute ${_SERVICE_NAME}-embedding-backfill \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT}
+        echo "Backfill execution requested; service deploys will continue in parallel."
+    waitFor: ['create-embedding-backfill-job']
+
+  # ---------------------------------------------------------------------------
+  # Split-service deploys: four Cloud Run services per tenant share the same
+  # image. SERVICE_TYPE env var filters which routes + background jobs mount
+  # at startup.
+  #
+  # All four services:
+  #   - use the same Docker image just pushed
+  #   - share the tenant-runtime service account
+  #   - share the tenant VPC (Direct VPC egress) and Cloud SQL connection
+  #
+  # Ingress:
+  #   - agent-service         → INGRESS_TRAFFIC_ALL. Platform-backend invokes
+  #                             cross-project (plan §4c pattern 2); auth via
+  #                             Cloud Run IAM (run.invoker binding on
+  #                             platform-backend-sa in Terraform).
+  #   - coordinator-service   → INGRESS_TRAFFIC_INTERNAL_ONLY. Only intra-
+  #                             tenant callers (agent, reflection).
+  #   - tool-gateway-service  → INGRESS_TRAFFIC_INTERNAL_ONLY. Only intra-
+  #                             tenant callers (agent, coordinator).
+  #   - reflection-service    → INGRESS_TRAFFIC_INTERNAL_ONLY. Cloud Tasks
+  #                             delivers from the tenant project.
+  #
+  # Resource profiles per §4a:
+  #   - agent:        2Gi/2cpu, min=0, concur=80,  timeout=300s
+  #   - coordinator:  1Gi/1cpu, min=0, concur=40,  timeout=600s
+  #   - tool-gateway: 1Gi/1cpu, min=0, concur=200, timeout=60s
+  #   - reflection:   4Gi/4cpu, min=0, concur=10,  timeout=900s
+
+  # Single-phase deploy (plan §4.7): resolve every peer URL ONCE up-front so each
+  # deploy below boots with all peer env already set. The old two-phase pattern
+  # ran services in a misconfigured window between deploy-* and patch-split-service-urls.
+  # On first-ever deploy, services don't exist yet — describe returns empty, the
+  # deploy uses a placeholder, and the legacy `patch-split-service-urls` step
+  # (now first-deploy-only) backfills.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'resolve-peer-urls'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        resolve() {
+          gcloud run services describe "$$1" \
+            --region ${_REGION} \
+            --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+            --format='value(status.url)' 2>/dev/null || echo ""
+        }
+
+        AGENT_URL=$$(resolve agent-service)
+        COORD_URL=$$(resolve coordinator-service)
+        TOOLGW_URL=$$(resolve tool-gateway-service)
+        REFLECT_URL=$$(resolve reflection-service)
+        SANDBOX_EXEC_URL=$$(resolve sandbox-executor)
+
+        # Empty fields → first-deploy mode. patch-split-service-urls below will
+        # detect and re-resolve after the deploys finish.
+        cat > /workspace/peer-urls.env <<EOF
+        AGENT_URL=$$AGENT_URL
+        COORD_URL=$$COORD_URL
+        TOOLGW_URL=$$TOOLGW_URL
+        REFLECT_URL=$$REFLECT_URL
+        SANDBOX_EXEC_URL=$$SANDBOX_EXEC_URL
+        EOF
+        echo "Resolved peer URLs:"
+        cat /workspace/peer-urls.env
+
+        # Mirror the control project's shared secrets into the tenant project.
+        # platform-callback-token (PB <-> TR shared service-auth secret): every TR
+        # service binds platform-callback-token:latest via --set-secrets, and gcloud
+        # --set-secrets rejects cross-project resource paths, so the secret must exist
+        # IN the tenant project. All six mirrors live here because all five service
+        # deploys waitFor resolve-peer-urls, so each secret is guaranteed present
+        # before any of them binds or hydrates it. Without this a brand-new tenant has no platform-callback-token secret and
+        # every service deploy fails on the binding (previously it existed only
+        # out-of-band, so existing tenants worked but new ones would not).
+        mirror_secret() {
+          _val=$$(gcloud secrets versions access latest --secret="$$1" \
+            --project=YOUR_GCP_PROJECT)
+          gcloud secrets create "$$1" --project=tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+            --replication-policy=automatic 2>/dev/null || true
+          gcloud secrets update "$$1" --project=tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+            --update-labels=type=$$2,environment=${_ENVIRONMENT},managed_by=cloudbuild-mirror 2>/dev/null || true
+          # Add a version only when the value changed. Every version is billed
+          # until destroyed, and adding one per secret on every build (twice, from
+          # two steps) left ~11,000 of them across the two tenant projects.
+          [ "$$(gcloud secrets versions access latest --secret="$$1" --project=tenant-${_TENANT_ID}-${_ENVIRONMENT} 2>/dev/null)" = "$$_val" ] || \
+          echo -n "$$_val" | gcloud secrets versions add "$$1" \
+            --project=tenant-${_TENANT_ID}-${_ENVIRONMENT} --data-file=-
+        }
+        mirror_secret platform-callback-token service-auth
+        # DO NOT DELETE the five below. They look like scaffolding for
+        # --set-secrets, which no service uses any more, and they are not: three
+        # of the five are BARE names that hydrate from the TENANT project, and
+        # this is the only thing that puts a copy there. Deleting them does not
+        # fall back to the control-project original — it 403s, and every entry is
+        # optional, so the boot log warns once and the feature is silently off.
+        # Which secrets, which resolution and why: docs/agent-service-flags.md.
+        # tool-gateway reads all five: connector dispatch, governance
+        # X-Service-Auth, agent-slack-handler.ts / agent-teams-handler.ts, and
+        # composio-dispatcher.ts (without it every composio_managed tool strands).
+        mirror_secret connector-service-token service-auth
+        mirror_secret governance-engine-token service-auth
+        mirror_secret agent-slack-service-token service-auth
+        mirror_secret agent-teams-service-token service-auth
+        mirror_secret composio-api-key api-key
+    waitFor: ['docker-push-app']
+
+  # Preserve operator-managed feature flag values across deploys.
+  #
+  # Why this exists: deploy steps use `--set-env-vars` which is authoritative
+  # — any env var not in the list is wiped. That means `gcloud run services
+  # update --update-env-vars=DELEGATION_ENABLED=true` survives until the next
+  # build deploy, which silently flips the flag back to "off" — a build can
+  # wipe the operator-set DELEGATION_ENABLED, silently disabling delegate_task.
+  #
+  # Scope: agent-service ONLY. Both flags are read only inside the agent
+  # runtime path: DELEGATION_ENABLED at src/tool-gateway/mcp-server.ts:1546
+  # (called in-process from agent-execution/service.ts), and
+  # TRAJECTORY_SINK_ENABLED at five sites in agent-execution/service.ts +
+  # code-session/index.ts. The other three services (coordinator,
+  # tool-gateway, reflection) never reach either flag, so setting them
+  # there would just be unused env vars on the wrong wire.
+  #
+  # Pattern: read the current value from the existing agent-service
+  # revision, default to "false" on first deploy (the plan's safe-rollout
+  # default), write into a sourced env file. The deploy-agent-service step
+  # includes these in its --set-env-vars list so the operator's most-recent
+  # flip is the source of truth and the next deploy preserves it.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'resolve-operator-flags'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        # One env-var value off the live Cloud Run service; empty when unset,
+        # stderr quiet so a first deploy passes. The name rides in LOOKUP,
+        # never interpolated into the python.
+        get_env() {
+          local svc=$$1
+          local var=$$2
+          LOOKUP="$$var" gcloud run services describe "$$svc" \
+            --region ${_REGION} \
+            --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+            --format=json 2>/dev/null \
+            | LOOKUP="$$var" python3 -c "import json,os,sys; t=os.environ.get('LOOKUP',''); raw=sys.stdin.read().strip() or '{}'; d=json.loads(raw); vals=[e.get('value','') for c in d.get('spec',{}).get('template',{}).get('spec',{}).get('containers',[]) for e in c.get('env',[]) if e.get('name')==t]; print(next((v for v in vals if v), ''))" || true
+        }
+
+        # An operator flag off the live revision, else $$3 (default "false"):
+        # an explicit flip survives a redeploy, an explicit "false" included.
+        get_flag() {
+          local svc=$$1
+          local var=$$2
+          local default_val=$${3:-false}
+          local val=$$(get_env "$$svc" "$$var")
+          echo "$${val:-$$default_val}"
+        }
+
+        AGENT_DELEGATION_ENABLED=$$(get_flag agent-service DELEGATION_ENABLED)
+        # Trajectory sink DEFAULT-ON for every tenant: it captures each run's trajectory that the
+        # tenant-scoped tuning flywheel (dataset assembler) later assembles. Unset → true; an
+        # explicit per-tenant "false" opts out and survives redeploys.
+        AGENT_TRAJECTORY_SINK_ENABLED=$$(get_flag agent-service TRAJECTORY_SINK_ENABLED true)
+        AGENT_STALLED_RECONCILER_ENABLED=$$(get_flag agent-service STALLED_RUN_RECONCILER_ENABLED)
+        # Collab session emission AND deliverable-artifact capture are both
+        # DEFAULT-ON for every tenant (the eval substrate collects across the whole
+        # fleet). Unset → true; an explicit per-tenant "false" still opts that
+        # tenant out and survives redeploys.
+        AGENT_COLLAB_SESSIONS_ENABLED=$$(get_flag agent-service COLLAB_SESSIONS_ENABLED true)
+        AGENT_COLLAB_ARTIFACT_SNAPSHOT_ENABLED=$$(get_flag agent-service COLLAB_ARTIFACT_SNAPSHOT_ENABLED true)
+        # Generic HITL Approve/Reject card for ANY gated tool (not just outbound
+        # messaging). DEFAULT-ON everywhere (unset resolves to true), mirroring the COLLAB
+        # flags above. An operator's explicit flip wins and survives redeploys. Kill switch:
+        # `gcloud run services update agent-service --update-env-vars=HITL_GENERIC_CARD_ENABLED=false`.
+        # Read only in agent-execution/service.ts (via hitl-card-content.ts), agent-service only.
+        AGENT_HITL_GENERIC_CARD_ENABLED=$$(get_flag agent-service HITL_GENERIC_CARD_ENABLED true)
+        # Curation self-calibration sweep (guardrailed; it holds below its sample
+        # floor). DEFAULT-ON for every tenant; an explicit per-tenant
+        # CURATION_CALIBRATION_ENABLED=false opts out and survives redeploys. Its
+        # weekly Cloud Scheduler tick lives in tenant-runtime-template
+        # (r5_scheduler_jobs.tf).
+        AGENT_CURATION_CALIBRATION_ENABLED=$$(get_flag agent-service CURATION_CALIBRATION_ENABLED true)
+        # Blast-radius gate: off | shadow | enforce. Operator-resolved, not
+        # static, because the rollout IS an operator progression and a governance
+        # gate needs a per-tenant kill switch. See docs/agent-service-flags.md.
+        AGENT_QUANTIFIER_MODE=$$(get_flag agent-service QUANTIFIER_MODE shadow)
+        AGENT_CHAT_CONV_DEFAULT=$$(get_flag agent-service CHAT_CONVERSATIONAL_DEFAULT true)
+        # Workspace data census (connector metadata enumeration). Default OFF:
+        # it spends the same vendor quota agent work does. See
+        # docs/agent-service-flags.md.
+        AGENT_CENSUS_ENABLED=$$(get_flag agent-service CENSUS_ENABLED 0)
+        # The writer behind `search`'s already-indexed source. Default ON. See docs/agent-service-flags.md.
+        AGENT_CONTENT_INDEXING_ENABLED=$$(get_flag agent-service CONNECTOR_CONTENT_INDEXING_ENABLED true)
+        # Recovery proposal scope: 1 enforces as a unit (default everywhere); 0 is the kill for a defect. See docs/agent-service-flags.md.
+        AGENT_RECOVERY_SCOPE_ENFORCE=$$(get_flag agent-service TR_RECOVERY_SCOPE_ENFORCE 1)
+        # Takeover capture (the person's actions in the pane): 1 everywhere; 0 is the kill for a defect that disturbs a session. See docs/agent-service-flags.md.
+        AGENT_TAKEOVER_CAPTURE_ENABLED=$$(get_flag agent-service TR_TAKEOVER_CAPTURE_ENABLED 1)
+        # TypeSafe kills, default 1 (docs/agent-service-flags.md).
+        TS_FLAGS=""
+        for k in JEV_BROWSER_LOOP CONTRACT_CHECK ASK_CHECK SURFACING_POLICY MEMORY_ADMIT MEMORY_USED MESSAGE_CHECK; do
+          TS_FLAGS="$$TS_FLAGS,TR_$${k}_ENABLED=$$(get_flag agent-service TR_$${k}_ENABLED 1)"
+        done
+        # Engine escape hatch per provider (agents / wire / wire / genai|adk). Empty = the vendor's own runtime. See docs/agent-service-flags.md.
+        AGENT_OPENAI_ENGINE=$$(get_env agent-service OPENAI_ENGINE)
+        AGENT_XAI_ENGINE=$$(get_env agent-service XAI_ENGINE)
+        AGENT_OPENROUTER_ENGINE=$$(get_env agent-service OPENROUTER_ENGINE)
+        AGENT_GOOGLE_ENGINE=$$(get_env agent-service GOOGLE_ENGINE)
+        # Provenance gate, read from tool-gateway-service (where it runs). See docs/agent-service-flags.md.
+        TOOLGW_PROVENANCE_GATE_MODE=$$(get_flag tool-gateway-service PROVENANCE_GATE_MODE shadow)
+        TOOLGW_PROVENANCE_ENFORCE_CONNECTORS=$$(get_env tool-gateway-service PROVENANCE_ENFORCE_CONNECTORS)
+
+        # ── Static agent-service flags ─────────────────────────────────────────
+        #
+        # Our decisions, identical for every tenant — not operator-resolved — but
+        # declared here and carried in the same env file. Rollout scope and the
+        # exit condition for anything not on everywhere are in
+        # docs/agent-service-flags.md. Keep comments here to ONE line: both this
+        # step and deploy-agent-service are a single bash arg, and Cloud Build caps
+        # one arg at 10,000 characters. deploy-agent-service already hit that ceiling
+        # once, failing validation with "arg 1 too long" and no hint at the cause.
+
+        # Wake tools + drain/reconcile loops (ADR-035). Live in both.
+        SELF_WAKE_ENABLED_VAL=true
+        # Bound on tool results for the OpenAI/OpenRouter/Gemini loops. Both envs.
+        TOOL_RESULT_BOUND_ENABLED_VAL=1
+        # Its threshold, calibrated from a measured p99. Explicit, not
+        # inherited, so the decision is visible.
+        TOOL_RESULT_MAX_CHARS_VAL=50000
+        # Park an oversized step output in the run's workspace. Fail-open. Both envs.
+        VALUE_OFFLOAD_ENABLED_VAL=1
+        # A wake is parked after this many fenced resume claims. Safety bound.
+        WAKE_MAX_RESUME_ATTEMPTS_VAL=5
+        # Shadow until wouldNudge fires on >=20 real runs across >=5 agents; self-check, not verification. See docs/agent-service-flags.md.
+        VERIFY_ON_STOP_MODE_VAL=shadow
+        # LLM compression of oversized step outputs, instead of a positional cut.
+        # Both envs. Fires only above the budget, and falls back to the
+        # deterministic bound on error, timeout, empty or over-budget response.
+        SEMANTIC_COMPRESSION_ENABLED_VAL=1
+        # Condense a long conversation's older turns, on the engines whose history
+        # we hold. Both envs; dormant by measurement, see docs/agent-service-flags.md.
+        HISTORY_COMPACTION_ENABLED_VAL=1
+        # Where code_session runs, and which CLI codes for the open-weights vendors. See docs/agent-service-flags.md.
+        CODE_SESSION_EXEC_VAL=$([ "${_ENVIRONMENT}" = "prod" ] && echo inprocess || echo sandbox)
+        CODE_SESSION_RUNNER_VAL=opencode
+
+        cat > /workspace/operator-flags.env <<EOF
+        CODE_SESSION_EXEC_VAL=$$CODE_SESSION_EXEC_VAL
+        CODE_SESSION_RUNNER_VAL=$$CODE_SESSION_RUNNER_VAL
+        SELF_WAKE_ENABLED_VAL=$$SELF_WAKE_ENABLED_VAL
+        TOOL_RESULT_BOUND_ENABLED_VAL=$$TOOL_RESULT_BOUND_ENABLED_VAL
+        TOOL_RESULT_MAX_CHARS_VAL=$$TOOL_RESULT_MAX_CHARS_VAL
+        VALUE_OFFLOAD_ENABLED_VAL=$$VALUE_OFFLOAD_ENABLED_VAL
+        SEMANTIC_COMPRESSION_ENABLED_VAL=$$SEMANTIC_COMPRESSION_ENABLED_VAL
+        HISTORY_COMPACTION_ENABLED_VAL=$$HISTORY_COMPACTION_ENABLED_VAL
+        WAKE_MAX_RESUME_ATTEMPTS_VAL=$$WAKE_MAX_RESUME_ATTEMPTS_VAL
+        VERIFY_ON_STOP_MODE_VAL=$$VERIFY_ON_STOP_MODE_VAL
+        AGENT_DELEGATION_ENABLED=$$AGENT_DELEGATION_ENABLED
+        AGENT_TRAJECTORY_SINK_ENABLED=$$AGENT_TRAJECTORY_SINK_ENABLED
+        AGENT_STALLED_RECONCILER_ENABLED=$$AGENT_STALLED_RECONCILER_ENABLED
+        AGENT_COLLAB_SESSIONS_ENABLED=$$AGENT_COLLAB_SESSIONS_ENABLED
+        AGENT_COLLAB_ARTIFACT_SNAPSHOT_ENABLED=$$AGENT_COLLAB_ARTIFACT_SNAPSHOT_ENABLED
+        AGENT_HITL_GENERIC_CARD_ENABLED=$$AGENT_HITL_GENERIC_CARD_ENABLED
+        AGENT_CURATION_CALIBRATION_ENABLED=$$AGENT_CURATION_CALIBRATION_ENABLED
+        AGENT_QUANTIFIER_MODE=$$AGENT_QUANTIFIER_MODE
+        AGENT_CHAT_CONV_DEFAULT=$$AGENT_CHAT_CONV_DEFAULT
+        AGENT_CENSUS_ENABLED=$$AGENT_CENSUS_ENABLED
+        AGENT_CONTENT_INDEXING_ENABLED=$$AGENT_CONTENT_INDEXING_ENABLED
+        AGENT_RECOVERY_SCOPE_ENFORCE=$$AGENT_RECOVERY_SCOPE_ENFORCE
+        AGENT_TAKEOVER_CAPTURE_ENABLED=$$AGENT_TAKEOVER_CAPTURE_ENABLED
+        AGENT_TS_FLAGS=$$TS_FLAGS
+        AGENT_OPENAI_ENGINE=$$AGENT_OPENAI_ENGINE
+        AGENT_XAI_ENGINE=$$AGENT_XAI_ENGINE
+        AGENT_OPENROUTER_ENGINE=$$AGENT_OPENROUTER_ENGINE
+        AGENT_GOOGLE_ENGINE=$$AGENT_GOOGLE_ENGINE
+        TOOLGW_PROVENANCE_GATE_MODE=$$TOOLGW_PROVENANCE_GATE_MODE
+        TOOLGW_PROVENANCE_ENFORCE_CONNECTORS=$$TOOLGW_PROVENANCE_ENFORCE_CONNECTORS
+        EOF
+        echo "Resolved operator-managed feature flags (agent-service only):"
+        cat /workspace/operator-flags.env
+    waitFor: ['docker-push-app']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-agent-service'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        source /workspace/peer-urls.env
+        source /workspace/operator-flags.env
+        DB_HOST=$$(cat /workspace/db_host)
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+
+        # The public hostname, never the run.app URL: connector-service's
+        # ingress admits a caller from another project only through its load
+        # balancer (the run.app path was closed because it negotiates TLS 1.0).
+        if [ "${_ENVIRONMENT}" = "prod" ]; then
+          CONNECTOR_SERVICE_URL=https://connectors.example.com
+        else
+          CONNECTOR_SERVICE_URL=https://connectors-${_ENVIRONMENT}.example.com
+        fi
+        GOVERNANCE_SERVICE_URL=$$(gcloud run services describe governance-engine \
+          --region ${_REGION} \
+          --project YOUR_GCP_PROJECT \
+          --format='value(status.url)' 2>/dev/null || echo "")
+        GOVERNANCE_URL_ENV=""
+        if [ -n "$$GOVERNANCE_SERVICE_URL" ]; then
+          GOVERNANCE_URL_ENV=",GOVERNANCE_SERVICE_URL=$$GOVERNANCE_SERVICE_URL"
+        fi
+        # An operator's engine choice per provider, carried forward only when set:
+        # a flag wiped by the next deploy is a flip that silently un-flips.
+        ENGINE_ENV=""
+        [ -n "$$AGENT_OPENAI_ENGINE" ] && ENGINE_ENV="$$ENGINE_ENV,OPENAI_ENGINE=$$AGENT_OPENAI_ENGINE"
+        [ -n "$$AGENT_XAI_ENGINE" ] && ENGINE_ENV="$$ENGINE_ENV,XAI_ENGINE=$$AGENT_XAI_ENGINE"
+        [ -n "$$AGENT_OPENROUTER_ENGINE" ] && ENGINE_ENV="$$ENGINE_ENV,OPENROUTER_ENGINE=$$AGENT_OPENROUTER_ENGINE"
+        [ -n "$$AGENT_GOOGLE_ENGINE" ] && ENGINE_ENV="$$ENGINE_ENV,GOOGLE_ENGINE=$$AGENT_GOOGLE_ENGINE"
+
+        # On first-ever deploy AGENT_URL is empty. Use a placeholder that won't
+        # match the runtime's https:// validator — the lint guard in runtime-env.ts
+        # treats it as missing if anything calls getTenantRuntimeUrl() before
+        # patch-split-service-urls fills it in.
+        AGENT_URL_VAL=$${AGENT_URL:-placeholder://awaiting-cloudbuild-patch}
+        TOOLGW_URL_VAL=$${TOOLGW_URL:-placeholder://awaiting-cloudbuild-patch}
+        COORD_URL_VAL=$${COORD_URL:-placeholder://awaiting-cloudbuild-patch}
+        REFLECT_URL_VAL=$${REFLECT_URL:-placeholder://awaiting-cloudbuild-patch}
+        SANDBOX_EXEC_URL_VAL=$${SANDBOX_EXEC_URL:-placeholder://awaiting-cloudbuild-patch}
+
+        # The static agent-service flags (self-wake, the tool-result bound, the
+        # step-output guards, the wake loop breaker, verify-on-stop) are declared
+        # in resolve-operator-flags and arrive via operator-flags.env, sourced
+        # above. They live there because Cloud Build caps ONE step arg at 10,000
+        # characters and this script is a single arg: with the declarations
+        # inline it sits close to that cap, and crossing it fails the build at
+        # validation with "arg 1 too long" and no reference to the cause.
+
+        # Env-specific platform-backend public alias.
+        #   dev  → https://api-dev.example.com
+        #   prod → https://api.example.com
+        # The tenant runtime makes cross-project HTTP calls to PB; pointing the
+        # dev runtime at the prod URL would route dev tenant traffic into prod.
+        # The README "Deployment > Environments" table is the source of truth.
+        if [ "${_ENVIRONMENT}" = "prod" ]; then
+          PB_PUBLIC_URL=https://api.example.com
+        else
+          PB_PUBLIC_URL=https://api-${_ENVIRONMENT}.example.com
+        fi
+
+        # The five tenant-project token mirrors run in resolve-peer-urls.
+
+        # ingress=all on agent-service so platform-backend-sa can invoke
+        # /api/invocations etc. cross-project once traffic is cut over from
+        # the monolith (plan §4f step 2). --no-allow-unauthenticated +
+        # Cloud Run IAM (run.invoker binding on the platform-backend SA in
+        # tenant-runtime-template/main.tf `platform_backend_agent_invoker`)
+        # keeps the service authenticated; only ingress is permissive.
+        # --clear-secrets: nothing is bound at exec, because a variable present
+        # at execve cannot be removed from /proc/1/environ. Hydration at boot is
+        # the only way off it. INV-TR-016.
+        # code_session substrate: sandbox in dev, inprocess in prod. Rollout and
+        # exit condition in docs/agent-service-flags.md.
+        # 1 vCPU / 4Gi: sized from measured p99 usage with headroom, and an
+        # always-allocated instance bills its full size for every
+        # idle minute after each scheduled wake. Raise it from the metrics, not
+        # by guess. The 2Gi /tmp volume is memory and counts inside the 4Gi.
+        gcloud run deploy agent-service \
+          --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+          --platform managed \
+          --no-allow-unauthenticated \
+          --ingress all \
+          --service-account tenant-${_TENANT_ID}-runtime@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com \
+          --network tenant-${_TENANT_ID}-vpc --subnet tenant-${_TENANT_ID}-subnet \
+          --vpc-egress all-traffic \
+          --execution-environment gen2 \
+          --add-volume name=tmp-workspace,type=in-memory,size-limit=2Gi \
+          --add-volume-mount volume=tmp-workspace,mount-path=/tmp \
+          --min-instances 0 \
+          --max-instances 10 \
+          --memory 4Gi \
+          --cpu 1 \
+          --no-cpu-throttling \
+          --cpu-boost \
+          --concurrency 40 \
+          --timeout 900 \
+          --set-env-vars "SERVICE_TYPE=agent,PROVENANCE_STORE=postgres,NODE_ENV=production,ENVIRONMENT=${_ENVIRONMENT},TENANT_ID=${_TENANT_ID},GCP_PROJECT_ID=tenant-${_TENANT_ID}-${_ENVIRONMENT},TENANT_PROJECT_ID=tenant-${_TENANT_ID}-${_ENVIRONMENT},CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=tenant_app,DB_NAME=tenant_runtime,DB_HOST=$$DB_HOST,DB_POOL_SIZE=4,CLOUD_SCHEDULER_SERVICE_ACCOUNT=tenant-${_TENANT_ID}-scheduler@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com,CONTROL_PLANE_API_URL=$$PB_PUBLIC_URL,PLATFORM_BACKEND_URL=$$PB_PUBLIC_URL,PLATFORM_BACKEND_SA_EMAIL=platform-backend-${_ENVIRONMENT}@YOUR_GCP_PROJECT.iam.gserviceaccount.com,CONNECTOR_SERVICE_URL=$$CONNECTOR_SERVICE_URL,GOVERNANCE_SERVICE_ENABLED=${_GOVERNANCE_SERVICE_ENABLED},RECALL_CONVERSATIONS_ENABLED=${_RECALL_CONVERSATIONS_ENABLED},USE_CLOUD_TASKS_EXECUTION=true,IDEMPOTENCY_RECONCILER_ENABLED=1,STALLED_RUN_RECONCILER_ENABLED=$$AGENT_STALLED_RECONCILER_ENABLED,AUTONOMOUS_RESUME_ENABLED=1,WORKFLOW_STEPS_ENABLED=1,SELF_WAKE_ENABLED=$$SELF_WAKE_ENABLED_VAL,FRAMER_SECRET_NAME=projects/tenant-${_TENANT_ID}-${_ENVIRONMENT}/secrets/framer-secret/versions/latest,GCP_PROJECT=tenant-${_TENANT_ID}-${_ENVIRONMENT},TENANT_RUNTIME_URL=$$AGENT_URL_VAL,AGENT_SERVICE_URL=$$AGENT_URL_VAL,TOOL_GATEWAY_SERVICE_URL=$$TOOLGW_URL_VAL,COORDINATOR_SERVICE_URL=$$COORD_URL_VAL,REFLECTION_SERVICE_URL=$$REFLECT_URL_VAL,REFLECTION_URL=$$REFLECT_URL_VAL,BROWSER_SCREENSHOT_BUCKET=tenant-${_TENANT_ID}-${_ENVIRONMENT}-browser-screenshots,DELEGATION_ENABLED=$$AGENT_DELEGATION_ENABLED,TRAJECTORY_SINK_ENABLED=$$AGENT_TRAJECTORY_SINK_ENABLED,HITL_GENERIC_CARD_ENABLED=$$AGENT_HITL_GENERIC_CARD_ENABLED,CURATION_CALIBRATION_ENABLED=$$AGENT_CURATION_CALIBRATION_ENABLED,SANDBOX_KMS_KEY_NAME=projects/tenant-${_TENANT_ID}-${_ENVIRONMENT}/locations/${_REGION}/keyRings/sandbox-secrets/cryptoKeys/sandbox-jwt-secret,HITL_TRUST_SHADOW_ENABLED=${_HITL_TRUST_SHADOW},TOOL_RESULT_BOUND_ENABLED=$$TOOL_RESULT_BOUND_ENABLED_VAL,TOOL_RESULT_MAX_CHARS=$$TOOL_RESULT_MAX_CHARS_VAL,VALUE_OFFLOAD_ENABLED=$$VALUE_OFFLOAD_ENABLED_VAL,SEMANTIC_COMPRESSION_ENABLED=$$SEMANTIC_COMPRESSION_ENABLED_VAL,HISTORY_COMPACTION_ENABLED=$$HISTORY_COMPACTION_ENABLED_VAL,QUANTIFIER_MODE=$$AGENT_QUANTIFIER_MODE,CHAT_CONVERSATIONAL_DEFAULT=$$AGENT_CHAT_CONV_DEFAULT,CENSUS_ENABLED=$$AGENT_CENSUS_ENABLED,CONNECTOR_CONTENT_INDEXING_ENABLED=$$AGENT_CONTENT_INDEXING_ENABLED,TR_RECOVERY_SCOPE_ENFORCE=$$AGENT_RECOVERY_SCOPE_ENFORCE,TR_TAKEOVER_CAPTURE_ENABLED=$$AGENT_TAKEOVER_CAPTURE_ENABLED,WAKE_MAX_RESUME_ATTEMPTS=$$WAKE_MAX_RESUME_ATTEMPTS_VAL,VERIFY_ON_STOP_MODE=$$VERIFY_ON_STOP_MODE_VAL,SANDBOX_EXECUTOR_URL=$$SANDBOX_EXEC_URL_VAL,CODE_SESSION_EXECUTION=$$CODE_SESSION_EXEC_VAL,CODE_SESSION_OPEN_WEIGHTS_RUNNER=$$CODE_SESSION_RUNNER_VAL$$AGENT_TS_FLAGS$$GOVERNANCE_URL_ENV$$ENGINE_ENV" \
+          --clear-secrets
+    waitFor: ['docker-push-app', 'migrate', 'resolve-peer-urls', 'resolve-operator-flags', 'certify-on-sdk-change']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-coordinator-service'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        source /workspace/peer-urls.env
+        DB_HOST=$$(cat /workspace/db_host)
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+
+        GOVERNANCE_SERVICE_URL=$$(gcloud run services describe governance-engine \
+          --region ${_REGION} \
+          --project YOUR_GCP_PROJECT \
+          --format='value(status.url)' 2>/dev/null || echo "")
+        GOVERNANCE_URL_ENV=""
+        if [ -n "$$GOVERNANCE_SERVICE_URL" ]; then
+          GOVERNANCE_URL_ENV=",GOVERNANCE_SERVICE_URL=$$GOVERNANCE_SERVICE_URL"
+        fi
+
+        AGENT_URL_VAL=$${AGENT_URL:-placeholder://awaiting-cloudbuild-patch}
+        TOOLGW_URL_VAL=$${TOOLGW_URL:-placeholder://awaiting-cloudbuild-patch}
+        COORD_URL_VAL=$${COORD_URL:-placeholder://awaiting-cloudbuild-patch}
+        REFLECT_URL_VAL=$${REFLECT_URL:-placeholder://awaiting-cloudbuild-patch}
+
+        # coordinator-service calls connector-service, so it must be told where
+        # it is. It handles connector.credentials_stored off the control-plane
+        # push subscription, and that handler arms the connector's event
+        # delivery via connector-service. Without the URL it logs
+        # "gmail-watch: initial arm failed ... CONNECTOR_SERVICE_URL not set"
+        # and moves on — non-fatal by design, deferring to a bulk-arm script
+        # that does not close the gap. Net effect: reconnecting a Gmail
+        # connector would never re-arm its event delivery, so mail would stop
+        # waking agents while every surface reports the connector healthy.
+        #
+        # Resolved exactly as the agent-service and tool-gateway steps do, and
+        # fatal on failure for the same reason theirs is: a coordinator that
+        # cannot reach connector-service cannot arm anything, and shipping it
+        # silently stops mail waking agents with no signal at all.
+        # The public hostname, never the run.app URL: connector-service's
+        # ingress admits a caller from another project only through its load
+        # balancer (the run.app path was closed because it negotiates TLS 1.0).
+        if [ "${_ENVIRONMENT}" = "prod" ]; then
+          CONNECTOR_SERVICE_URL=https://connectors.example.com
+        else
+          CONNECTOR_SERVICE_URL=https://connectors-${_ENVIRONMENT}.example.com
+        fi
+        if [ -z "$$CONNECTOR_SERVICE_URL" ]; then
+          echo "ERROR: coordinator requires connector-service; URL unresolved"
+          exit 1
+        fi
+
+        # Env-specific platform-backend public alias (see agent-service deploy
+        # step for rationale).
+        if [ "${_ENVIRONMENT}" = "prod" ]; then
+          PB_PUBLIC_URL=https://api.example.com
+        else
+          PB_PUBLIC_URL=https://api-${_ENVIRONMENT}.example.com
+        fi
+
+        # --cpu-throttling (request-based CPU): every Pub/Sub push is handled to
+        # completion inside its request (src/events/push-handler.ts), so nothing
+        # here needs CPU between requests. Always-allocated, the push every
+        # minute or two kept two instances billed around the clock.
+        gcloud run deploy coordinator-service \
+          --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+          --platform managed \
+          --no-allow-unauthenticated \
+          --ingress internal \
+          --service-account tenant-${_TENANT_ID}-runtime@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com \
+          --network tenant-${_TENANT_ID}-vpc --subnet tenant-${_TENANT_ID}-subnet \
+          --vpc-egress all-traffic \
+          --execution-environment gen2 \
+          --min-instances 0 \
+          --max-instances 5 \
+          --memory 1Gi \
+          --cpu 1 \
+          --cpu-throttling \
+          --concurrency 8 \
+          --timeout 600 \
+          --set-env-vars "SERVICE_TYPE=coordinator,NODE_ENV=production,ENVIRONMENT=${_ENVIRONMENT},TENANT_ID=${_TENANT_ID},GCP_PROJECT_ID=tenant-${_TENANT_ID}-${_ENVIRONMENT},TENANT_PROJECT_ID=tenant-${_TENANT_ID}-${_ENVIRONMENT},CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=tenant_app,DB_NAME=tenant_runtime,DB_HOST=$$DB_HOST,DB_POOL_SIZE=4,CLOUD_SCHEDULER_SERVICE_ACCOUNT=tenant-${_TENANT_ID}-scheduler@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com,CONTROL_PLANE_API_URL=$$PB_PUBLIC_URL,PLATFORM_BACKEND_URL=$$PB_PUBLIC_URL,CONNECTOR_SERVICE_URL=$$CONNECTOR_SERVICE_URL,GOVERNANCE_SERVICE_ENABLED=${_GOVERNANCE_SERVICE_ENABLED},USE_CLOUD_TASKS_EXECUTION=true,FRAMER_SECRET_NAME=projects/tenant-${_TENANT_ID}-${_ENVIRONMENT}/secrets/framer-secret/versions/latest,GCP_PROJECT=tenant-${_TENANT_ID}-${_ENVIRONMENT},TENANT_RUNTIME_URL=$$AGENT_URL_VAL,AGENT_SERVICE_URL=$$AGENT_URL_VAL,TOOL_GATEWAY_SERVICE_URL=$$TOOLGW_URL_VAL,COORDINATOR_SERVICE_URL=$$COORD_URL_VAL,REFLECTION_SERVICE_URL=$$REFLECT_URL_VAL,REFLECTION_URL=$$REFLECT_URL_VAL,PUBSUB_PUSH_SA_EMAIL=tenant-rt-pubsub-push-${_ENVIRONMENT}@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com$$GOVERNANCE_URL_ENV" \
+          --clear-secrets  # hydrated at boot; see deploy-agent-service
+    waitFor: ['docker-push-app', 'migrate', 'resolve-peer-urls']
+
+  # sandbox-executor — owns the per-tenant sandbox provider, executor,
+  # InstanceAliveTicker, and KMS-fronted JWT envelope. Runs as the
+  # `sandbox-executor` SA (roles/run.admin + KMS encrypter granted by
+  # terraform). Deployed before tool-gateway so SANDBOX_EXECUTOR_URL is
+  # resolvable on the tool-gateway revision.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-sandbox-executor'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        source /workspace/peer-urls.env
+        DB_HOST=$$(cat /workspace/db_host)
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+
+        AGENT_URL_VAL=$${AGENT_URL:-placeholder://awaiting-cloudbuild-patch}
+        TOOLGW_URL_VAL=$${TOOLGW_URL:-placeholder://awaiting-cloudbuild-patch}
+        SANDBOX_EXEC_URL_VAL=$${SANDBOX_EXEC_URL:-placeholder://awaiting-cloudbuild-patch}
+
+        # git_clone needs the version-control connector's OAuth token, and the
+        # only route to it is connector-service. agent-service and
+        # tool-gateway-service have carried this URL and token from the start;
+        # this service never needed them, because until git_clone was
+        # authenticated it asked connector-service for nothing.
+        #
+        # Resolved here rather than sourced: peer-urls.env carries the TENANT's
+        # own services, and connector-service lives in the control project. Same
+        # command the agent-service and tool-gateway steps already use.
+        # The public hostname, never the run.app URL: connector-service's
+        # ingress admits a caller from another project only through its load
+        # balancer (the run.app path was closed because it negotiates TLS 1.0).
+        if [ "${_ENVIRONMENT}" = "prod" ]; then
+          CONNECTOR_SERVICE_URL=https://connectors.example.com
+        else
+          CONNECTOR_SERVICE_URL=https://connectors-${_ENVIRONMENT}.example.com
+        fi
+
+        if [ "${_ENVIRONMENT}" = "prod" ]; then
+          PB_PUBLIC_URL=https://api.example.com
+        else
+          PB_PUBLIC_URL=https://api-${_ENVIRONMENT}.example.com
+        fi
+
+        # sandbox-executor is the sandbox-facing bridge: the in-sandbox sidecar
+        # reaches it bearing only its per-sandbox HS256 JWT, which Cloud Run's
+        # frontend cannot verify as a Google token. So this service is
+        # --allow-unauthenticated, guarded instead by --ingress internal (VPC
+        # only) plus app-level auth on every route (oidcGate on /v2/execute; the
+        # /internal/sandbox/* routes proxy to --no-allow-unauthenticated backends
+        # that run requireSandboxJwt). The deeper services stay no-allow-unauth.
+        gcloud run deploy sandbox-executor \
+          --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+          --platform managed \
+          --allow-unauthenticated \
+          --ingress internal \
+          --service-account sandbox-executor@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com \
+          --network tenant-${_TENANT_ID}-vpc --subnet tenant-${_TENANT_ID}-subnet \
+          --vpc-egress all-traffic \
+          --execution-environment gen2 \
+          --clear-cloudsql-instances \
+          --min-instances 0 \
+          --max-instances 5 \
+          --memory 1Gi \
+          --cpu 1 \
+          --no-cpu-throttling \
+          --concurrency 80 \
+          --timeout 600 \
+          --set-env-vars "SERVICE_TYPE=sandbox-executor,NODE_ENV=production,ENVIRONMENT=${_ENVIRONMENT},TENANT_ID=${_TENANT_ID},GCP_PROJECT_ID=tenant-${_TENANT_ID}-${_ENVIRONMENT},TENANT_PROJECT_ID=tenant-${_TENANT_ID}-${_ENVIRONMENT},GCP_REGION=${_REGION},GCP_PROJECT=tenant-${_TENANT_ID}-${_ENVIRONMENT},CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=tenant_app,DB_NAME=tenant_runtime,DB_HOST=$$DB_HOST,DB_POOL_SIZE=4,CONTROL_PLANE_API_URL=$$PB_PUBLIC_URL,PLATFORM_BACKEND_URL=$$PB_PUBLIC_URL,TENANT_RUNTIME_INTERNAL_URL=$$AGENT_URL_VAL,AGENT_SERVICE_URL=$$AGENT_URL_VAL,TOOL_GATEWAY_SERVICE_URL=$$TOOLGW_URL_VAL,SANDBOX_IMAGE_REGISTRY=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/sandbox-images,SANDBOX_KMS_KEY_NAME=projects/tenant-${_TENANT_ID}-${_ENVIRONMENT}/locations/${_REGION}/keyRings/sandbox-secrets/cryptoKeys/sandbox-jwt-secret,AIO_SANDBOX_IMAGE_TAG=${_AIO_SANDBOX_IMAGE_TAG},SANDBOX_ALIVE_TICK_MS=30000,RUNTIME_SERVICE_ACCOUNT_EMAIL=sandbox-executor@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com,SANDBOX_SERVICE_ACCOUNT_EMAIL=sandbox-runtime@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com,SANDBOX_EXECUTOR_URL=$$SANDBOX_EXEC_URL_VAL,CLOUD_SCHEDULER_SERVICE_ACCOUNT=tenant-${_TENANT_ID}-scheduler@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com,SANDBOX_VPC_NETWORK=projects/tenant-${_TENANT_ID}-${_ENVIRONMENT}/global/networks/tenant-${_TENANT_ID}-vpc,SANDBOX_VPC_SUBNET=projects/tenant-${_TENANT_ID}-${_ENVIRONMENT}/regions/${_REGION}/subnetworks/tenant-${_TENANT_ID}-subnet,CONNECTOR_SERVICE_URL=$$CONNECTOR_SERVICE_URL" \
+          --clear-secrets  # hydrated at boot; see deploy-agent-service
+    waitFor: ['docker-push-app', 'migrate', 'resolve-peer-urls']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-tool-gateway-service'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        source /workspace/peer-urls.env
+        # Operator flags too: `service.execute()` runs the content indexer, and
+        # it runs HERE as well as in agent-service (the /api/v1/tool-calls
+        # path). Sourcing only peer-urls would expand the flag to the empty
+        # string and leave indexing off on this half of the dispatch surface —
+        # the same half-wiring that left the indexer dead everywhere.
+        source /workspace/operator-flags.env
+        DB_HOST=$$(cat /workspace/db_host)
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+
+        # The public hostname, never the run.app URL: connector-service's
+        # ingress admits a caller from another project only through its load
+        # balancer (the run.app path was closed because it negotiates TLS 1.0).
+        if [ "${_ENVIRONMENT}" = "prod" ]; then
+          CONNECTOR_SERVICE_URL=https://connectors.example.com
+        else
+          CONNECTOR_SERVICE_URL=https://connectors-${_ENVIRONMENT}.example.com
+        fi
+        if [ -z "$$CONNECTOR_SERVICE_URL" ]; then
+          echo "ERROR: tool-gateway requires connector-service; URL unresolved"
+          exit 1
+        fi
+        GOVERNANCE_SERVICE_URL=$$(gcloud run services describe governance-engine \
+          --region ${_REGION} \
+          --project YOUR_GCP_PROJECT \
+          --format='value(status.url)' 2>/dev/null || echo "")
+        GOVERNANCE_URL_ENV=""
+        if [ -n "$$GOVERNANCE_SERVICE_URL" ]; then
+          GOVERNANCE_URL_ENV="~GOVERNANCE_SERVICE_URL=$$GOVERNANCE_SERVICE_URL"
+        fi
+        # The env list below is `~`-delimited (gcloud's `^~^` form), because a
+        # value may hold a comma: the connector list is one, and a comma inside a
+        # comma-separated --set-env-vars is a parse error that fails the deploy.
+        PROVENANCE_ENFORCE_ENV=""
+        if [ -n "$$TOOLGW_PROVENANCE_ENFORCE_CONNECTORS" ]; then
+          PROVENANCE_ENFORCE_ENV="~PROVENANCE_ENFORCE_CONNECTORS=$$TOOLGW_PROVENANCE_ENFORCE_CONNECTORS"
+        fi
+
+        AGENT_URL_VAL=$${AGENT_URL:-placeholder://awaiting-cloudbuild-patch}
+        TOOLGW_URL_VAL=$${TOOLGW_URL:-placeholder://awaiting-cloudbuild-patch}
+        SANDBOX_EXEC_URL_VAL=$${SANDBOX_EXEC_URL:-placeholder://awaiting-cloudbuild-patch}
+
+        # Env-specific platform-backend public alias (see agent-service deploy
+        # step for rationale).
+        if [ "${_ENVIRONMENT}" = "prod" ]; then
+          PB_PUBLIC_URL=https://api.example.com
+        else
+          PB_PUBLIC_URL=https://api-${_ENVIRONMENT}.example.com
+        fi
+
+        # Its five tenant-project tokens are mirrored in resolve-peer-urls.
+
+        gcloud run deploy tool-gateway-service \
+          --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+          --platform managed \
+          --no-allow-unauthenticated \
+          --ingress internal \
+          --service-account tenant-${_TENANT_ID}-runtime@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com \
+          --network tenant-${_TENANT_ID}-vpc --subnet tenant-${_TENANT_ID}-subnet \
+          --vpc-egress all-traffic \
+          --execution-environment gen2 \
+          --min-instances 0 \
+          --max-instances 10 \
+          --memory 1Gi \
+          --cpu 1 \
+          --cpu-throttling \
+          --concurrency 200 \
+          --timeout 60 \
+          --set-env-vars "^~^SERVICE_TYPE=tool-gateway~PROVENANCE_STORE=postgres~CONNECTOR_CONTENT_INDEXING_ENABLED=$$AGENT_CONTENT_INDEXING_ENABLED~NODE_ENV=production~ENVIRONMENT=${_ENVIRONMENT}~TENANT_ID=${_TENANT_ID}~GCP_PROJECT_ID=tenant-${_TENANT_ID}-${_ENVIRONMENT}~TENANT_PROJECT_ID=tenant-${_TENANT_ID}-${_ENVIRONMENT}~GCP_REGION=${_REGION}~CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN~DB_USER=tenant_app~DB_NAME=tenant_runtime~DB_HOST=$$DB_HOST~DB_POOL_SIZE=4~CONTROL_PLANE_API_URL=$$PB_PUBLIC_URL~PLATFORM_BACKEND_URL=$$PB_PUBLIC_URL~CONNECTOR_SERVICE_URL=$$CONNECTOR_SERVICE_URL~GOVERNANCE_SERVICE_ENABLED=${_GOVERNANCE_SERVICE_ENABLED}~GCP_PROJECT=tenant-${_TENANT_ID}-${_ENVIRONMENT}~TENANT_RUNTIME_URL=$$AGENT_URL_VAL~TOOL_GATEWAY_SERVICE_URL=$$TOOLGW_URL_VAL$$GOVERNANCE_URL_ENV~SANDBOX_EXECUTOR_URL=$$SANDBOX_EXEC_URL_VAL~BROWSER_SCREENSHOT_BUCKET=tenant-${_TENANT_ID}-${_ENVIRONMENT}-browser-screenshots~SANDBOX_HITL_ENFORCEMENT=on~SANDBOX_KMS_KEY_NAME=projects/tenant-${_TENANT_ID}-${_ENVIRONMENT}/locations/${_REGION}/keyRings/sandbox-secrets/cryptoKeys/sandbox-jwt-secret~PROVENANCE_GATE_MODE=$$TOOLGW_PROVENANCE_GATE_MODE$$PROVENANCE_ENFORCE_ENV" \
+          --clear-secrets  # hydrated at boot; see deploy-agent-service
+    # `resolve-operator-flags` because this step SOURCES the file that step
+    # writes (/workspace/operator-flags.env). Without the edge the two run
+    # concurrently and this one reads a file that does not exist yet:
+    #
+    #   bash: line 8: /workspace/operator-flags.env: No such file or directory
+    #
+    # `deploy-agent-service` reads the same file and declares the same edge.
+    waitFor: ['docker-push-app', 'migrate', 'resolve-peer-urls', 'deploy-sandbox-executor', 'resolve-operator-flags']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-reflection-service'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        source /workspace/peer-urls.env
+        DB_HOST=$$(cat /workspace/db_host)
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+
+        REFLECT_URL_VAL=$${REFLECT_URL:-placeholder://awaiting-cloudbuild-patch}
+
+        # Env-specific platform-backend public alias (see agent-service deploy
+        # step for rationale).
+        if [ "${_ENVIRONMENT}" = "prod" ]; then
+          PB_PUBLIC_URL=https://api.example.com
+        else
+          PB_PUBLIC_URL=https://api-${_ENVIRONMENT}.example.com
+        fi
+
+        gcloud run deploy reflection-service \
+          --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+          --platform managed \
+          --no-allow-unauthenticated \
+          --ingress internal \
+          --service-account tenant-${_TENANT_ID}-runtime@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com \
+          --network tenant-${_TENANT_ID}-vpc --subnet tenant-${_TENANT_ID}-subnet \
+          --vpc-egress all-traffic \
+          --execution-environment gen2 \
+          --min-instances 0 \
+          --max-instances 3 \
+          --memory 4Gi \
+          --cpu 4 \
+          --concurrency 10 \
+          --timeout 900 \
+          --set-env-vars "SERVICE_TYPE=reflection,NODE_ENV=production,ENVIRONMENT=${_ENVIRONMENT},TENANT_ID=${_TENANT_ID},GCP_PROJECT_ID=tenant-${_TENANT_ID}-${_ENVIRONMENT},TENANT_PROJECT_ID=tenant-${_TENANT_ID}-${_ENVIRONMENT},CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=tenant_app,DB_NAME=tenant_runtime,DB_HOST=$$DB_HOST,DB_POOL_SIZE=4,CONTROL_PLANE_API_URL=$$PB_PUBLIC_URL,PLATFORM_BACKEND_URL=$$PB_PUBLIC_URL,GCP_PROJECT=tenant-${_TENANT_ID}-${_ENVIRONMENT},REFLECTION_SERVICE_URL=$$REFLECT_URL_VAL,REFLECTION_URL=$$REFLECT_URL_VAL" \
+          --clear-secrets  # hydrated at boot; see deploy-agent-service
+    waitFor: ['docker-push-app', 'migrate', 'resolve-peer-urls']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-anchor-webhook-receiver'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        source /workspace/peer-urls.env
+        AGENT_URL_VAL=$${AGENT_URL:-placeholder://awaiting-cloudbuild-patch}
+        gcloud run deploy anchor-webhook-receiver \
+          --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+          --platform managed \
+          --allow-unauthenticated \
+          --ingress all \
+          --command node \
+          --args dist/anchor-webhook-receiver-entry.js \
+          --service-account tenant-${_TENANT_ID}-runtime@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com \
+          --min-instances 0 \
+          --max-instances 5 \
+          --memory 256Mi \
+          --cpu 1 \
+          --concurrency 80 \
+          --timeout 30 \
+          --set-env-vars "NODE_ENV=production,ENVIRONMENT=${_ENVIRONMENT},ANCHOR_WEBHOOK_UPSTREAM_URL=$$AGENT_URL_VAL"
+    waitFor: ['docker-push-app', 'resolve-peer-urls']
+
+  # After all 4 split services are up, resolve each URL and patch each service
+  # with only the peer URLs it actually calls (plan §4c). Distribution:
+  #   - agent-service         → TOOL_GATEWAY_SERVICE_URL, COORDINATOR_SERVICE_URL
+  #   - coordinator-service   → AGENT_SERVICE_URL, TOOL_GATEWAY_SERVICE_URL,
+  #                             REFLECTION_SERVICE_URL,
+  #                             REFLECTION_URL (Cloud Tasks enqueue target)
+  #   - tool-gateway-service  → TOOL_GATEWAY_SERVICE_URL (self — used as the
+  #                             expected OIDC audience in service-auth)
+  #   - reflection-service    → (no peers)
+  # Every service also gets its own self-URL so service-auth.ts can verify
+  # inbound OIDC tokens minted with aud == the target service URL.
+  # On first deploy, one or more describe calls may return empty (race); the
+  # script retries once after a short sleep, matching the TENANT_RUNTIME_URL
+  # first-deploy pattern.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'patch-split-service-urls'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        # Single-phase deploy bootstrap (plan §4.7): on normal deploys every
+        # peer URL was already resolved in resolve-peer-urls and burned into
+        # each service's --set-env-vars. Skip the patch.
+        # On the first-ever deploy of a tenant project, resolve-peer-urls saw
+        # empty URLs for one or more services → deploys used placeholders →
+        # we re-resolve here and patch the real URLs in.
+        source /workspace/peer-urls.env
+        if [ -n "$$AGENT_URL" ] && [ -n "$$COORD_URL" ] && [ -n "$$TOOLGW_URL" ] && [ -n "$$REFLECT_URL" ] && [ -n "$$SANDBOX_EXEC_URL" ]; then
+          echo "All peer URLs were known at deploy time — nothing to patch."
+          exit 0
+        fi
+
+        echo "First-deploy mode — re-resolving and patching peer URLs..."
+        resolve() {
+          local svc="$$1"
+          gcloud run services describe "$$svc" \
+            --region ${_REGION} \
+            --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+            --format='value(status.url)' 2>/dev/null || echo ""
+        }
+
+        AGENT_URL=$$(resolve agent-service)
+        COORD_URL=$$(resolve coordinator-service)
+        TOOLGW_URL=$$(resolve tool-gateway-service)
+        REFLECT_URL=$$(resolve reflection-service)
+        SANDBOX_EXEC_URL=$$(resolve sandbox-executor)
+
+        if [ -z "$$AGENT_URL" ] || [ -z "$$COORD_URL" ] || [ -z "$$TOOLGW_URL" ] || [ -z "$$REFLECT_URL" ] || [ -z "$$SANDBOX_EXEC_URL" ]; then
+          echo "one or more split services have no URL yet — sleeping 10s and retrying once"
+          sleep 10
+          AGENT_URL=$$(resolve agent-service)
+          COORD_URL=$$(resolve coordinator-service)
+          TOOLGW_URL=$$(resolve tool-gateway-service)
+          REFLECT_URL=$$(resolve reflection-service)
+          SANDBOX_EXEC_URL=$$(resolve sandbox-executor)
+        fi
+
+        echo "AGENT_SERVICE_URL=$$AGENT_URL"
+        echo "COORDINATOR_SERVICE_URL=$$COORD_URL"
+        echo "TOOL_GATEWAY_SERVICE_URL=$$TOOLGW_URL"
+        echo "REFLECTION_SERVICE_URL=$$REFLECT_URL"
+        echo "SANDBOX_EXECUTOR_URL=$$SANDBOX_EXEC_URL"
+
+        # Agent: needs tool-gateway + coordinator peers, plus AGENT_SERVICE_URL
+        # self-ref so other receivers can verify OIDC tokens that name it.
+        # REFLECTION_URL is the Cloud Tasks target for reflection enqueues
+        # fired from agent-owned paths (HITL late-feedback, etc.).
+        gcloud run services update agent-service \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+          --update-env-vars "AGENT_SERVICE_URL=$$AGENT_URL,TOOL_GATEWAY_SERVICE_URL=$$TOOLGW_URL,COORDINATOR_SERVICE_URL=$$COORD_URL,REFLECTION_URL=$$REFLECT_URL,TENANT_RUNTIME_URL=$$AGENT_URL,SANDBOX_EXECUTOR_URL=$$SANDBOX_EXEC_URL"
+
+        # Coordinator: needs agent + tool-gateway + reflection peers, plus
+        # REFLECTION_URL for Cloud Tasks enqueue (reflection jobs target the
+        # reflection-service Cloud Run URL). COORDINATOR_SERVICE_URL is self.
+        # TENANT_RUNTIME_URL points at agent-service — agentLifecycleService
+        # ensureSchedulerJob (invoked from handleInternalAgentCreated) builds
+        # Cloud Scheduler HTTP targets against this URL. Missing this turns
+        # every new-agent event into a poison message in
+        # control-plane-events-${env}-coordinator-sub.
+        gcloud run services update coordinator-service \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+          --update-env-vars "COORDINATOR_SERVICE_URL=$$COORD_URL,AGENT_SERVICE_URL=$$AGENT_URL,TOOL_GATEWAY_SERVICE_URL=$$TOOLGW_URL,REFLECTION_SERVICE_URL=$$REFLECT_URL,REFLECTION_URL=$$REFLECT_URL,TENANT_RUNTIME_URL=$$AGENT_URL"
+
+        # Tool-gateway: own self-URL for OIDC audience verification in
+        # requireServiceAuth (src/tool-gateway/router.ts), plus TENANT_RUNTIME_URL
+        # for the OIDC audience used when proxying internal-agent delegation calls
+        # back to agent-service (src/tool-gateway/internal-agent-handler.ts).
+        gcloud run services update tool-gateway-service \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+          --update-env-vars "TOOL_GATEWAY_SERVICE_URL=$$TOOLGW_URL,TENANT_RUNTIME_URL=$$AGENT_URL,SANDBOX_EXECUTOR_URL=$$SANDBOX_EXEC_URL"
+
+        # Reflection: self-URL for OIDC audience + REFLECTION_URL (= self) as
+        # the Cloud Tasks target for scheduled-reflection enqueues fired from
+        # within reflection-service itself.
+        gcloud run services update reflection-service \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+          --update-env-vars "REFLECTION_SERVICE_URL=$$REFLECT_URL,REFLECTION_URL=$$REFLECT_URL"
+
+        # SANDBOX_EXECUTOR_URL is its own self-URL — used as the OIDC audience
+        # for inbound calls to /v2/execute and the legacy ee surface.
+        # AGENT_SERVICE_URL and TOOL_GATEWAY_SERVICE_URL are the proxy targets
+        # for /internal/sandbox/{events,mcp/*}.
+        gcloud run services update sandbox-executor \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+          --update-env-vars "SANDBOX_EXECUTOR_URL=$$SANDBOX_EXEC_URL,AGENT_SERVICE_URL=$$AGENT_URL,TOOL_GATEWAY_SERVICE_URL=$$TOOLGW_URL,TENANT_RUNTIME_INTERNAL_URL=$$AGENT_URL"
+    waitFor:
+      - deploy-agent-service
+      - deploy-coordinator-service
+      - deploy-tool-gateway-service
+      - deploy-reflection-service
+      - deploy-sandbox-executor
+
+  # Collab-eval telemetry env for agent-service. Wired here, NOT in the
+  # deploy-agent-service --set-env-vars, because that single arg already sits at
+  # Cloud Build's post-substitution length ceiling — appending the COLLAB_* vars
+  # there makes the build invalid. --update-env-vars is additive (leaves the
+  # core env untouched), so this is a durable, deploy-preserved wiring rather
+  # than a manual `gcloud run services update` that the next deploy would wipe.
+  #
+  # Operator-flip safe: COLLAB_SESSIONS_ENABLED / COLLAB_ARTIFACT_SNAPSHOT_ENABLED
+  # come from resolve-operator-flags (get_flag reads the live pre-deploy revision
+  # and defaults to false), so an operator toggle survives redeploys and stays
+  # per-tenant (eval tenant on, everyone else dormant). Ordered AFTER
+  # patch-split-service-urls so the two agent-service updates never race on
+  # first-ever deploys.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'set-collab-agent-env'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        source /workspace/operator-flags.env
+        gcloud run services update agent-service \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+          --update-env-vars "COLLAB_SESSIONS_ENABLED=$$AGENT_COLLAB_SESSIONS_ENABLED,COLLAB_ARTIFACT_SNAPSHOT_ENABLED=$$AGENT_COLLAB_ARTIFACT_SNAPSHOT_ENABLED,COLLAB_HITL_CORRELATION_SINCE=${_COLLAB_HITL_CORRELATION_SINCE}"
+    waitFor:
+      - patch-split-service-urls
+
+  # Durable collab-grade Cloud Run JOB (created/updated here, NOT executed on deploy).
+  # Runs the agentic deliverable grader IN-TENANT with a 1800s task-timeout. Rationale:
+  # execution-heavy grades (rubric generation + two sandbox-backed judges that actually
+  # run the deliverable) systematically exceed agent-service's 300s /harvest request
+  # window and 504 there; a Cloud Run Job has no request timeout. Same runtime env as
+  # agent-service (SERVICE_TYPE=agent → getToolGatewayDispatcher() is the HTTP client to
+  # tool-gateway-service → sandbox). Notes:
+  #   - GCP_LOCATION is DELIBERATELY UNSET so the gemini judge defaults to Vertex
+  #     'global' (us-west1/us-central1 return 404 for these projects — llm/providers/google.ts).
+  #   - Judges + rubric model are PINNED explicitly (deterministic, not reliant on a
+  #     library default). DIAGNOSTICS_GRADER_JUDGES carries a comma, so --set-env-vars
+  #     uses gcloud's ^@^ custom-delimiter form (@ separates pairs; no value contains @).
+  #   - create/update share one command so resources/timeout are enforced on every build.
+  #   - Cloud Run Jobs do not support --execution-environment (services-only); the job
+  #     default is used.
+  #   - Fanned out by the control `agent-diagnostics --collab-grade` orchestrator, one
+  #     execution per ungraded run, with the work item passed as a base64 per-execution env
+  #     override (COLLAB_GRADE_WORKLIST_B64) — never executed here.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-collab-grade-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        DB_HOST=$$(cat /workspace/db_host)
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+        IMAGE="${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}"
+        SA="tenant-${_TENANT_ID}-runtime@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com"
+        PROJ="tenant-${_TENANT_ID}-${_ENVIRONMENT}"
+        NAME="${_SERVICE_NAME}-collab-grade"
+        # Re-resolve the live peer URLs — services are deployed + patched by now.
+        TOOLGW_URL=$$(gcloud run services describe tool-gateway-service --region ${_REGION} --project $$PROJ --format='value(status.url)' 2>/dev/null || echo "")
+        AGENT_URL=$$(gcloud run services describe agent-service --region ${_REGION} --project $$PROJ --format='value(status.url)' 2>/dev/null || echo "")
+        ENVVARS="^@^SERVICE_TYPE=agent@NODE_ENV=production@ENVIRONMENT=${_ENVIRONMENT}@TENANT_ID=${_TENANT_ID}@GCP_PROJECT_ID=$$PROJ@GCP_PROJECT=$$PROJ@CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN@DB_USER=tenant_app@DB_NAME=tenant_runtime@DB_HOST=$$DB_HOST@TOOL_GATEWAY_SERVICE_URL=$$TOOLGW_URL@TENANT_RUNTIME_URL=$$AGENT_URL@AGENT_SERVICE_URL=$$AGENT_URL@SANDBOX_KMS_KEY_NAME=projects/$$PROJ/locations/${_REGION}/keyRings/sandbox-secrets/cryptoKeys/sandbox-jwt-secret@DIAGNOSTICS_RESULTS_BUCKET=trajectories-${_ENVIRONMENT}@DIAGNOSTICS_GRADER_MODE=agentic@DIAGNOSTICS_RUBRIC_MODEL=anthropic:large@DIAGNOSTICS_GRADER_JUDGES=anthropic:large,google:large"
+        SECRETS="DB_PASSWORD=tenant-db-password:latest,TENANT_RUNTIME_SERVICE_TOKEN=tenant-runtime-service-token:latest,ANTHROPIC_API_KEY=anthropic-api-key-${_ENVIRONMENT}:latest,PLATFORM_CALLBACK_TOKEN=platform-callback-token:latest"
+        if gcloud run jobs describe $$NAME --region ${_REGION} --project $$PROJ 2>/dev/null; then VERB=update; else VERB=create; fi
+        echo "$$VERB $$NAME (collab-grade job)..."
+        gcloud run jobs $$VERB $$NAME --image $$IMAGE --region ${_REGION} --project $$PROJ \
+          --service-account $$SA \
+          --network tenant-${_TENANT_ID}-vpc --subnet tenant-${_TENANT_ID}-subnet --vpc-egress all-traffic \
+          --command node --args dist/scripts/collab-grade-worker.js \
+          --set-env-vars "$$ENVVARS" --set-secrets "$$SECRETS" \
+          --memory 8Gi --cpu 4 --task-timeout 1800 --max-retries 0 --parallelism 1
+    waitFor:
+      - patch-split-service-urls
+      - migrate
+      - docker-push-app
+
+  # Phase 5 push migration: patch each control-plane push subscription's
+  # push_endpoint + OIDC audience with the live coordinator-service URL.
+  #
+  # Why a patch step (Gap 1): pubsub_push.tf in tenant-runtime-template creates
+  # the 8 push subscriptions with a *placeholder* push_endpoint guarded by
+  # `lifecycle { ignore_changes = [push_config] }`. On first-ever tenant
+  # deploys, coordinator-service doesn't exist yet at terraform-plan time, so
+  # the URL can't be resolved in advance. This step runs AFTER coordinator-
+  # service is deployed (and patched with peer URLs above), then writes the
+  # real push endpoint into every subscription. Idempotent: re-running with
+  # the same URL is a no-op for Pub/Sub.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'patch-push-sub-endpoints'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        COORD_URL=$$(gcloud run services describe coordinator-service \
+          --region ${_REGION} \
+          --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+          --format='value(status.url)' 2>/dev/null || echo "")
+        if [ -z "$$COORD_URL" ]; then
+          echo "ERROR: coordinator-service URL unresolved; cannot patch push subs"
+          exit 1
+        fi
+
+        # Strip any trailing slash so the audience matches what Cloud Run mints
+        # (`aud == <service URL>` with no trailing slash).
+        COORD_URL=$${COORD_URL%/}
+
+        # Push SA lives in the platform-control project alongside the topics.
+        PUSH_SA=tenant-rt-pubsub-push-${_ENVIRONMENT}@tenant-${_TENANT_ID}-${_ENVIRONMENT}.iam.gserviceaccount.com
+
+        # 8 control-plane topics (must match SUBSCRIBED_EVENTS in
+        # src/events/subscriber.ts and the for_each list in pubsub_push.tf).
+        TOPICS=(
+          tenant-entitlement-updated
+          tenant-suspended
+          tenant-reactivated
+          tenant-deployment-approved
+          tenant-model-config-updated
+          tenant-prompt-bundle-updated
+          tenant-feature-flag-updated
+          control-plane-events
+        )
+
+        # Per the cutover plan ("Order of operations"), runtime is deployed
+        # FIRST and infra (which creates these push subs) follows. On that
+        # first runtime deploy the subs don't exist yet — the patch step must
+        # not fail the build. Check existence before each update; missing subs
+        # are logged and skipped, so the next runtime deploy after the infra
+        # apply picks them up. Idempotent: re-running with the same URL is a
+        # no-op for Pub/Sub.
+        MISSING=0
+        PATCHED=0
+        for TOPIC in "$${TOPICS[@]}"; do
+          SUB=$${TOPIC}-${_ENVIRONMENT}-coordinator-push
+          if ! gcloud pubsub subscriptions describe "$$SUB" \
+               --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+               --format='value(name)' > /dev/null 2>&1; then
+            echo "SKIP: $$SUB does not exist yet (infra apply pending). Will patch on next runtime deploy."
+            MISSING=$$((MISSING + 1))
+            continue
+          fi
+          echo "Patching $$SUB → $$COORD_URL/internal/pubsub/$$TOPIC"
+          gcloud pubsub subscriptions update "$$SUB" \
+            --project tenant-${_TENANT_ID}-${_ENVIRONMENT} \
+            --push-endpoint "$$COORD_URL/internal/pubsub/$$TOPIC" \
+            --push-auth-service-account "$$PUSH_SA" \
+            --push-auth-token-audience "$$COORD_URL"
+          PATCHED=$$((PATCHED + 1))
+        done
+        echo "patch-push-sub-endpoints: patched=$$PATCHED skipped=$$MISSING (of $${#TOPICS[@]} total)"
+    waitFor:
+      - patch-split-service-urls
+
+  # Update the push-endpoint-healthcheck + dlq-drainer Job images to the
+  # deploy SHA. Terraform creates these Jobs with the data-source-resolved
+  # coordinator image (which can be stale by the time the next runtime
+  # deploy runs); lifecycle.ignore_changes on the image attribute means
+  # subsequent applies don't refresh it. Mirror of update-slack-rotator-job
+  # / update-orphan-scan-job in platform-backend/cloudbuild.yaml.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'update-pubsub-bulletproof-jobs'
+    waitFor: ['docker-push-app', 'docker-push-framer-rotate', 'patch-push-sub-endpoints']
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        IMG=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}
+        TENANT_PROJECT=tenant-${_TENANT_ID}-${_ENVIRONMENT}
+
+        if gcloud run jobs describe push-endpoint-healthcheck-${_ENVIRONMENT} \
+             --region=${_REGION} --project=$$TENANT_PROJECT >/dev/null 2>&1; then
+          echo "Updating push-endpoint-healthcheck-${_ENVIRONMENT} → $$IMG"
+          gcloud run jobs update push-endpoint-healthcheck-${_ENVIRONMENT} \
+            --region=${_REGION} --project=$$TENANT_PROJECT --image=$$IMG
+        else
+          echo "push-endpoint-healthcheck-${_ENVIRONMENT} not found — skipping (Terraform creates it on first apply)"
+        fi
+
+        # Same SHA pump for every per-topic DLQ drainer.
+        TOPICS=(
+          tenant-entitlement-updated tenant-suspended tenant-reactivated
+          tenant-deployment-approved tenant-model-config-updated
+          tenant-prompt-bundle-updated tenant-feature-flag-updated
+          control-plane-events
+        )
+        # ...and every per-topic DLQ replayer, which Terraform created from the
+        # coordinator's image of the day and never refreshed: the registry
+        # deletes any version older than 30 days that is not among the 20
+        # newest, and a replayer left on that image fails "image not found"
+        # the day it is needed. Same image: the coordinator runs this one.
+        for TOPIC in "$${TOPICS[@]}"; do
+          for JOB in pubsub-dlq-drainer-$${TOPIC}-${_ENVIRONMENT} pubsub-dlq-replayer-$${TOPIC}-${_ENVIRONMENT}; do
+            if gcloud run jobs describe "$$JOB" \
+                 --region=${_REGION} --project=$$TENANT_PROJECT >/dev/null 2>&1; then
+              echo "Updating $$JOB → $$IMG"
+              gcloud run jobs update "$$JOB" \
+                --region=${_REGION} --project=$$TENANT_PROJECT --image=$$IMG
+            else
+              echo "$$JOB not found — skipping"
+            fi
+          done
+        done
+
+        # framer-secret-rotate runs quarterly from its own image, built and
+        # pushed above on every build. Terraform's pin is a `latest` tag no
+        # build pushes, so without this step the job is not runnable.
+        FRAMER_IMG=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/framer-secret-rotate:${SHORT_SHA}
+        if gcloud run jobs describe framer-secret-rotate \
+             --region=${_REGION} --project=$$TENANT_PROJECT >/dev/null 2>&1; then
+          echo "Updating framer-secret-rotate → $$FRAMER_IMG"
+          gcloud run jobs update framer-secret-rotate \
+            --region=${_REGION} --project=$$TENANT_PROJECT --image=$$FRAMER_IMG
+        else
+          echo "framer-secret-rotate not found — skipping"
+        fi
+
+  # Verify every control-plane-events push subscription points at the live
+  # coordinator-service and that /healthz returns 2xx. Fails the deploy if not.
+  # Closes the placeholder-endpoint failure mode (Fix G).
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'verify-push-endpoints'
+    waitFor: ['patch-push-sub-endpoints', 'update-pubsub-bulletproof-jobs']
+    args:
+      - 'run'
+      - 'jobs'
+      - 'execute'
+      - 'push-endpoint-healthcheck-${_ENVIRONMENT}'
+      - '--project=tenant-${_TENANT_ID}-${_ENVIRONMENT}'
+      - '--region=${_REGION}'
+      - '--wait'
+
+  # Step 11: Run fault injection tests (staging only)
+  # Per Section 22 Phase 3: Explicitly test fault scenarios
+  - name: 'node:20-slim'
+    id: 'fault-injection-tests'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        if [ "${_ENVIRONMENT}" = "staging" ]; then
+          echo "Running fault injection tests for tenant ${_TENANT_ID}..."
+          export API_BASE_URL="https://${_SERVICE_NAME}-${_REGION}.run.app"
+          export TENANT_ID="${_TENANT_ID}"
+          npm run test:fault-injection -- --ci
+        else
+          echo "Skipping fault injection tests for ${_ENVIRONMENT}"
+        fi
+    waitFor: ['deploy-agent-service']
+
+  # Step 12: Run validation rig (staging only)
+  # Per Section 23: End-to-end workflow validation
+  - name: 'node:20-slim'
+    id: 'validation-rig'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        if [ "${_ENVIRONMENT}" = "staging" ]; then
+          echo "Running validation rig for tenant ${_TENANT_ID} per Section 23..."
+          export API_BASE_URL="https://${_SERVICE_NAME}-${_REGION}.run.app"
+          export TENANT_ID="${_TENANT_ID}"
+          npm run test:validation -- --ci
+        else
+          echo "Skipping validation rig for ${_ENVIRONMENT}"
+        fi
+    waitFor: ['fault-injection-tests']
+
+  # C.1 — Post-deploy smoke against a canary tenant. Runs the harness CLI
+  # against the freshly-deployed Cloud Run revision. If any scenario fails,
+  # we shift traffic back to the previous revision and mark the build
+  # failed so operators get paged. The image is pre-built (Dockerfile.smoke)
+  # and pushed to Artifact Registry; we reference it via _SMOKE_IMAGE so
+  # there's zero install latency on every deploy.
+  #
+  # Substitutions required:
+  #   _CANARY_TENANT_ID — UUID of the prod tenant we run smoke against
+  #   _CANARY_AGENT_ID  — UUID of the agent within that tenant
+  #   _SMOKE_IMAGE      — Artifact Registry URL of the pre-built smoke image
+  # Cloud Build doesn't natively propagate per-step exit codes via env,
+  # so we use a shared file:
+  #   1. Smoke step writes /workspace/smoke.exit on exit (success=0, fail!=0)
+  #      via `allowFailure: true` so the build keeps going even on failure.
+  #   2. Rollback step reads /workspace/smoke.exit and either no-ops (on
+  #      success) or runs smoke-rollback.sh (on failure).
+  #   3. Final gate step also reads /workspace/smoke.exit and exits with
+  #      the smoke step's exit code so the BUILD itself is marked FAILED
+  #      whenever smoke failed (otherwise allowFailure would mask it).
+  - name: '${_SMOKE_IMAGE}'
+    id: 'post-deploy-smoke'
+    waitFor: ['validation-rig']
+    entrypoint: 'bash'
+    env:
+      - 'TR_SERVICE_TOKEN_PROJECT=tenant-${_TENANT_ID}-${_ENVIRONMENT}'
+    args:
+      - '-c'
+      - |
+        # Skip when no canary tenant is configured (initial state /
+        # disabled by an empty Terraform substitution). Write exit=0 so
+        # the gate step doesn't trip.
+        if [[ -z "${_CANARY_TENANT_ID}" || -z "${_CANARY_AGENT_ID}" ]]; then
+          echo "post-deploy-smoke: canary tenant/agent not configured; skipping."
+          echo "0" > /workspace/smoke.exit
+          exit 0
+        fi
+        set +e
+        /smoke/tools/agent-test-harness/smoke-entrypoint.sh \
+          --mode=tr \
+          --base=https://${_SERVICE_NAME}-${_REGION}.run.app \
+          --tenant=${_CANARY_TENANT_ID} \
+          --agent=${_CANARY_AGENT_ID} \
+          --tag=${_SMOKE_TAGS} \
+          --secret-project=tenant-${_TENANT_ID}-${_ENVIRONMENT}
+        echo "$?" > /workspace/smoke.exit
+    allowFailure: true
+
+  # B3 — active deploy canary. Executes the control-project agent-diagnostics job
+  # in --run mode: it drives the canary agent through its scenario set against the
+  # just-deployed revision (via DIAGNOSTICS_TR_HARNESS_URL) and EXITS NONZERO on a
+  # deterministic gating failure. --wait propagates that exit through the execution.
+  # allowFailure so the build continues to the gate regardless; the gate + rollback
+  # decide what to do with canary.exit (log-only unless _CANARY_ENFORCE=true).
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'agent-canary'
+    waitFor: ['post-deploy-smoke']
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Skip when no canary is configured (same guard as the smoke step) — write
+        # exit=0 so neither the gate nor rollback trips on an unconfigured canary.
+        if [[ -z "${_CANARY_TENANT_ID}" || -z "${_CANARY_AGENT_ID}" ]]; then
+          echo "agent-canary: canary tenant/agent not configured; skipping."
+          echo "0" > /workspace/canary.exit
+          exit 0
+        fi
+        # The agent-diagnostics job lives in the control project; the build SA holds
+        # run.developer on it (cloud_build_updates_diagnostics). Skip cleanly if the
+        # job is absent in this project (same NOT_FOUND handling as update-diagnostics-image)
+        # so a not-yet-provisioned evaluator doesn't produce a spurious canary failure.
+        DESCRIBE_ERR=$$(gcloud run jobs describe agent-diagnostics \
+             --project YOUR_GCP_PROJECT --region ${_REGION} 2>&1 >/dev/null) || {
+          if echo "$$DESCRIBE_ERR" | grep -q "NOT_FOUND"; then
+            echo "agent-canary: agent-diagnostics job absent; skipping (non-gating)."
+            echo "0" > /workspace/canary.exit; exit 0
+          fi
+          echo "agent-canary: describe failed (NOT a not-found): $$DESCRIBE_ERR"
+          echo "1" > /workspace/canary.exit; exit 0
+        }
+        # Execute the active canary (--run overrides the job's default --harvest args)
+        # and capture the job's exit code. --wait propagates the execution result.
+        set +e
+        gcloud run jobs execute agent-diagnostics \
+          --project YOUR_GCP_PROJECT --region ${_REGION} \
+          --args="^@^--run@--agents@user-created" --wait
+        echo "$?" > /workspace/canary.exit
+        set -e
+        echo "agent-canary exit: $(cat /workspace/canary.exit)"
+    allowFailure: true
+
+  - name: '${_SMOKE_IMAGE}'
+    id: 'auto-rollback-on-gate-fail'
+    waitFor: ['agent-canary']
+    entrypoint: 'bash'
+    env:
+      - 'PROJECT_ID=tenant-${_TENANT_ID}-${_ENVIRONMENT}'
+      - 'REGION=${_REGION}'
+      - 'SERVICE_NAME=${_SERVICE_NAME}'
+    args:
+      - '-c'
+      - |
+        SMOKE_EXIT="$(cat /workspace/smoke.exit 2>/dev/null || echo unknown)"
+        CANARY_EXIT="$(cat /workspace/canary.exit 2>/dev/null || echo unknown)"
+        echo "gate signals: smoke=$$SMOKE_EXIT canary=$$CANARY_EXIT enforce_canary=${_CANARY_ENFORCE}"
+        # Smoke always gates. The canary gates only when _CANARY_ENFORCE=true
+        # (log-only otherwise), so a live-canary hiccup can't block deploys until
+        # it is observed stable and deliberately switched on.
+        NEED_ROLLBACK=0
+        if [[ "$$SMOKE_EXIT" != "0" ]]; then NEED_ROLLBACK=1; fi
+        if [[ "${_CANARY_ENFORCE}" == "true" && "$$CANARY_EXIT" != "0" ]]; then NEED_ROLLBACK=1; fi
+        if [[ "$$NEED_ROLLBACK" == "0" ]]; then
+          echo "gate passed (smoke=$$SMOKE_EXIT canary=$$CANARY_EXIT); no rollback needed."
+          exit 0
+        fi
+        echo "gate failed (smoke=$$SMOKE_EXIT canary=$$CANARY_EXIT enforce=${_CANARY_ENFORCE}); rolling back to prior revision."
+        /smoke/tools/smoke-rollback.sh
+    # allowFailure so gate-exit always runs even when the rollback itself fails
+    # (e.g. only one revision exists yet). The gate re-surfaces the failing exit
+    # as the build's terminal code, so failed-AND-rollback-failed still marks the
+    # build FAILED via the gate.
+    allowFailure: true
+
+  # Final gate: re-surface the failing signal so the build is FAILED when the gate
+  # tripped (otherwise allowFailure would let the whole cloudbuild report SUCCESS
+  # even though the revision was just rolled back). Smoke always counts; the canary
+  # counts only when _CANARY_ENFORCE=true.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'gate-exit'
+    waitFor: ['auto-rollback-on-gate-fail']
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        SMOKE_EXIT="$(cat /workspace/smoke.exit 2>/dev/null || echo 99)"
+        CANARY_EXIT="$(cat /workspace/canary.exit 2>/dev/null || echo 0)"
+        echo "gate: smoke=$$SMOKE_EXIT canary=$$CANARY_EXIT enforce_canary=${_CANARY_ENFORCE}"
+        FINAL=$$SMOKE_EXIT
+        if [[ "${_CANARY_ENFORCE}" == "true" && "$$CANARY_EXIT" != "0" ]]; then FINAL=$$CANARY_EXIT; fi
+        echo "gate terminal exit code: $$FINAL"
+        exit "$$FINAL"
+
+  # C4 — SWE external-checks smoke (NON-GATING, log-only). Runs only after the gate
+  # passes (waitFor gate-exit → skipped whenever the deploy was rolled back) and only
+  # when configured. It drives a code-capable software-engineer agent through the SWE
+  # suite (--tag=swe) against the deployed revision, then polls the fixture repo for the
+  # run's side effects (branch cut / PR open / checks green) and tears the run down. Its
+  # exit is NEVER read by the gate/rollback steps above, so a SWE hiccup can neither roll
+  # back nor fail the build — pure observability until the suite is proven stable and
+  # deliberately promoted. The GitHub fixture token is fetched from Secret Manager by the
+  # runner (--fixture-token-secret), same mechanism as the service token.
+  - name: '${_SMOKE_IMAGE}'
+    id: 'swe-external-checks'
+    waitFor: ['gate-exit']
+    entrypoint: 'bash'
+    env:
+      - 'BUILD_ID=${BUILD_ID}'
+    args:
+      - '-c'
+      - |
+        # DORMANT unless the fixture repo, a code-capable agent, and the harness base URL are all set.
+        if [[ -z "${_SWE_FIXTURE_REPO}" || -z "${_SWE_AGENT_ID}" || -z "${_SWE_HARNESS_BASE}" ]]; then
+          echo "swe-external-checks: fixture repo / swe agent / harness base not configured; skipping (non-gating)."
+          exit 0
+        fi
+        SWE_TENANT="${_SWE_TENANT_ID}"
+        if [[ -z "$$SWE_TENANT" ]]; then SWE_TENANT="${_CANARY_TENANT_ID}"; fi
+        if [[ -z "$$SWE_TENANT" ]]; then
+          echo "swe-external-checks: no tenant (_SWE_TENANT_ID and _CANARY_TENANT_ID both empty); skipping."
+          exit 0
+        fi
+        set +e
+        /smoke/tools/agent-test-harness/smoke-entrypoint.sh \
+          --mode=tr \
+          --oidc \
+          --base=${_SWE_HARNESS_BASE} \
+          --tenant=$$SWE_TENANT \
+          --agent=${_SWE_AGENT_ID} \
+          --tag=swe \
+          --external-checks=github \
+          --fixture-repo=${_SWE_FIXTURE_REPO} \
+          --fixture-token-secret=${_SWE_FIXTURE_TOKEN_SECRET} \
+          --secret-project=tenant-${_TENANT_ID}-${_ENVIRONMENT}
+        echo "swe-external-checks exit: $?  (non-gating — not consumed by the gate)"
+    # Non-gating: its exit is never read by auto-rollback-on-gate-fail or gate-exit.
+    allowFailure: true
+
+  # Keep the agent-diagnostics evaluator job on the image that just deployed, so a
+  # scheduled or manual run exercises current code instead of a stale build. The job
+  # may not exist in every tenant project: a genuine NOT_FOUND is a skip, but any other
+  # describe failure (IAM, API, transient) is fatal so a broken evaluator can't hide.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'update-diagnostics-image'
+    waitFor: ['docker-push-app']
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        DESCRIBE_ERR=$$(gcloud run jobs describe agent-diagnostics \
+             --project YOUR_GCP_PROJECT --region ${_REGION} 2>&1 >/dev/null) || {
+          if echo "$$DESCRIBE_ERR" | grep -q "NOT_FOUND"; then
+            echo "agent-diagnostics job absent; skipping image update"; exit 0
+          fi
+          echo "describe failed (NOT a not-found): $$DESCRIBE_ERR"; exit 1
+        }
+        gcloud run jobs update agent-diagnostics \
+          --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/tenant-runtime:${SHORT_SHA} \
+          --project YOUR_GCP_PROJECT --region ${_REGION}
+
+  # No deploy-coupled canary yet — the evaluator runs on schedule or on demand
+  # (see platform-ci main.tf); the step above only keeps its image current.
+
+images:
+  - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}'
+  - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA}'
+
+# 5400s (90min) is too short — the test step alone takes ~70min on a cold
+# runner, plus install (~4m), docker-build-app (~12m), and docker-build-migrate
+# (~10m) eat the remaining budget before the deploy steps fire.
+# 7200s (2h) is also tight: tests run closer to ~90min on the standard
+# runner, which can time a build out before the migrate step fires.
+# 10800s (3h) gives the post-test pipeline
+# (docker push + migrate + backfill + deploy + verify) reliable headroom.
+timeout: '10800s'

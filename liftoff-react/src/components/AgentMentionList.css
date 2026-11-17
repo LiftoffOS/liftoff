@@ -1,0 +1,51 @@
+/* Floating agent picker dropdown, used by both the TipTap editor's mention
+   command and the ChatInput @mention popover. Single source of truth.
+
+   Chrome and item metrics deliberately track .file-upload-popover in
+   FileAttach/FileUploadPopover.css. They are the same kind of object: a small
+   menu that springs off the composer, and two menus a few pixels apart in the
+   same toolbar looked like a mistake rather than a choice. Keep them in step. */
+.agent-mention-list {
+  min-width: 220px;
+  max-width: 320px;
+  background: var(--color-white);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  /* The roster grows with the workspace, so unlike the file picker's fixed
+     handful of options this one has to be able to run out of room. */
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.agent-mention-list__item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-black);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background var(--duration-base) var(--ease-out);
+}
+
+.agent-mention-list__item:hover,
+.agent-mention-list__item--selected {
+  background: var(--color-gray-50);
+}
+
+.agent-mention-list__empty {
+  padding: 12px 16px;
+  color: var(--color-gray-400);
+  font-size: var(--text-sm);
+}

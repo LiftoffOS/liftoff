@@ -1,0 +1,25 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+*.tfvars.local
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Secrets
+*.pem
+*.key
+credentials.json
+*.auto.tfvars
+secrets.tfvars
+
+# OS
+.DS_Store
+tfplan*
+*.tfplan
+tfplan
+

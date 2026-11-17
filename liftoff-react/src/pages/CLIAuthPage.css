@@ -1,0 +1,59 @@
+/* CLI Auth Page — workspace selector for Liftoff CLI */
+/* Uses login-page, login-container, login-logo, login-title, login-subtitle from LoginPage.css */
+/* Card styling matches OversightPage autonomy segmented control */
+
+.cli-auth__loading {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  text-align: center;
+}
+
+.cli-auth__workspaces {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.cli-auth__workspace {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  font-family: var(--font-sans);
+  width: 100%;
+}
+
+.cli-auth__workspace:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-300);
+}
+
+.cli-auth__workspace--active {
+  border-color: var(--color-accent);
+  background: rgba(255, 107, 0, 0.04);
+}
+
+.cli-auth__workspace:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cli-auth__workspace-name {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-black);
+}
+
+.cli-auth__workspace-role {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  text-transform: capitalize;
+}

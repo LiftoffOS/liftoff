@@ -1,0 +1,20 @@
+/* Shared across every surface that renders a person as a circle. Size, font
+   size, and any ring belong to the surface class passed alongside these. */
+.user-avatar {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 600;
+  cursor: default;
+}
+
+.user-avatar--image {
+  object-fit: cover;
+}
+
+.user-avatar--icon {
+  background: var(--color-gray-300);
+  color: var(--color-white);
+}

@@ -1,0 +1,33 @@
+{
+  "set": {
+    "id": "ask_check",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "ask": {
+      "kind": "escalation",
+      "text": "Google Drive access has expired and the folder can no longer be read.",
+      "requestedAction": "Reconnect Google Drive on the Connections page.",
+      "whoCanUnblock": "customer"
+    },
+    "contract": {
+      "kind": "instructions",
+      "instructions": "Every Monday, read the CRM for last week's closed deals and append one summary row to the Sales tracking sheet. Notify #sales-ops when done.",
+      "role": "You are the Sales Ops assistant for Acme."
+    },
+    "known": {
+      "inputs": "{\"week\": \"2026-W38\"}",
+      "recentToolResults": "[{\"name\": \"google_drive-9f__list_files\", \"success\": false, \"error\": \"401 invalid_grant: token has been expired or revoked\"}]",
+      "stepOutputs": ""
+    },
+    "setting": "important"
+  },
+  "expect": {
+    "person_can_act": {
+      "choice": "yes",
+      "min": 0.6
+    }
+  },
+  "note": "Reconnecting a system is a person's act inside the product."
+}

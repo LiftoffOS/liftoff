@@ -1,0 +1,110 @@
+.workflow-card {
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.workflow-card:hover {
+  border-color: var(--border-medium);
+  box-shadow: var(--shadow-sm);
+}
+
+.workflow-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.workflow-card__name {
+  font-size: var(--text-base);
+  font-weight: 400;
+  color: var(--color-black);
+}
+
+.workflow-card__trend {
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+.workflow-card__trend--positive {
+  color: #22c55e;
+}
+
+.workflow-card__trend--negative {
+  color: var(--color-accent);
+}
+
+.workflow-card__stats {
+  display: flex;
+  gap: 24px;
+}
+
+.workflow-card__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workflow-card__stat-value {
+  font-size: var(--text-lg);
+  font-weight: 400;
+  color: var(--color-black);
+  font-variation-settings: "opsz" 32, "wght" 400;
+}
+
+.workflow-card__stat-label {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}
+
+.workflow-card__rates {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.workflow-card__rate {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.workflow-card__rate-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--color-gray-100);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.workflow-card__rate-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+}
+
+.workflow-card__rate-fill--automation {
+  background: #22c55e;
+}
+
+.workflow-card__rate-label {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  flex-shrink: 0;
+  width: 60px;
+}
+
+.workflow-card__rate-secondary {
+  display: flex;
+  gap: 16px;
+}
+
+.workflow-card__rate-secondary span {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}

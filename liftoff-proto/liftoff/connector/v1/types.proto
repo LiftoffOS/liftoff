@@ -1,0 +1,191 @@
+syntax = "proto3";
+
+// Connector service domain types — connector metadata, tool schemas,
+// OAuth credentials, manifests.
+package liftoff.connector.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+// Connector instance — one row per (tenantId, connectorType, alias).
+message Connector {
+  string id = 1;
+  string tenant_id = 2;
+  // Canonical connector type string (e.g. "github", "google_mail").
+  string type = 3;
+  string name = 4;
+  ConnectorStatus status = 5;
+  // Per-instance config (e.g. Snowflake accountIdentifier). JSON-shaped.
+  google.protobuf.Struct config = 6;
+  google.protobuf.Timestamp last_sync_at = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+enum ConnectorStatus {
+  CONNECTOR_STATUS_UNSPECIFIED = 0;
+  CONNECTOR_STATUS_ACTIVE = 1;
+  CONNECTOR_STATUS_PAUSED = 2;
+  CONNECTOR_STATUS_ERROR = 3;
+}
+
+enum ConnectorHealthStatus {
+  CONNECTOR_HEALTH_STATUS_UNSPECIFIED = 0;
+  CONNECTOR_HEALTH_STATUS_HEALTHY = 1;
+  CONNECTOR_HEALTH_STATUS_DEGRADED = 2;
+  CONNECTOR_HEALTH_STATUS_ERROR = 3;
+}
+
+// Sensitivity categories attached to every connector function.
+enum ToolCategory {
+  TOOL_CATEGORY_UNSPECIFIED = 0;
+  TOOL_CATEGORY_READ = 1;
+  TOOL_CATEGORY_WRITE = 2;
+  TOOL_CATEGORY_DESTRUCTIVE = 3;
+  TOOL_CATEGORY_OUTBOUND = 4;
+  TOOL_CATEGORY_SENSITIVE = 5;
+}
+
+// Connector function schema.
+message ConnectorFunction {
+  string name = 1;
+  string description = 2;
+  // JSON-Schema-shaped input schema. Using Struct since the schema itself
+  // isn't a fixed protobuf shape.
+  google.protobuf.Struct input_schema = 3;
+  repeated ToolCategory categories = 4;
+  // Alternative tool name for draft-first communication mode.
+  string draft_variant = 5;
+  string entity_type = 6;
+}
+
+// Per-tenant connector manifest — declares which connector types + aliases
+// a tenant has enabled. Tool function schemas are NOT stored here — they
+// live in an in-memory registry keyed by connector type.
+message ConnectorManifest {
+  string id = 1;
+  string tenant_id = 2;
+  string connector_type = 3;
+  string alias = 4;
+  string display_name = 5;
+  bool enabled = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+// Authentication flow — how the service authenticates against the vendor.
+// (Enum is named AuthFlowKind rather than OAuthFlowKind so buf's
+// all-caps CONSTANT_CASE derivation from the CamelCase enum name gives
+// sensible AUTH_FLOW_KIND_ prefixes instead of O_AUTH_FLOW_KIND_.)
+enum AuthFlowKind {
+  AUTH_FLOW_KIND_UNSPECIFIED = 0;
+  AUTH_FLOW_KIND_STATIC_OAUTH = 1;
+  AUTH_FLOW_KIND_DYNAMIC_CLIENT_REGISTRATION = 2;
+  AUTH_FLOW_KIND_API_KEY = 3;
+  AUTH_FLOW_KIND_KEYPAIR = 4;
+  AUTH_FLOW_KIND_NONE = 5;
+}
+
+// Functional capability groups — callers request capability, service
+// resolves to specific connector types + required OAuth scopes.
+//
+// This enum MUST cover every capability key the connector catalog declares
+// (liftoff-connector-service src/catalog/connectors.ts, projected into
+// CONNECTOR_CAPABILITIES). getCapabilityGroups() does
+// `if (proto === undefined) continue`, so a key missing here is dropped from
+// the GetCapabilities RPC in silence — no error, no log, no failing test.
+// Values 11-30 close exactly that gap: without them, 20 capability groups —
+// including email_communication (Gmail, Outlook, Zoho Mail), cloud_storage,
+// documents, team_chat and data_table — would be invisible to every caller of
+// that RPC.
+enum ConnectorCapability {
+  CONNECTOR_CAPABILITY_UNSPECIFIED = 0;
+  CONNECTOR_CAPABILITY_EMAIL_MARKETING = 1;
+  CONNECTOR_CAPABILITY_HRIS = 2;
+  CONNECTOR_CAPABILITY_ACCOUNTING = 3;
+  CONNECTOR_CAPABILITY_SUPPORT_TICKETING = 4;
+  CONNECTOR_CAPABILITY_ATS = 5;
+  CONNECTOR_CAPABILITY_CRM = 6;
+  CONNECTOR_CAPABILITY_INCIDENT_MANAGEMENT = 7;
+  CONNECTOR_CAPABILITY_ERROR_TRACKING = 8;
+  CONNECTOR_CAPABILITY_PROJECT_MANAGEMENT = 9;
+  CONNECTOR_CAPABILITY_MEETING_NOTES = 10;
+  // Headless-browser drivers (Browserbase, Anchor Browser).
+  CONNECTOR_CAPABILITY_BROWSER_AUTOMATION = 11;
+  // Calendars and scheduling (Google Calendar, Outlook Calendar, Cal.com).
+  CONNECTOR_CAPABILITY_CALENDAR = 12;
+  // File storage and sync (Drive, OneDrive, Dropbox, Box, SharePoint).
+  CONNECTOR_CAPABILITY_CLOUD_STORAGE = 13;
+  // Call recording and transcript analysis (Gong, Fireflies, Fathom).
+  CONNECTOR_CAPABILITY_CONVERSATION_INTELLIGENCE = 14;
+  // Spreadsheet-like row stores (Airtable, Google Sheets, Baserow, Excel).
+  CONNECTOR_CAPABILITY_DATA_TABLE = 15;
+  // Analytical warehouses queried by SQL (BigQuery, Snowflake, Databricks).
+  CONNECTOR_CAPABILITY_DATA_WAREHOUSE = 16;
+  // Rich-text document authoring (Google Docs, Notion, Confluence, Coda).
+  CONNECTOR_CAPABILITY_DOCUMENTS = 17;
+  // Storefronts and order management (Shopify, Square, WooCommerce,
+  // Zoho Inventory).
+  CONNECTOR_CAPABILITY_E_COMMERCE = 18;
+  // Electronic signature (DocuSign, PandaDoc).
+  CONNECTOR_CAPABILITY_E_SIGN = 19;
+  // Person-to-person mailboxes, as distinct from EMAIL_MARKETING campaign
+  // sending (Gmail, Outlook Mail, Zoho Mail, Missive).
+  CONNECTOR_CAPABILITY_EMAIL_COMMUNICATION = 20;
+  // Build, CI and code-quality systems (Buildkite, Codacy, Northflank).
+  CONNECTOR_CAPABILITY_ENGINEERING = 21;
+  // Contact and company data enrichment (Apollo, ZoomInfo, Clay).
+  CONNECTOR_CAPABILITY_ENRICHMENT = 22;
+  // Direct messaging to a person or number (Telegram, WhatsApp, ClickSend).
+  CONNECTOR_CAPABILITY_MESSAGING = 23;
+  // Product usage analytics (PostHog, Mixpanel).
+  CONNECTOR_CAPABILITY_PRODUCT_ANALYTICS = 24;
+  // Social publishing and audience data (LinkedIn, Facebook, Instagram,
+  // Reddit).
+  CONNECTOR_CAPABILITY_SOCIAL_MEDIA = 25;
+  // Customer-facing help desks, distinct from the ticket queue itself
+  // (Zendesk, Intercom, Freshdesk, Zoho Desk).
+  CONNECTOR_CAPABILITY_SUPPORT_HELPDESK = 26;
+  // Internal team chat (Slack, Microsoft Teams, Discord).
+  CONNECTOR_CAPABILITY_TEAM_CHAT = 27;
+  // Source control hosting (GitHub, GitLab, Bitbucket).
+  CONNECTOR_CAPABILITY_VERSION_CONTROL = 28;
+  // Search and research over the open web (Tavily, Exa, Elicit).
+  CONNECTOR_CAPABILITY_WEB_RESEARCH = 29;
+  // Page extraction and crawling (Firecrawl, ScrapingBee, Apify, Browse AI).
+  CONNECTOR_CAPABILITY_WEB_SCRAPING = 30;
+  // Site traffic and behaviour analytics (GA4, Plausible).
+  CONNECTOR_CAPABILITY_WEB_ANALYTICS = 31;
+  // Search visibility, keyword and backlink data (Search Console, DataForSEO, Keywords Everywhere).
+  CONNECTOR_CAPABILITY_SEO = 32;
+  // Paid advertising accounts (Google Ads, Reddit Ads).
+  CONNECTOR_CAPABILITY_ADVERTISING = 33;
+  // Affiliate, referral and partner programmes (Tapfiliate, PartnerStack, Crossbeam, Tolt).
+  CONNECTOR_CAPABILITY_PARTNER_MANAGEMENT = 34;
+  // Website content management (Webflow).
+  CONNECTOR_CAPABILITY_CMS = 35;
+  // Regulatory and financial checks on a company or person: KYB, sanctions,
+  // adverse media, invoice verification (Strale).
+  CONNECTOR_CAPABILITY_COMPLIANCE_CHECKS = 36;
+  // Company profiles, registrations and financials looked up by name or
+  // identifier (Strale).
+  CONNECTOR_CAPABILITY_COMPANY_INTELLIGENCE = 37;
+  // Curated real-time news feeds, recaps and keyword search (Gloria).
+  CONNECTOR_CAPABILITY_NEWS_MONITORING = 38;
+  // Public market and trend data: quotes, filings, search interest (Nasdaq,
+  // Google Trends, kadec0).
+  CONNECTOR_CAPABILITY_MARKET_DATA = 39;
+}
+
+// Capability entry returned by GetCapabilities — maps a capability to the
+// connector types (and OAuth scopes) that satisfy it.
+message CapabilityEntry {
+  ConnectorCapability capability = 1;
+  repeated CapabilityProvider providers = 2;
+}
+
+message CapabilityProvider {
+  string connector_type = 1;
+  // OAuth scopes required from this provider to satisfy the capability.
+  repeated string required_scopes = 2;
+}

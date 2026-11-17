@@ -1,0 +1,35 @@
+.back-button {
+  position: absolute;
+  top: var(--space-6);
+  left: var(--space-6);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-out);
+  color: var(--color-gray-400);
+}
+
+.back-button:hover {
+  color: var(--color-black);
+  background: var(--color-gray-100);
+}
+
+.back-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .back-button {
+    top: var(--space-4);
+    left: var(--space-4);
+  }
+}

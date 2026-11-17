@@ -1,0 +1,210 @@
+# Cloud Build pipeline for liftoff-workforce-service.
+# SHA-only image tags.
+# workforce-service attestor and workforce-service-key are
+# provisioned by terraform/modules/workforce-service/.
+
+timeout: 3600s
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  requestedVerifyOption: VERIFIED
+  dynamicSubstitutions: true
+  substitutionOption: ALLOW_LOOSE
+
+substitutions:
+  _REGION: us-west1
+  _ENV: dev  # overridden per-trigger
+  # Conversation-recall embeddings (migration 031). A cost gate on a new spend
+  # path rather than a feature switch: the recall tool works without it on the
+  # keyword arm, and the semantic arm needs turns to carry vectors. Defaulted ON
+  # because a gate that ships off is a wiring nobody notices is missing — the
+  # embed itself is charged through platform-backend under caio_recall_* and
+  # shows on the Chief AI Officer's line. Override per-trigger to stop the spend.
+  _CAIO_RECALL_EMBED_ENABLED: 'true'
+
+steps:
+  # 0. Cancel any older builds for this environment so only the newest runs.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'cancel-stale-builds'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Skip when not started by a trigger (manual `gcloud builds submit`):
+        # those builds carry no TRIGGER_NAME, and the filter would otherwise
+        # match every other manual build in flight.
+        if [ -z "${TRIGGER_NAME}" ]; then
+          echo "Manual build (no TRIGGER_NAME); skipping stale-build cancellation."
+          exit 0
+        fi
+        gcloud builds list \
+          --project=${PROJECT_ID} \
+          --region=${LOCATION} \
+          --filter="status=WORKING OR status=QUEUED" \
+          --format='value(id,substitutions.TRIGGER_NAME)' | \
+          awk -v me="${BUILD_ID}" -v key="${TRIGGER_NAME}" '$$1!=me && $$2==key {print $$1}' | \
+        while read OLD_ID; do
+          echo "Cancelling stale build: $$OLD_ID"
+          gcloud builds cancel "$$OLD_ID" --project=${PROJECT_ID} --region=${LOCATION} --quiet 2>/dev/null || true
+        done
+    waitFor: ['-']
+
+  # 1. Fetch AR token so docker build can npm ci @liftoffos scoped packages.
+  - id: ar-token
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - gcloud auth print-access-token > /workspace/.ar-token
+
+  # 1. Build the runtime image
+  - id: build-runtime
+    name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        TOKEN=$$(cat /workspace/.ar-token)
+        docker build \
+          --build-arg ARTIFACT_REGISTRY_TOKEN=$$TOKEN \
+          -f Dockerfile \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/workforce-service:${SHORT_SHA} \
+          .
+    waitFor: [ar-token]
+
+  # 2. Build the migrate image
+  - id: build-migrate
+    name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        TOKEN=$$(cat /workspace/.ar-token)
+        docker build \
+          --build-arg ARTIFACT_REGISTRY_TOKEN=$$TOKEN \
+          -f Dockerfile.migrate \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/workforce-service-migrate:${SHORT_SHA} \
+          .
+    waitFor: [ar-token]
+
+  # 3. Push both images (parallel — each waits only for its own build)
+  - id: push-runtime
+    name: gcr.io/cloud-builders/docker
+    args: [push, "${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/workforce-service:${SHORT_SHA}"]
+    waitFor: [build-runtime]
+
+  - id: push-migrate
+    name: gcr.io/cloud-builders/docker
+    args: [push, "${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/workforce-service-migrate:${SHORT_SHA}"]
+    waitFor: [build-migrate]
+
+  # 4. Deploy the migrate Cloud Run Job (create-or-update)
+  - id: migrate-update
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - jobs
+      - deploy
+      - workforce-service-migrate-${_ENV}
+      - --project=YOUR_GCP_PROJECT
+      - --image=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/workforce-service-migrate:${SHORT_SHA}
+      - --region=${_REGION}
+      - --service-account=workforce-${_ENV}@YOUR_GCP_PROJECT.iam.gserviceaccount.com
+      - --set-env-vars=DB_USER=workforce_migrate,DB_NAME=workforce,CLOUD_SQL_CONNECTION_NAME=YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENV}
+      - --set-secrets=DB_PASSWORD=workforce-pg-migrate-password:latest
+      - --set-cloudsql-instances=YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENV}
+      - --network=vpc-${_ENV}
+      - --subnet=subnet-${_REGION}-${_ENV}
+    waitFor: [push-migrate]
+
+  # 5. Execute migrations and wait for completion
+  - id: migrate-execute
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - jobs
+      - execute
+      - workforce-service-migrate-${_ENV}
+      - --project=YOUR_GCP_PROJECT
+      - --region=${_REGION}
+      - --wait
+    waitFor: [migrate-update]
+
+  # 6a. Resolve the platform-backend URL for this environment.
+  #     Using the live Cloud Run URL avoids hard-coding per-environment values here
+  #     and automatically tracks any URL changes when platform-backend is redeployed.
+  - id: resolve-pb-url
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        # The public hostname, never the run.app URL: platform-backend's
+        # ingress admits another Cloud Run service only through its load
+        # balancer (the run.app path was closed because it negotiates TLS 1.0).
+        if [ "${_ENV}" = "prod" ]; then
+          PB_URL=https://api.example.com
+        else
+          PB_URL=https://api-${_ENV}.example.com
+        fi
+        echo "$$PB_URL" > /workspace/.pb-url
+        echo "Resolved PLATFORM_BACKEND_URL: $$PB_URL"
+    waitFor: [migrate-execute, push-runtime]
+
+  # 6b. Deploy the runtime Cloud Run service (create-or-update)
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        PB_URL=$(cat /workspace/.pb-url)
+        PROJECT_NUMBER=$(gcloud projects describe YOUR_GCP_PROJECT --format='value(projectNumber)')
+        WORKFORCE_URL=https://workforce-$$PROJECT_NUMBER.${_REGION}.run.app
+        WORKFORCE_SA=workforce-${_ENV}@YOUR_GCP_PROJECT.iam.gserviceaccount.com
+        gcloud run deploy workforce \
+          --project=YOUR_GCP_PROJECT \
+          --image=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/workforce-service:${SHORT_SHA} \
+          --region=${_REGION} \
+          --no-allow-unauthenticated \
+          --service-account=$$WORKFORCE_SA \
+          "--set-env-vars=ENVIRONMENT=${_ENV},GCP_PROJECT_ID=YOUR_GCP_PROJECT,GCP_REGION=${_REGION},DB_INSTANCE_CONNECTION_NAME=YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENV},DB_NAME=workforce,DB_USER=workforce_app,DB_APP_PASSWORD_SECRET=workforce-pg-password,ANTHROPIC_API_KEY_SECRET=anthropic-api-key,PLATFORM_BACKEND_URL=$$PB_URL,WORKFORCE_SERVICE_URL=$$WORKFORCE_URL,WORKFORCE_SERVICE_ACCOUNT_EMAIL=$$WORKFORCE_SA,WORKFORCE_EVENTS_TOPIC=workforce-events-${_ENV},CAIO_RECALL_EMBED_ENABLED=${_CAIO_RECALL_EMBED_ENABLED}" \
+          --set-cloudsql-instances=YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENV} \
+          --update-secrets=WORKFORCE_SERVICE_TOKEN=workforce-service-token:latest \
+          --network=vpc-${_ENV} --subnet=subnet-${_REGION}-${_ENV}
+    waitFor: [resolve-pb-url]
+
+
+  # Re-pin every Cloud Run Job of this service to the image just built.
+  # Terraform ignores a job's image after creation and nothing else refreshes
+  # it; the Docker registry deletes any version older than 30 days that is
+  # not among the 20 newest, so a job left on an old digest fails "image not
+  # found" on its next run.
+  - id: update-jobs
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -e
+        update_jobs() {
+          IMAGE="$$1"; shift
+          for JOB in "$$@"; do
+            if gcloud run jobs describe "$$JOB" --project=YOUR_GCP_PROJECT --region=${_REGION} >/dev/null 2>&1; then
+              echo "Updating $$JOB → $$IMAGE"
+              gcloud run jobs update "$$JOB" --project=YOUR_GCP_PROJECT --region=${_REGION} --image="$$IMAGE" --quiet
+            else
+              echo "$$JOB not found — skipping"
+            fi
+          done
+        }
+        update_jobs ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/workforce-service:${SHORT_SHA} \
+          workforce-partitions-${_ENV} \
+          workforce-audit-anchor-${_ENV}
+    waitFor: [deploy]
+
+images:
+  - ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/workforce-service:${SHORT_SHA}
+  - ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/workforce-service-migrate:${SHORT_SHA}

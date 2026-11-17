@@ -1,0 +1,316 @@
+[
+  {
+    "tool": "introspection_exchangerefreshtoken",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "companies_createcompany",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "locations_createcompanylocation",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "locations_updatelocation",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employees_createemployee",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "departments_createdepartment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "departments_updatedepartment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "departments_deletedepartment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "departments_addpeopletodepartment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "departments_removeemployees",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employees_updateemployee",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employees_deleteonboardingemployee",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeeemployments_createtermination",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeeemployments_deletetermination",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeeemployments_updatetermination",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeeemployments_createrehire",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeeemployments_updaterehire",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeeemployments_deleterehire",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeeaddresses_createhomeaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeeaddresses_updatehomeaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeeaddresses_deleteemployeehomeaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeeaddresses_createworkaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeeaddresses_updateworkaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeeaddresses_deleteemployeeworkaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "jobsandcompensations_createjob",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "jobsandcompensations_updatejob",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "jobsandcompensations_deletespecificjob",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "jobsandcompensations_createcompensation",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "jobsandcompensations_updatecompensation",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "jobsandcompensations_deletecompensation",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "earningtypes_createcustomearningtype",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "earningtypes_updatetypebyid",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "earningtypes_deactivate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "contractors_createindividualorbusiness",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "contractors_updatecontractor",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "webhooks_createsubscription",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "webhooks_updatesubscriptionbyuuid",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "webhooks_deletesubscriptionbyuuid",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "webhooks_verifysubscriptiontoken",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payrolls_updatebyid",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payrolls_prepareforupdate",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "timeoffpolicies_calculateaccruingtimeoffhours",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "companybenefits_createcompanybenefit",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "companybenefits_updatebenefit",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "companybenefits_removebenefit",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeebenefits_createbenefit",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeebenefits_updatebenefit",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeebenefits_removebenefit",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "employeebenefits_createytdbenefitamountsfromdifferentcompany",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "garnishments_creategarnishment",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "garnishments_update",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  }
+]

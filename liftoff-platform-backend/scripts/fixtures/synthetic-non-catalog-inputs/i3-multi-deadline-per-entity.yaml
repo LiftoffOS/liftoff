@@ -1,0 +1,6 @@
+# Triggers I3: multiple sequential deadlines on the same entity, expressed as a
+# Touch 1 / Touch 2 / Touch 3 cadence (RESP_HAS_SEQUENTIAL_DEADLINES → /touch\d/).
+role: Outreach Sequencer
+responsibilities: >
+  Run a three-step outreach cadence per lead: Touch 1 immediately, Touch 2
+  three days later, and Touch 3 seven days after that.

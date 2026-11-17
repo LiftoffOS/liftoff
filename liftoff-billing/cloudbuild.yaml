@@ -1,0 +1,223 @@
+# Cloud Build pipeline for liftoff-billing.
+# Phase 0e: SHA-only image tags, default machine type, 3600s timeout.
+# Phase 0e SLSA-3: the binauthz sign-and-create step signs the image
+# with the billing-attestor created by terraform/modules/billing/.
+
+timeout: 3600s
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  requestedVerifyOption: VERIFIED
+  dynamicSubstitutions: true
+  substitutionOption: ALLOW_LOOSE
+
+substitutions:
+  _REGION: us-west1
+  _ENV: dev  # overridden per-trigger
+  _STRIPE_OU_PRICE_ID: ''
+
+steps:
+  # Step 0: Cancel any older builds for this environment so only the newest runs.
+  - id: cancel-stale-builds
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        # Skip when not started by a trigger (manual `gcloud builds submit`):
+        # those builds carry no TRIGGER_NAME, and the filter would otherwise
+        # match every other manual build in flight.
+        if [ -z "${TRIGGER_NAME}" ]; then
+          echo "Manual build (no TRIGGER_NAME); skipping stale-build cancellation."
+          exit 0
+        fi
+        gcloud builds list \
+          --project=${PROJECT_ID} \
+          --region=${LOCATION} \
+          --filter="status=WORKING OR status=QUEUED" \
+          --format='value(id,substitutions.TRIGGER_NAME)' | \
+          awk -v me="${BUILD_ID}" -v key="${TRIGGER_NAME}" '$$1!=me && $$2==key {print $$1}' | \
+        while read OLD_ID; do
+          echo "Cancelling stale build: $$OLD_ID"
+          gcloud builds cancel "$$OLD_ID" --project=${PROJECT_ID} --region=${LOCATION} --quiet 2>/dev/null || true
+        done
+    waitFor: ['-']
+
+  # 1. Get Artifact Registry token for @liftoffos/* private npm packages
+  - id: ar-token
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - echo -n "$$( gcloud auth print-access-token )" > /workspace/ar_token
+
+  # 1. Build the runtime image
+  - id: build-runtime
+    name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        docker build \
+          -f Dockerfile \
+          --build-arg ARTIFACT_REGISTRY_TOKEN="$$(cat /workspace/ar_token)" \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/billing:${SHORT_SHA} \
+          .
+
+  # 2. Build the migrate image
+  - id: build-migrate
+    name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        docker build \
+          -f Dockerfile.migrate \
+          --build-arg ARTIFACT_REGISTRY_TOKEN="$$(cat /workspace/ar_token)" \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/billing-migrate:${SHORT_SHA} \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/billing-migrate:latest \
+          .
+
+  # 3. Push both
+  - id: push-runtime
+    name: gcr.io/cloud-builders/docker
+    args: [push, "${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/billing:${SHORT_SHA}"]
+  - id: push-migrate
+    name: gcr.io/cloud-builders/docker
+    args: [push, "${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/billing-migrate:${SHORT_SHA}"]
+  # `latest` exists for one reason: terraform creates the billing-psql
+  # break-glass job from a fixed tag, and a Cloud Run job cannot be created
+  # from an image that does not resolve. Without this the apply fails with
+  # "Image ... not found". The job's own image is then pinned to a real SHA by
+  # refresh-psql-job-image below.
+  - id: push-migrate-latest
+    name: gcr.io/cloud-builders/docker
+    args: [push, "${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/billing-migrate:latest"]
+
+  # Point the break-glass psql job at this build's migrate image. Mirrors
+  # platform-backend's refresh-psql-job-image step.
+  #
+  # Never creates, and never fails the build. If the job is absent, terraform
+  # has not made it yet and inventing a half-configured one here would be worse
+  # than skipping. Break-glass tooling must not block a release either way.
+  - id: refresh-psql-job-image
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        JOB=billing-psql
+        IMAGE=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/billing-migrate:${SHORT_SHA}
+
+        if gcloud run jobs describe "$$JOB" --region ${_REGION} \
+             --project YOUR_GCP_PROJECT >/dev/null 2>&1; then
+          echo "Refreshing $$JOB image -> $$IMAGE"
+          gcloud run jobs update "$$JOB" \
+            --image "$$IMAGE" \
+            --region ${_REGION} \
+            --project YOUR_GCP_PROJECT \
+            || echo "WARNING: could not refresh $$JOB image; break-glass queries may fail until this is fixed."
+        else
+          echo "$$JOB does not exist (terraform has not created it) - skipping."
+        fi
+
+  # 5. Deploy/update the migrate Cloud Run Job (create-or-update)
+  - id: migrate
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - jobs
+      - deploy
+      - billing-migrate-${_ENV}
+      - --project=YOUR_GCP_PROJECT
+      - --image=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/billing-migrate:${SHORT_SHA}
+      - --region=${_REGION}
+      - --service-account=billing-${_ENV}@YOUR_GCP_PROJECT.iam.gserviceaccount.com
+      - --set-env-vars=DB_INSTANCE_CONNECTION_NAME=YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENV}
+      - --set-secrets=DB_MIGRATE_PASSWORD=billing-pg-migrate-password:latest
+      - --set-cloudsql-instances=YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENV}
+      - --network=vpc-${_ENV}
+      - --subnet=subnet-${_REGION}-${_ENV}
+  - id: migrate-execute
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - jobs
+      - execute
+      - billing-migrate-${_ENV}
+      - --project=YOUR_GCP_PROJECT
+      - --region=${_REGION}
+      - --wait
+
+  # 6. Deploy/update the billing Cloud Run service (internal API + Pub/Sub consumer).
+  # Env vars are owned by terraform (modules/billing/main.tf env_vars block).
+  # This step ONLY ships the new image — Cloud Run carries forward env vars,
+  # secrets, ingress, IAM, VPC connector, and CloudSQL bindings from the
+  # prior revision. The deploy is a no-op for everything except the image.
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - billing
+      - --project=YOUR_GCP_PROJECT
+      - --image=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/billing:${SHORT_SHA}
+      - --region=${_REGION}
+      - --quiet
+    waitFor: [migrate-execute, push-runtime]
+
+  # 7. Deploy/update the billing-stripe-webhook Cloud Run service. Same shape
+  # as the main billing service — image-only deploy, terraform owns the rest.
+  - id: deploy-stripe-webhook
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - billing-stripe-webhook
+      - --project=YOUR_GCP_PROJECT
+      - --image=${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/billing:${SHORT_SHA}
+      - --region=${_REGION}
+      - --quiet
+    waitFor: [migrate-execute, push-runtime]
+
+
+  # Re-pin every Cloud Run Job of this service to the image just built.
+  # Terraform ignores a job's image after creation and nothing else refreshes
+  # it; the Docker registry deletes any version older than 30 days that is
+  # not among the 20 newest, so a job left on an old digest fails "image not
+  # found" on its next run.
+  - id: update-jobs
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -e
+        update_jobs() {
+          IMAGE="$$1"; shift
+          for JOB in "$$@"; do
+            if gcloud run jobs describe "$$JOB" --project=YOUR_GCP_PROJECT --region=${_REGION} >/dev/null 2>&1; then
+              echo "Updating $$JOB → $$IMAGE"
+              gcloud run jobs update "$$JOB" --project=YOUR_GCP_PROJECT --region=${_REGION} --image="$$IMAGE" --quiet
+            else
+              echo "$$JOB not found — skipping"
+            fi
+          done
+        }
+        update_jobs ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/billing:${SHORT_SHA} \
+          billing-partitions-${_ENV} \
+          billing-audit-anchor-${_ENV} \
+          billing-audit-retention-${_ENV}
+        update_jobs ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/billing-migrate:${SHORT_SHA} \
+          billing-backfill-${_ENV} \
+          billing-replication-start-${_ENV} \
+          billing-cutover-runner-${_ENV}
+    waitFor: [deploy]
+
+images:
+  - ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/billing:${SHORT_SHA}
+  - ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/billing-migrate:${SHORT_SHA}

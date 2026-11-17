@@ -1,0 +1,365 @@
+/* Integration selector styles — shared by IntegrationsStep (AgentBuilder) and
+   AgentUpdatePage. Extracted from AgentBuilder.css so the rules travel in
+   IntegrationsSelector's own module graph: with the dashboard code-split into
+   per-page chunks, AgentUpdatePage (a separate chunk) no longer loaded
+   AgentBuilder.css, leaving the integration chips/modal unstyled. */
+/* Integrations Search */
+.integrations-search {
+  max-width: 320px;
+}
+
+
+/* Integrations Empty State */
+.integrations-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  text-align: center;
+  gap: var(--space-3);
+}
+
+.integrations-empty__title {
+  font-size: var(--text-lg);
+  font-weight: 500;
+  color: var(--color-black);
+}
+
+.integrations-empty__text {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin-bottom: var(--space-2);
+}
+
+/* Integrations Chips */
+.integrations-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+}
+
+.integrations-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.integrations-section__label {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.integrations-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.integration-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 16px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 300;
+  color: var(--color-black);
+  background: var(--color-white);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-out);
+}
+
+.integration-chip:hover {
+  border-color: var(--color-gray-300);
+  background: var(--color-gray-50);
+}
+
+.integration-chip--selected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+}
+
+.integration-chip--selected:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+}
+
+/* A selection whose connector is gone. It cannot be "selected" in the normal
+   sense — there is nothing live behind it — so it reads as a fault rather than
+   a choice, and clicking removes it instead of toggling it. */
+.integration-chip--broken {
+  border-color: var(--status-error-muted);
+  background: var(--status-error-bg);
+  color: var(--status-error);
+}
+
+.integration-chip--broken:hover {
+  border-color: var(--status-error);
+  background: var(--status-error-bg);
+}
+
+.integration-chip__remove {
+  margin-left: 2px;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.integration-chip--broken:hover .integration-chip__remove {
+  opacity: 1;
+}
+
+.integration-chip--available {
+  border-style: dashed;
+}
+
+.integration-chip--available:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.integration-chip--available:disabled:hover {
+  background: transparent;
+  border-color: var(--color-gray-200);
+}
+
+.integration-chip--planned {
+  border-style: dashed;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.integration-chip--planned:hover {
+  background: var(--color-white);
+  border-color: var(--border-medium);
+}
+
+.integration-chip--skeleton {
+  pointer-events: none;
+  min-width: 100px;
+}
+
+.integration-chip--skeleton .integration-chip__icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--color-gray-100);
+}
+
+.integration-chip--skeleton .skeleton-text {
+  height: 14px;
+  border-radius: 4px;
+  background: var(--color-gray-100);
+}
+
+.integration-chip__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.integration-chip__icon svg {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.integration-chip svg {
+  flex-shrink: 0;
+}
+
+.integrations-more {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-xs);
+  color: var(--color-gray-400);
+}
+
+/* Integration Modal Content Styles */
+.integration-modal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto var(--space-4);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-lg);
+}
+
+.integration-modal__icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.integration-modal__title {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--color-black);
+  margin-bottom: var(--space-2);
+}
+
+.integration-modal__description {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin-bottom: var(--space-6);
+}
+
+.integration-modal__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  text-align: left;
+}
+
+.integration-modal__option {
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+}
+
+.integration-modal__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  text-align: left;
+}
+
+.integration-modal__disclosure {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: var(--text-xs);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  font-variation-settings: "opsz" 32, "wght" 320;
+  font-feature-settings: 'blwf' on;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  margin-bottom: var(--space-2);
+}
+
+.integration-modal__disclosure:hover {
+  text-decoration: underline;
+}
+
+.integration-modal__disclosure:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm, 4px);
+}
+
+.integration-modal__collapsible {
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-white);
+}
+
+.integration-modal__collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  font-variation-settings: "opsz" 32, "wght" 320;
+  font-feature-settings: 'blwf' on;
+  color: var(--color-black);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.integration-modal__collapsible-header:hover {
+  background: var(--color-gray-50);
+}
+
+.integration-modal__chevron {
+  color: var(--color-gray-400);
+  transition: transform var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.integration-modal__chevron--open {
+  transform: rotate(180deg);
+}
+
+.integration-modal__collapsible-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0 var(--space-4) var(--space-4);
+  border-top: 1px solid var(--border-light);
+  padding-top: var(--space-3);
+}
+
+.integration-modal__collapsible-panel[hidden] {
+  display: none;
+}
+
+.integration-modal__field-help {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.integration-modal__field-help code {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.92em;
+  padding: 1px 4px;
+  background: var(--color-gray-50);
+  border-radius: var(--radius-sm, 4px);
+  color: var(--color-gray-700);
+}
+
+.integration-modal__actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+.integration-modal__objects {
+  text-align: left;
+  padding: var(--space-3);
+  background: var(--color-gray-50);
+  border-radius: 8px;
+  margin-bottom: var(--space-4);
+}
+
+.integration-modal__objects-label {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-gray-700);
+  margin-bottom: var(--space-2);
+}
+
+.integration-modal__objects-list {
+  font-size: var(--text-sm);
+  color: var(--color-gray-700);
+}

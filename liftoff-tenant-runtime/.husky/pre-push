@@ -1,0 +1,49 @@
+#!/usr/bin/env sh
+#
+# Apply every migration to a scratch database before the push exists.
+#
+# The same check CI runs (scripts/ci/verify-migrations.sh), here for speed: a
+# migration that cannot run costs ~40s to find at this point and twenty minutes
+# of build plus a blocked estate to find at the migrate step.
+#
+# This is NOT the gate — CI is. A hook is skippable with --no-verify, absent on
+# a fresh clone, and does not run for agents or automation. It is the fast half
+# of a belt-and-braces pair, and it SKIPS rather than fails when there is no
+# local Postgres, because refusing to push on a missing optional dependency
+# teaches people to pass --no-verify, which costs the real protection to keep a
+# fake one.
+
+set -e
+
+# Only worth doing when migrations actually changed. `git diff` against the
+# upstream ref rather than HEAD~1: a push can carry many commits.
+UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || echo '')
+if [ -n "$UPSTREAM" ]; then
+  CHANGED=$(git diff --name-only "$UPSTREAM"...HEAD -- migrations/ 2>/dev/null || echo '')
+else
+  CHANGED=$(git diff --name-only HEAD~1...HEAD -- migrations/ 2>/dev/null || echo '')
+fi
+if [ -z "$CHANGED" ]; then
+  exit 0
+fi
+
+if ! command -v psql >/dev/null 2>&1 || ! command -v createdb >/dev/null 2>&1; then
+  echo "pre-push: migrations changed, but no local psql — skipping the migration check (CI still runs it)"
+  exit 0
+fi
+if ! pg_isready -q >/dev/null 2>&1; then
+  echo "pre-push: migrations changed, but no local Postgres is accepting connections — skipping (CI still runs it)"
+  exit 0
+fi
+
+DB="tr_migrate_verify_$$"
+cleanup() { dropdb --if-exists "$DB" >/dev/null 2>&1 || true; }
+trap cleanup EXIT
+
+echo "pre-push: migrations changed — applying all of them to a scratch database"
+createdb "$DB" >/dev/null 2>&1 || {
+  echo "pre-push: could not create a scratch database — skipping (CI still runs it)"
+  exit 0
+}
+
+DATABASE_URL="postgres://$(whoami)@localhost:5432/$DB" sh scripts/ci/verify-migrations.sh

@@ -1,0 +1,73 @@
+{
+  "set": {
+    "id": "distill_bind",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "step": {
+      "description": "Send the weekly summary to the account owner.",
+      "toolName": "gmail-1a2b__send_emial",
+      "arguments": "{\"to\":\"{{input.ownerEmail}}\",\"subject\":\"Weekly summary\",\"body\":\"{{steps.s3.summary}}\"}"
+    },
+    "candidates": [
+      {
+        "key": "gmail-1a2b__send_email",
+        "description": "Send an email message to one or more recipients.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "to": {
+              "type": "string"
+            },
+            "subject": {
+              "type": "string"
+            },
+            "body": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "to",
+            "body"
+          ]
+        }
+      },
+      {
+        "key": "gmail-1a2b__send_emails",
+        "description": "Send the same email to a list of recipients in one call.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "to": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "subject": {
+              "type": "string"
+            },
+            "body": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "to",
+            "body"
+          ]
+        }
+      }
+    ]
+  },
+  "candidates": [
+    "gmail-1a2b__send_email",
+    "gmail-1a2b__send_emails"
+  ],
+  "expect": {
+    "binding": {
+      "choice": "gmail-1a2b__send_email"
+    }
+  },
+  "note": "A one-letter typo of the singular send; the arguments name one recipient."
+}

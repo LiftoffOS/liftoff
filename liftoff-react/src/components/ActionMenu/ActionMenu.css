@@ -1,0 +1,106 @@
+/* Flex, not block, because the trigger now sits inside the tooltip's
+   inline-flex wrapper: on a text baseline that wrapper would add descender
+   leading under the 28px button and grow every row that holds one. The
+   dropdown is absolute, so it still anchors here. */
+.action-menu {
+  position: relative;
+  display: flex;
+}
+
+.action-menu__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-gray-400);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.action-menu__trigger:hover:not(:disabled) {
+  background: var(--color-gray-100);
+  color: var(--color-gray-500);
+}
+
+.action-menu__trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-menu__trigger svg {
+  width: 16px;
+  height: 16px;
+}
+
+.action-menu__dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: var(--space-1);
+  padding: 4px;
+  min-width: 140px;
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+}
+
+/* A flex row rather than a block, so a badged item puts its dot at the right
+ * edge of the item instead of trailing the last word of the label. The label
+ * takes the free space, which is what pushes the dot to the edge and keeps the
+ * item laying out exactly as it did when there is no dot. */
+.action-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 10px 12px;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-gray-400);
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.action-menu__item:hover:not(:disabled) {
+  background: var(--color-gray-100);
+  color: var(--color-black);
+}
+
+.action-menu__item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-menu__item-label {
+  flex: 1;
+  text-align: left;
+}
+
+.action-menu__item-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.action-menu__item--danger {
+  color: #dc2626;
+}
+
+.action-menu__item--danger:hover:not(:disabled) {
+  background: #fef2f2;
+  color: #dc2626;
+}

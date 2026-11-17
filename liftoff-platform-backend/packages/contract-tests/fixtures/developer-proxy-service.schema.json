@@ -1,0 +1,159 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/developer-proxy-service.schema.json",
+  "title": "DeveloperProxyServiceContracts",
+  "description": "Request + response schemas for liftoff-developer-proxy management RPCs. Hot-path vendor traffic (transparent HTTP pass-through) is validated by golden SSE fixtures, not JSON Schema.",
+  "type": "object",
+  "$defs": {
+    "tenantContext": {
+      "type": "object",
+      "required": ["tenantId", "userId"],
+      "properties": {
+        "tenantId": { "type": "string", "minLength": 1 },
+        "userId": { "type": "string", "minLength": 1 },
+        "roles": { "type": "array", "items": { "type": "string" } },
+        "isolationTier": { "type": "string", "enum": ["standard", "enterprise"] }
+      }
+    },
+    "pagination": {
+      "type": "object",
+      "properties": {
+        "pageSize": { "type": "integer", "minimum": 1, "maximum": 200 },
+        "pageToken": { "type": "string" }
+      }
+    },
+    "developerProxyVendor": { "type": "string", "enum": ["anthropic", "openai"] },
+    "credentialStatus": {
+      "type": "string",
+      "enum": ["pending", "active", "revoked", "expired"]
+    },
+    "CreateCredentialRequest": {
+      "type": "object",
+      "required": ["tenantContext", "vendor", "rawApiKey"],
+      "properties": {
+        "tenantContext": { "$ref": "#/$defs/tenantContext" },
+        "vendor": { "$ref": "#/$defs/developerProxyVendor" },
+        "rawApiKey": { "type": "string", "minLength": 1 },
+        "label": { "type": "string" }
+      }
+    },
+    "CreateCredentialResponse": {
+      "type": "object",
+      "required": ["credential"],
+      "properties": { "credential": { "type": "object" } }
+    },
+    "ListCredentialsRequest": {
+      "type": "object",
+      "required": ["tenantContext"],
+      "properties": {
+        "tenantContext": { "$ref": "#/$defs/tenantContext" },
+        "pagination": { "$ref": "#/$defs/pagination" },
+        "vendorFilter": { "$ref": "#/$defs/developerProxyVendor" },
+        "statusFilter": { "$ref": "#/$defs/credentialStatus" }
+      }
+    },
+    "ListCredentialsResponse": {
+      "type": "object",
+      "required": ["credentials"],
+      "properties": {
+        "credentials": { "type": "array", "items": { "type": "object" } },
+        "nextPageToken": { "type": "string" }
+      }
+    },
+    "RevokeCredentialRequest": {
+      "type": "object",
+      "required": ["tenantContext", "credentialId"],
+      "properties": {
+        "tenantContext": { "$ref": "#/$defs/tenantContext" },
+        "credentialId": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string" }
+      }
+    },
+    "RevokeCredentialResponse": {
+      "type": "object",
+      "required": ["credential", "sessionsTerminated"],
+      "properties": {
+        "credential": { "type": "object" },
+        "sessionsTerminated": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "GetUsageRequest": {
+      "type": "object",
+      "required": ["tenantContext", "periodStart", "periodEnd"],
+      "properties": {
+        "tenantContext": { "$ref": "#/$defs/tenantContext" },
+        "periodStart": { "type": "string", "format": "date-time" },
+        "periodEnd": { "type": "string", "format": "date-time" },
+        "vendorFilter": { "$ref": "#/$defs/developerProxyVendor" },
+        "userId": { "type": "string" }
+      }
+    },
+    "GetUsageResponse": {
+      "type": "object",
+      "required": ["summaries"],
+      "properties": {
+        "summaries": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "InitiatePkceSetupRequest": {
+      "type": "object",
+      "required": ["tenantContext", "vendor", "codeChallenge", "codeChallengeMethod"],
+      "properties": {
+        "tenantContext": { "$ref": "#/$defs/tenantContext" },
+        "vendor": { "$ref": "#/$defs/developerProxyVendor" },
+        "codeChallenge": { "type": "string", "minLength": 1 },
+        "codeChallengeMethod": { "type": "string", "const": "S256" }
+      }
+    },
+    "InitiatePkceSetupResponse": {
+      "type": "object",
+      "required": ["session"],
+      "properties": { "session": { "type": "object" } }
+    },
+    "CompletePkceSetupRequest": {
+      "type": "object",
+      "required": ["sessionId", "codeVerifier", "rawApiKey"],
+      "properties": {
+        "sessionId": { "type": "string", "minLength": 1 },
+        "codeVerifier": { "type": "string", "minLength": 43, "maxLength": 128 },
+        "rawApiKey": { "type": "string", "minLength": 1 }
+      }
+    },
+    "CompletePkceSetupResponse": {
+      "type": "object",
+      "required": ["credential"],
+      "properties": { "credential": { "type": "object" } }
+    },
+    "ExportTenantDataRequest": {
+      "type": "object",
+      "required": ["tenantId", "scope", "requestedBy", "expiresAt", "authorizationHmac"],
+      "properties": {
+        "tenantId": { "type": "string", "minLength": 1 },
+        "subjectUserId": { "type": "string" },
+        "scope": { "type": "string", "enum": ["tenant", "user"] },
+        "requestedBy": { "type": "string", "minLength": 1 },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "authorizationHmac": { "type": "string", "pattern": "^[A-Fa-f0-9]+$" }
+      }
+    },
+    "ExportTenantDataResponse": {
+      "type": "object",
+      "required": ["recordType", "sequence", "record"],
+      "properties": {
+        "recordType": { "type": "string" },
+        "sequence": { "type": "string", "pattern": "^[0-9]+$" },
+        "record": { "type": "string" }
+      }
+    },
+    "DeleteTenantUserDataRequest": { "$ref": "#/$defs/ExportTenantDataRequest" },
+    "DeleteTenantUserDataResponse": {
+      "type": "object",
+      "required": ["recordsDeleted", "recordsPseudonymized", "auditReceiptId"],
+      "properties": {
+        "recordsDeleted": { "type": "string", "pattern": "^[0-9]+$" },
+        "recordsPseudonymized": { "type": "string", "pattern": "^[0-9]+$" },
+        "auditReceiptId": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

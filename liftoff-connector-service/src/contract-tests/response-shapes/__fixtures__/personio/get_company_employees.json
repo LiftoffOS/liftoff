@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "data": [
+    {
+      "type": "Employee",
+      "attributes": {
+        "id": { "label": "ID", "value": "1", "type": "integer", "universal_id": "id" },
+        "first_name": { "label": "First name", "value": "REDACTED", "type": "standard", "universal_id": "first_name" },
+        "last_name": { "label": "Last name", "value": "REDACTED", "type": "standard", "universal_id": "last_name" },
+        "email": { "label": "Email", "value": "REDACTED", "type": "standard", "universal_id": "email" },
+        "status": { "label": "Status", "value": "active", "type": "standard", "universal_id": "status" }
+      }
+    }
+  ]
+}

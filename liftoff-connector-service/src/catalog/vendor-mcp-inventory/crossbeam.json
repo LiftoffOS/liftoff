@@ -1,0 +1,92 @@
+{
+  "connectorType": "crossbeam",
+  "harvestedAt": "2026-09-15",
+  "source": "vendor_docs",
+  "sourceUrl": "https://help.crossbeam.com/en/articles/12601327-crossbeam-mcp-server-limited-availability",
+  "tools": [
+    {
+      "name": "find_overlapping_accounts_and_leads",
+      "description": "Pulls a list of accounts you share with one or more partners. Supports filtering by partner, population, segment, and partner score — and can run across your entire ecosystem at once.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_account_context",
+      "description": "Get a unified view of one of your accounts. Returns account details, owner information, and population membership, including custom fields. Look up by domain, CRM record ID, or company name.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "find_partner_shared_contacts",
+      "description": "Find partner-shared contacts at an account. Surfaces decision makers, economic buyers, executive sponsors, and other key contacts your partners are sharing.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "find_new_accounts",
+      "description": "Returns accounts from Pipeline Generation — high-potential prospects based on where your partners already have customers, including net new accounts not yet in your CRM. Use for greenfield prospecting and net new pipeline generation.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_partner_overlaps_shared_context",
+      "description": "Returns the CRM fields a specific partner is sharing on a given account, including standard fields and any custom mapped fields like account tier or renewal date.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "find_partner_recommendations",
+      "description": "Returns ranked partner suggestions for an open opportunity, powered by the same recommendation engine as Deal Navigator.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "find_overlapping_partners",
+      "description": "Returns which of your partners have a given account in their data. Surfaces co-sell opportunities at the account level.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_partner_context",
+      "description": "Get a full picture of your partner relationships — overlap counts, open deals, potential revenue, partner score, win rate, deal size, and how recently each partner has been active. Filter by partner name, tag, or region.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_ecosystem_activity",
+      "description": "Surface recent partner activity across your ecosystem, ordered from latest to oldest. Delivers three signal event types: partner deals opened, partner deals closed won, and recent greenfield signals (deals a partner closed on a company that isn't in your CRM yet). Each event can include contact context from the partner's CRM when sharing is enabled.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_list_link",
+      "description": "Instantly generates a shareable Crossbeam list link using plain language — no need to navigate the UI. Works for both single-partner overlap lists and ecosystem-wide views.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "search_crossbeam_knowledge",
+      "description": "Answers \"how does Crossbeam work\" and shares Ecosystem-Led Growth best practices. Leverages our help docs, the ELG Insider blog, and the Ecosystem-Led Growth book as sources and references for suggestions and case studies.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_partner_suggestions",
+      "description": "Surfaces companies you don't yet partner with on Crossbeam, but should consider based on ecosystem fit. Powered by Partnerbase data, with a direct link to invite them.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    }
+  ]
+}

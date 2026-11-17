@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"],
+  "//": "src/catalog/generated is excluded: it holds multi-MB generated JSON tool sets (data, not code). With resolveJsonModule + include, tsc would infer their literal types — an 8037-tool set pushed tsc to 2.66GB and OOM'd CI. They are read at runtime via readFileSync (native-hris-functions.ts) and validated at generation time (spec-codegen validateOps).",
+  "exclude": ["node_modules", "dist", "src/_source-ports", "src/catalog/generated"]
+}

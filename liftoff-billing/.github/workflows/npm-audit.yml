@@ -1,0 +1,34 @@
+name: npm-audit
+on:
+  pull_request:
+  push: { branches: [main] }
+  schedule:
+    - cron: "0 8 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # federate to GCP (WIF) so npm ci can read @liftoffos/* from Artifact Registry
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: '20' }
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
+          service_account: YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Artifact Registry npm token
+        run: |
+          TOKEN="$(gcloud auth print-access-token)"
+          echo "::add-mask::$TOKEN"
+          echo "ARTIFACT_REGISTRY_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+      - run: npm ci --ignore-scripts
+      # Fails on any prod high/critical EXCEPT the documented, time-boxed
+      # allowlist (advisories needing a tracked breaking-major migration).
+      - run: node scripts/ci/audit-gate.mjs

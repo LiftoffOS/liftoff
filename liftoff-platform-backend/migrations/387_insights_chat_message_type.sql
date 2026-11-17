@@ -1,0 +1,33 @@
+-- Migration 387: the Insights Manager's thread can hold a row that is not speech.
+--
+-- Liftoff brings a colleague into a conversation the colleague cannot see, so it
+-- writes a short summary of what has been said and sends it with the person's
+-- message. That summary was CONCATENATED onto the message, and every delegate
+-- surface persisted the result as the USER's row. The Insights Manager's thread
+-- therefore shows paragraphs the person never wrote, in Liftoff's voice, about
+-- them. The Chief AI Officer's thread has the same defect.
+--
+-- The fix gives the summary its own row, and a row that reports on a
+-- conversation rather than taking part in it needs a way to say so. That
+-- vocabulary already exists twice: migration 174 added `message_type` to
+-- agent_chat_messages for `file_output` and later `hitl_status`, and migration
+-- 352 added the same column to liftoff_chat_messages for exactly this reason,
+-- saying "the two surfaces share one vocabulary and one renderer instead of
+-- growing a second mechanism for the same fact". This is the third surface, on
+-- the same terms.
+--
+-- Nullable and sparse, like both of those: ordinary speech stores NULL, which is
+-- what every row written before this migration reads back as, and the repository
+-- maps NULL to "an ordinary message" without any caller having to know.
+--
+-- No backfill. The rows already written have the summary fused into the user's
+-- message text; there is no marker to key on and no way to split them back apart
+-- that is not a guess about where Liftoff's words ended and the person's began.
+-- They are left as they are, and this stops it happening again.
+--
+-- insights_chat_messages is not tenant-scoped (it is keyed through
+-- insights_chat_threads), so this needs none of the FORCE / NO FORCE dance that
+-- a system-agent write on internal_agents does.
+
+ALTER TABLE insights_chat_messages
+  ADD COLUMN IF NOT EXISTS message_type TEXT;

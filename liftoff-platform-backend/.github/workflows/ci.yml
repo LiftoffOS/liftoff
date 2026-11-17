@@ -1,0 +1,385 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Detect which paths changed so downstream jobs can skip when irrelevant
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    # dorny/paths-filter reads the PR's changed-files via the GitHub API.
+    # Without an explicit pull-requests:read grant the org-level default
+    # GITHUB_TOKEN scope returns "Resource not accessible by integration".
+    permissions:
+      pull-requests: read
+      contents: read
+    outputs:
+      src: ${{ steps.filter.outputs.src }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            src:
+              - 'src/**'
+              - 'packages/**'
+              - 'package*.json'
+              - 'jest.config.*'
+              - 'tsconfig*.json'
+
+  lint:
+    name: Lint
+    needs: changes
+    if: needs.changes.outputs.src == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: ./.github/actions/npm-auth
+      - run: npm ci
+      - run: npm run lint
+
+  typecheck:
+    name: Type Check
+    needs: changes
+    if: needs.changes.outputs.src == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      # Same reason the Build job below sets this, and the same failure: `tsc`
+      # over this tree crossed the ~2 GB default V8 heap and died with
+      # "FATAL: heap out of memory", exit 134. Build was given the larger heap
+      # when it hit the wall; typecheck runs the same compiler over the same
+      # files and was left on the default, so it was always going to follow.
+      # Job-level so every step here gets it.
+      NODE_OPTIONS: --max-old-space-size=8192
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: ./.github/actions/npm-auth
+      - run: npm ci
+      # composio-overlays depends on connector-types; contract-tests depends on
+      # shared-types; chat-attachments depends on service-runtime. npm iterates
+      # --workspaces alphabetically, which runs the dependents before their
+      # providers. Pre-build the providers so the dependent builds find their
+      # dist/ entries. A new package that imports a sibling belongs on this line.
+      - run: npm run build --workspace=packages/connector-types --workspace=packages/shared-types --workspace=packages/service-runtime
+      - run: npm run build --workspaces --if-present
+      - run: npm run typecheck
+
+  # docs/invariants.md fitness functions. INV-PB-002 / 006 / 007 are enforced
+  # ONLY by this script — the others delegate to eslint, a grep gate, or a
+  # verification test. The script has shipped with a `--changed` mode since it
+  # landed and nothing ever called it, so those three invariants were documented
+  # as enforced while having no automated enforcement at all.
+  #
+  # `--changed` diffs against origin/main, so this needs full history:
+  # actions/checkout defaults to fetch-depth 1, where `origin/main...HEAD`
+  # resolves to nothing and every change-rule silently passes.
+  invariants:
+    name: Invariants (docs/invariants.md)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Fitness functions
+        run: scripts/check-invariants.sh --changed
+
+  no-focused-tests:
+    name: No .only() in tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check for .only() in test files
+        run: |
+          if grep -rn '\.only(' --include='*.test.ts' --include='*.spec.ts' src/ packages/ 2>/dev/null; then
+            echo ""
+            echo "ERROR: Found .only() in test files. This silently skips other tests."
+            echo "Remove all .only() calls before merging."
+            exit 1
+          fi
+
+  test:
+    name: Test (${{ matrix.shard }})
+    needs: changes
+    if: needs.changes.outputs.src == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1/3, 2/3, 3/3]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: ./.github/actions/npm-auth
+      - run: npm ci
+      # composio-overlays depends on connector-types; contract-tests depends on
+      # shared-types; chat-attachments depends on service-runtime. npm iterates
+      # --workspaces alphabetically, which runs the dependents before their
+      # providers. Pre-build the providers so the dependent builds find their
+      # dist/ entries. A new package that imports a sibling belongs on this line.
+      - run: npm run build --workspace=packages/connector-types --workspace=packages/shared-types --workspace=packages/service-runtime
+      - run: npm run build --workspaces --if-present
+      - run: npm test -- --shard=${{ matrix.shard }} --maxWorkers=100% --workerIdleMemoryLimit=512MB
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+
+  # Coverage runs only on pushes to main (not PRs) — saves ~15 min per PR run
+  coverage:
+    name: Coverage
+    needs: changes
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.src == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: ./.github/actions/npm-auth
+      - run: npm ci
+      # composio-overlays depends on connector-types; contract-tests depends on
+      # shared-types; chat-attachments depends on service-runtime. npm iterates
+      # --workspaces alphabetically, which runs the dependents before their
+      # providers. Pre-build the providers so the dependent builds find their
+      # dist/ entries. A new package that imports a sibling belongs on this line.
+      - run: npm run build --workspace=packages/connector-types --workspace=packages/shared-types --workspace=packages/service-runtime
+      - run: npm run build --workspaces --if-present
+      - run: npm test -- --coverage --maxWorkers=100% --workerIdleMemoryLimit=512MB
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+
+  build:
+    name: Build
+    needs: changes
+    if: needs.changes.outputs.src == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      # The full `tsc` build (npm run build) crossed the ~2 GB default V8 heap
+      # as the codebase grew and OOM'd (FATAL: heap out of memory, exit 134),
+      # failing the required Build check on every commit. Match the heap the
+      # typecheck / test / benchmark jobs already set. Job-level so every build
+      # step here (workspace providers + root) gets it.
+      NODE_OPTIONS: --max-old-space-size=8192
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: ./.github/actions/npm-auth
+      - run: npm ci
+      # composio-overlays depends on connector-types; contract-tests depends on
+      # shared-types; chat-attachments depends on service-runtime. npm iterates
+      # --workspaces alphabetically, which runs the dependents before their
+      # providers. Pre-build the providers so the dependent builds find their
+      # dist/ entries. A new package that imports a sibling belongs on this line.
+      - run: npm run build --workspace=packages/connector-types --workspace=packages/shared-types --workspace=packages/service-runtime
+      - run: npm run build --workspaces --if-present
+      - run: npm run build
+
+  benchmark:
+    name: Latency Benchmarks
+    needs: changes
+    if: needs.changes.outputs.src == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: ./.github/actions/npm-auth
+      - run: npm ci
+      # composio-overlays depends on connector-types; contract-tests depends on
+      # shared-types; chat-attachments depends on service-runtime. npm iterates
+      # --workspaces alphabetically, which runs the dependents before their
+      # providers. Pre-build the providers so the dependent builds find their
+      # dist/ entries. A new package that imports a sibling belongs on this line.
+      - run: npm run build --workspace=packages/connector-types --workspace=packages/shared-types --workspace=packages/service-runtime
+      - run: npm run build --workspaces --if-present
+      # --bail makes the whole benchmark run halt on the first budget breach
+      # so a p95/p99 regression lands in the PR check immediately.
+      - run: npx jest --config jest.benchmark.config.js --bail
+        env:
+          # Match the other jest jobs' heap. At 4096 the benchmark suite OOMs
+          # (heap reached ~4050 MB), failing the job on every non-doc PR.
+          NODE_OPTIONS: --max-old-space-size=8192
+
+  # Single required status check. Branch protection requires ONLY this context,
+  # so the path-filtered jobs (lint/typecheck/test/build skip on non-`src`
+  # changes like docs or workflow edits) never leave a required check "expected"
+  # forever — which is what forced admin-merge on docs PRs. This gate always
+  # runs and reports: it passes when every gated job succeeded OR was skipped,
+  # and fails if any actually failed/was cancelled.
+  required-checks:
+    name: Required Checks
+    if: always()
+    needs: [changes, lint, typecheck, test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gate on the four required jobs
+        run: |
+          echo "changes=${{ needs.changes.result }} lint=${{ needs.lint.result }} typecheck=${{ needs.typecheck.result }} test=${{ needs.test.result }} build=${{ needs.build.result }}"
+          for r in \
+            "${{ needs.changes.result }}" \
+            "${{ needs.lint.result }}" \
+            "${{ needs.typecheck.result }}" \
+            "${{ needs.test.result }}" \
+            "${{ needs.build.result }}"; do
+            case "$r" in
+              success|skipped) ;;
+              *) echo "::error::a required job did not pass (result=$r)"; exit 1 ;;
+            esac
+          done
+          echo "All required checks passed or were legitimately skipped."
+
+  proto-breaking:
+    name: Proto Breaking Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: bufbuild/buf-action@v1
+        with:
+          breaking_against: 'https://github.com/${{ github.repository }}.git#branch=main,subdir=src/proto'
+          input: src/proto
+          # The pre-existing protos in this repo violate STANDARD naming
+          # rules (filename kebab-case, multi-package per directory,
+          # service suffix). Fixing them is a multi-repo refactor — gate
+          # this CI to BREAKING ONLY, matching the previous passing
+          # configuration on main. Tracked as tech-debt.
+          lint: false
+          format: false
+          # buf-action attempts to post a PR comment when it has findings;
+          # without explicit pull-requests / issues write scope the
+          # GITHUB_TOKEN default fails with "Resource not accessible by
+          # integration" even when buf itself found nothing. Disable.
+          pr_comment: false
+
+  docker-scan:
+    name: Container Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Blocking gate: known CVEs and committed secrets fail the build. Both
+      # allow-lists live in .trivyignore.yaml, passed explicitly — Trivy
+      # auto-detects a plain `.trivyignore` and does NOT auto-detect the YAML
+      # form, so a file relying on that would look active while doing nothing.
+      - name: Trivy — vulnerabilities & secrets (blocking)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret
+          severity: CRITICAL,HIGH
+          exit-code: 1
+          ignore-unfixed: true
+          trivyignores: .trivyignore.yaml
+      # Advisory: Dockerfile / IaC hardening best-practices. Reported but does
+      # not block, since these are a separate hardening initiative.
+      - name: Trivy — misconfiguration (advisory)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: misconfig
+          severity: CRITICAL,HIGH
+          exit-code: 0
+
+  pr-title:
+    name: PR Title
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+
+  notify-failure:
+    name: Slack Notify
+    if: github.ref == 'refs/heads/main' && failure()
+    needs: [lint, typecheck, test, build, benchmark, docker-scan, no-focused-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve Slack user
+        id: slack-user
+        run: |
+          SLACK_ID=$(echo '${{ vars.SLACK_USER_MAP }}' | python3 -c "import json,sys; m=json.load(sys.stdin); print(m.get('${{ github.actor }}',''))")
+          echo "id=$SLACK_ID" >> $GITHUB_OUTPUT
+          if [ -n "$SLACK_ID" ]; then
+            echo "mention=<@$SLACK_ID>" >> $GITHUB_OUTPUT
+          else
+            echo "mention=${{ github.actor }}" >> $GITHUB_OUTPUT
+          fi
+      - name: Post to #ci-alerts
+        run: |
+          curl -s -X POST -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"channel\":\"#ci-alerts\",\"text\":\":red_circle: *CI failed on main* — <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.repository }}>\\nCommit: \`${{ github.sha }}\` by ${{ steps.slack-user.outputs.mention }}\"}" \
+            https://slack.com/api/chat.postMessage
+      - name: DM the author
+        if: steps.slack-user.outputs.id != ''
+        run: |
+          curl -s -X POST -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"channel\":\"${{ steps.slack-user.outputs.id }}\",\"text\":\":red_circle: Your commit broke CI on *${{ github.repository }}* main\\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View failed run>\"}" \
+            https://slack.com/api/chat.postMessage

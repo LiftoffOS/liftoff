@@ -1,0 +1,349 @@
+/* LiftoffScore panel.
+   Colours from the --color-* / --status-* tokens in src/index.css (INV-UI-005).
+   No plots and no bars: the score is a banded number, and everything beside it
+   is a sentence. */
+
+.lscore__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-black);
+}
+
+.lscore__title { margin: 0; }
+
+.lscore__meta {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.lscore__intro {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-gray-400);
+  max-width: 76ch;
+}
+
+/* ── Group ─────────────────────────────────────────────────────── */
+
+.lscore__group { margin-top: var(--space-6); }
+
+.lscore__group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+}
+
+.lscore__group-name {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-2xl);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.lscore__group-name--ai { color: var(--color-accent); }
+.lscore__group-name--person { color: var(--color-blue); }
+
+.lscore__group-payoff {
+  font-size: var(--text-xs);
+  color: var(--status-success);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Row ───────────────────────────────────────────────────────── */
+
+.lscore__rows,
+.lscore__quiet-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lscore__row {
+  display: grid;
+  grid-template-columns: minmax(200px, 1.1fr) minmax(150px, 0.9fr) minmax(240px, 1.6fr);
+  gap: var(--space-5);
+  align-items: start;
+  padding: var(--space-4) 0 var(--space-4) var(--space-4);
+  border-top: 1px solid var(--border-medium);
+  border-left: 3px solid transparent;
+}
+
+/* The band is carried on the row edge as well as the chip, so a struggling
+   teammate is findable by scanning rather than by reading every number. */
+.lscore__row--strong { border-left-color: var(--status-success); }
+.lscore__row--good { border-left-color: var(--status-success-muted); }
+.lscore__row--needs_work { border-left-color: var(--status-warning); }
+.lscore__row--poor { border-left-color: var(--status-error); }
+
+/* ── Identity ──────────────────────────────────────────────────── */
+
+.lscore__ident {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.lscore__avatar {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+}
+
+.lscore__ident-text { min-width: 0; }
+
+.lscore__name {
+  display: block;
+  font-size: var(--text-base);
+  font-weight: var(--weight-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lscore__basis {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Verdict ───────────────────────────────────────────────────── */
+
+.lscore__verdict {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.lscore__number {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-2xl);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.05;
+  cursor: help;
+}
+
+.lscore__band {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-sm);
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+}
+
+.lscore__band--strong { background: var(--status-success-bg); color: #157a3c; }
+.lscore__band--good { background: var(--status-success-bg); color: #157a3c; }
+.lscore__band--needs_work { background: var(--status-warning-bg); color: #8a5a00; }
+.lscore__band--poor { background: var(--status-error-bg); color: #a3272a; }
+
+.lscore__halves {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+}
+
+.lscore__halves b { font-weight: var(--weight-sm); }
+.lscore__half--strong,
+.lscore__half--good { color: #157a3c; }
+.lscore__half--needs_work { color: #8a5a00; }
+.lscore__half--poor { color: #a3272a; }
+
+/* ── Drivers and the action ────────────────────────────────────── */
+
+.lscore__drivers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.lscore__driver,
+.lscore__action {
+  display: grid;
+  grid-template-columns: 15px 1fr;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.lscore__driver-mark {
+  font-size: var(--text-xs);
+  line-height: 1.7;
+  text-align: center;
+}
+
+.lscore__driver--helping .lscore__driver-mark { color: var(--status-success); }
+.lscore__driver--hurting .lscore__driver-mark { color: var(--status-warning); }
+.lscore__action .lscore__driver-mark { color: var(--color-accent); }
+
+.lscore__driver-text { color: var(--color-gray-400); }
+.lscore__driver--hurting .lscore__driver-text { color: var(--color-black); }
+
+.lscore__bench {
+  font-style: normal;
+  color: var(--color-gray-500);
+}
+
+.lscore__action { margin-top: var(--space-1); }
+
+.lscore__action--none .lscore__driver-mark { color: var(--color-gray-300); }
+.lscore__action--none .lscore__driver-text {
+  color: var(--color-gray-500);
+  font-weight: var(--weight-xs);
+}
+
+.lscore__action .lscore__driver-text {
+  color: var(--color-black);
+  font-weight: var(--weight-sm);
+}
+
+.lscore__action-link {
+  color: var(--color-black);
+  text-decoration: underline;
+  text-decoration-color: var(--color-gray-300);
+  text-underline-offset: 2px;
+}
+
+.lscore__action-link:hover { text-decoration-color: var(--color-accent); }
+
+.lscore__evidence {
+  display: block;
+  margin-top: 3px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-xs);
+  line-height: 1.5;
+  color: var(--color-gray-500);
+}
+
+.lscore__evidence q { font-style: italic; }
+
+.lscore__payoff {
+  display: inline-block;
+  margin-left: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-xs);
+  color: var(--status-success);
+  white-space: nowrap;
+}
+
+/* ── Not rated ─────────────────────────────────────────────────── */
+
+.lscore__quiet {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.lscore__quiet-label {
+  margin: 0 0 var(--space-2);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-gray-500);
+  font-weight: var(--weight-sm);
+}
+
+.lscore__quiet-row {
+  display: grid;
+  grid-template-columns: 26px minmax(140px, 200px) 1fr;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-2) 0;
+}
+
+.lscore__quiet-row .lscore__avatar { width: 24px; height: 24px; font-size: 9px; }
+.lscore__quiet-row .lscore__name { font-size: var(--text-sm); }
+
+.lscore__quiet-why {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}
+
+/* ── Footnote, notice, loading ─────────────────────────────────── */
+
+.lscore__footnote {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-medium);
+  font-size: var(--text-xs);
+  line-height: 1.65;
+  color: var(--color-gray-400);
+  max-width: 78ch;
+}
+
+.lscore__notice {
+  margin-top: var(--space-5);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5) var(--space-6);
+  background: var(--color-gray-50);
+  max-width: 62ch;
+}
+
+.lscore__notice-title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-sm);
+  margin: 0 0 var(--space-1);
+}
+
+.lscore__notice-body {
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-gray-400);
+  margin: 0;
+}
+
+.lscore__skeleton {
+  height: 72px;
+  margin-top: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-gray-100);
+  animation: lscore-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes lscore-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lscore__skeleton { animation: none; }
+}
+
+.lscore__sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Narrow ────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .lscore__row {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+  .lscore__verdict { flex-direction: row; align-items: baseline; gap: var(--space-3); }
+}

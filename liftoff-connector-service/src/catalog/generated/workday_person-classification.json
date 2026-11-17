@@ -1,0 +1,212 @@
+[
+  {
+    "tool": "person_phonevalidation_validatephonenumber",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_createwebaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_updatephonenumber",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_removephonenumber",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_updateinstantmessenger",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_removeinstantmessenger",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_createphonenumber",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_submit",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_updatealternateworklocation",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_createemailaddress",
+    "categories": [
+      "dataChanges",
+      "customerCommunication"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_createinstantmessenger",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_createnewaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_updateinstantmessenger",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_removeinstantmessenger",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_updatewebaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_removewebaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_updatephonenumber",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_removephonenumber",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_submitchange",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_createinstantmessenger",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_updatewebaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_removewebaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_updateemailaddress",
+    "categories": [
+      "dataChanges",
+      "customerCommunication"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_removeemailaddress",
+    "categories": [
+      "dataChanges",
+      "customerCommunication"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_createphonenumber",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_createemailaddress",
+    "categories": [
+      "dataChanges",
+      "customerCommunication"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_updateemailaddress",
+    "categories": [
+      "dataChanges",
+      "customerCommunication"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_removeemailaddress",
+    "categories": [
+      "dataChanges",
+      "customerCommunication"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_createstagedwebaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_updateaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_homecontactinformationchanges_removeaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_updateaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_removeaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "person_workcontactinformationchanges_createaddress",
+    "categories": [
+      "dataChanges"
+    ]
+  }
+]

@@ -1,0 +1,112 @@
+name: Integration
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'migrations/**'
+      - 'package*.json'
+      - '.github/workflows/integration.yml'
+  workflow_dispatch:
+
+jobs:
+  integration:
+    # The job always runs; the test file itself skips when INTEGRATION_BACKEND
+    # is not 'dev'. This avoids the GitHub Actions `if: ${{ secrets.X != '' }}`
+    # pitfall (secrets context is not evaluable inside job-level `if:`).
+    #
+    # Except on Dependabot pull requests, where it CANNOT work and must not
+    # pretend to. GitHub does not expose repository secrets to a run triggered by
+    # Dependabot — they come from a separate Dependabot secrets store, which is
+    # empty here. So `WIF_PROVIDER_DEV` / `WIF_SA_DEV` read as unset, the
+    # fail-fast step below reports "not configured on this repo", and that
+    # message is false everywhere else: the secrets have existed since
+    # 2026-07-15 and this job passes on ordinary branches. Every Integration
+    # failure on record is a `dependabot/*` branch.
+    #
+    # Skipped rather than credentialed. Populating the Dependabot secret store
+    # would hand dev Workload Identity Federation access to a run whose contents
+    # are proposed by a third-party package update — the exact path a malicious
+    # publish would want. A dependency bump has nothing to say about whether
+    # integration tests pass against dev anyway; CI still lints, typechecks,
+    # builds and unit-tests these pull requests.
+    #
+    # `github.actor` is evaluable at job level (unlike `secrets`), so this does
+    # not reintroduce the pitfall noted above.
+    if: github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      # Auth via Workload Identity Federation. Secrets must exist on the repo:
+      #   WIF_PROVIDER_DEV  → full resource path of the GHA provider
+      #   WIF_SA_DEV        → service account email with run.invoker on PB-dev
+      # If either is unset the step fails fast with a clear error rather than
+      # silently falling back to an unrelated SA. The previous hardcoded
+      # `npm-publisher@...` had the wrong purpose (publishing, not invoking
+      # Cloud Run) and coupled this workflow to an unrelated SA's lifecycle.
+      - name: Verify WIF secrets are configured
+        run: |
+          if [ -z "${{ secrets.WIF_PROVIDER_DEV }}" ] || [ -z "${{ secrets.WIF_SA_DEV }}" ]; then
+            echo "::error::WIF_PROVIDER_DEV / WIF_SA_DEV not configured on this repo."
+            echo "Configure both as repository secrets pointing at the dev integration SA."
+            exit 1
+          fi
+
+      # Fail-fast if INTEGRATION_BACKEND repo variable isn't set. Without this,
+      # the workflow would happily auth + run jest, but the test file's
+      # `shouldRun = INTEGRATION_BACKEND === 'dev'` gate would skip every
+      # describe() — producing a green CI status that masks the fact that the
+      # suite never actually executed. Stealth false-positive.
+      - name: Verify INTEGRATION_BACKEND var is configured
+        run: |
+          if [ "${{ vars.INTEGRATION_BACKEND }}" != "dev" ]; then
+            echo "::error::INTEGRATION_BACKEND repo variable must be set to 'dev'."
+            echo "Without it the test file skips every assertion silently."
+            echo "Set via: gh variable set INTEGRATION_BACKEND --body dev"
+            exit 1
+          fi
+          if [ -z "${{ vars.INTEGRATION_SCHEDULER_SA_EMAIL }}" ]; then
+            echo "::error::INTEGRATION_SCHEDULER_SA_EMAIL repo variable must be set."
+            echo "Without it getSchedulerOidc throws and every test fails — but we"
+            echo "want the failure surfaced here, not buried inside jest output."
+            exit 1
+          fi
+
+      - name: Authenticate to GCP via WIF
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER_DEV }}
+          service_account: ${{ secrets.WIF_SA_DEV }}
+
+      - run: npm ci
+
+      - name: Run integration tests against dev
+        env:
+          # Setting this to 'dev' is what activates the suite. Set as a repo
+          # variable so it survives fork PRs without exposing secrets.
+          INTEGRATION_BACKEND: ${{ vars.INTEGRATION_BACKEND || '' }}
+          # DEV API URL. The previous hardcoded https://api.example.com was
+          # PROD (README §Environments). The integration suite is meant to
+          # exercise dev; pointing it at prod hits the live production
+          # reconciler — even with dryRun=true, this is the wrong target.
+          # See README "Deployment > Environments" table for the canonical
+          # per-env URL list.
+          PB_URL: https://api-dev.example.com
+          # Email of the Cloud Scheduler SA in YOUR_CONTROL_PROJECT_STAGING.
+          # The WIF SA must hold roles/iam.serviceAccountTokenCreator on this
+          # SA so it can impersonate it to mint OIDC id_tokens whose `email`
+          # claim matches what PB's requireSchedulerOidc allowlist expects.
+          INTEGRATION_SCHEDULER_SA_EMAIL: ${{ vars.INTEGRATION_SCHEDULER_SA_EMAIL || '' }}
+          # Optional: tenant ID whose agents are a stable test fixture. When
+          # set the suite asserts ZERO drift for this tenant — the canary
+          # signal for the create→Pub/Sub→runtime→mapping→instruction path.
+          INTEGRATION_CANARY_TENANT_ID: ${{ vars.INTEGRATION_CANARY_TENANT_ID || '' }}
+        run: npx jest src/__tests__/integration/agent-creation-pipeline.test.ts --runInBand

@@ -1,0 +1,398 @@
+substitutions:
+  _ENVIRONMENT: 'dev'
+  _REGION: 'us-west1'
+  _SERVICE_NAME: 'connector-service'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  # machineType omitted → Cloud Build default (e2-standard-2: 2 vCPU, 8 GB).
+  # ~2.5x cheaper per minute than E2_HIGHCPU_8. Cloud Build's machineType
+  # enum only accepts UNSPECIFIED / E2_MEDIUM / E2_HIGHCPU_8 / E2_HIGHCPU_32.
+  substitution_option: 'ALLOW_LOOSE'
+
+steps:
+  # Step 0: Cancel any older builds for this environment so only the newest runs.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'cancel-stale-builds'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Skip when not started by a trigger (manual `gcloud builds submit`):
+        # those builds carry no TRIGGER_NAME, and the filter would otherwise
+        # match every other manual build in flight.
+        if [ -z "${TRIGGER_NAME}" ]; then
+          echo "Manual build (no TRIGGER_NAME); skipping stale-build cancellation."
+          exit 0
+        fi
+        gcloud builds list \
+          --project=${PROJECT_ID} \
+          --region=${LOCATION} \
+          --filter="status=WORKING OR status=QUEUED" \
+          --format='value(id,substitutions.TRIGGER_NAME)' | \
+          awk -v me="${BUILD_ID}" -v key="${TRIGGER_NAME}" '$$1!=me && $$2==key {print $$1}' | \
+        while read OLD_ID; do
+          echo "Cancelling stale build: $$OLD_ID"
+          gcloud builds cancel "$$OLD_ID" --project=${PROJECT_ID} --region=${LOCATION} --quiet 2>/dev/null || true
+        done
+    waitFor: ['-']
+
+  # Step 1: fetch an Artifact Registry access token for @liftoffos/* pulls.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'ar-token'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud auth print-access-token > /workspace/.ar-token
+        echo "Artifact Registry token fetched (length=$$(wc -c < /workspace/.ar-token))"
+
+  - name: 'node:20-slim'
+    id: 'install'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'ARTIFACT_REGISTRY_TOKEN=$$(cat /workspace/.ar-token) npm ci'
+    waitFor: ['ar-token']
+
+  - name: 'node:20-slim'
+    id: 'check-connector-docs-drift'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -euo pipefail
+        # node:20-slim has no git — diff against a saved copy instead.
+        cp docs/CONNECTORS.md /workspace/.connectors-md-committed
+        npm run gen:connector-docs
+        if ! diff -q /workspace/.connectors-md-committed docs/CONNECTORS.md > /dev/null; then
+          echo "ERROR: docs/CONNECTORS.md is stale. Run 'npm run gen:connector-docs' locally and commit the result." >&2
+          diff -u /workspace/.connectors-md-committed docs/CONNECTORS.md | head -40 >&2
+          exit 1
+        fi
+    waitFor: ['install']
+
+  - name: 'node:20-slim'
+    id: 'lint'
+    entrypoint: 'npm'
+    args: ['run', 'lint']
+    waitFor: ['install']
+
+  - name: 'node:20-slim'
+    id: 'typecheck'
+    entrypoint: 'npm'
+    args: ['run', 'typecheck']
+    waitFor: ['install']
+
+  - name: 'node:20-slim'
+    id: 'test'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'npm test -- --ci --passWithNoTests --maxWorkers=2'
+    waitFor: ['install']
+
+  # Phase 1 fix-12: latency benchmark harness. Runs `*.bench.test.ts` under
+  # src/__benchmark__ serially (--runInBand) and asserts p95/p99 budgets for
+  # the Connect-RPC hop. --bail (baked into the npm script) fails the build
+  # on the first breach.
+  - name: 'node:20-slim'
+    id: 'bench'
+    entrypoint: 'npm'
+    args: ['run', 'bench']
+    waitFor: ['test']
+
+  - name: 'node:20-slim'
+    id: 'build'
+    entrypoint: 'npm'
+    args: ['run', 'build']
+    waitFor: ['lint', 'typecheck', 'test']
+
+  # Build app image (service).
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build-app'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        TOKEN=$$(cat /workspace/.ar-token)
+        docker build \
+          --build-arg ARTIFACT_REGISTRY_TOKEN=$$TOKEN \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+          .
+    waitFor: ['build', 'ar-token']
+
+  # Build migrate image.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build-migrate'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        TOKEN=$$(cat /workspace/.ar-token)
+        docker build \
+          --build-arg ARTIFACT_REGISTRY_TOKEN=$$TOKEN \
+          -f Dockerfile.migrate \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA} \
+          .
+    waitFor: ['build', 'ar-token']
+
+  # Push both images — SHA-only. AR vulnerability scanning bills per unique
+  # image; floating :latest / :${ENVIRONMENT} tags multiplied scans per build.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-app'
+    args:
+      - 'push'
+      - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}'
+    waitFor: ['docker-build-app']
+
+  # Attach a floating :${_ENVIRONMENT} tag to the just-pushed digest.
+  # Required by Terraform-provisioned Cloud Run Jobs that reference the
+  # image via `:${var.environment}` — Cloud Run v2 API now rejects job
+  # CREATE when the referenced tag doesn't exist (connector-service-audit-
+  # anchor and composio-migrate-reconnect both fail without this).
+  #
+  # `gcloud artifacts docker tags add` only re-points the tag at an
+  # existing digest — no new push, no new scan, no extra AR billing.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'tag-app-as-env'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud artifacts docker tags add \
+          ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+          ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${_ENVIRONMENT}
+    waitFor: ['docker-push-app']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-migrate'
+    args:
+      - 'push'
+      - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA}'
+    waitFor: ['docker-build-migrate']
+
+  # Create or update the migrate Cloud Run job, then execute it.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-migrate-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        # connector_service lives on control-plane-pg (a shared instance, to cut
+        # idle cost); connector_app and connector_admin are
+        # roles there, with connect on this database only.
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+        if gcloud run jobs describe ${_SERVICE_NAME}-migrate --region ${_REGION} --project YOUR_GCP_PROJECT 2>/dev/null; then
+          echo "Updating existing migration job..."
+          gcloud run jobs update ${_SERVICE_NAME}-migrate \
+            --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA} \
+            --region ${_REGION} \
+            --project YOUR_GCP_PROJECT \
+            --service-account connector-service-${_ENVIRONMENT}@YOUR_GCP_PROJECT.iam.gserviceaccount.com \
+            --set-cloudsql-instances $$SQL_CONN \
+            --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT} \
+            --vpc-egress private-ranges-only \
+            --set-env-vars "CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=connector_app,DB_NAME=connector_service" \
+            --set-secrets "DB_PASSWORD=connector-pg-password:latest"
+        else
+          echo "Creating new migration job..."
+          gcloud run jobs create ${_SERVICE_NAME}-migrate \
+            --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA} \
+            --region ${_REGION} \
+            --project YOUR_GCP_PROJECT \
+            --service-account connector-service-${_ENVIRONMENT}@YOUR_GCP_PROJECT.iam.gserviceaccount.com \
+            --set-cloudsql-instances $$SQL_CONN \
+            --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT} \
+            --vpc-egress private-ranges-only \
+            --set-env-vars "CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=connector_app,DB_NAME=connector_service" \
+            --set-secrets "DB_PASSWORD=connector-pg-password:latest" \
+            --memory 512Mi \
+            --cpu 1 \
+            --task-timeout 600 \
+            --max-retries 1
+        fi
+    waitFor: ['docker-push-migrate']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'migrate'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        echo "Running connector-pg migrations..."
+        gcloud run jobs execute ${_SERVICE_NAME}-migrate \
+          --region ${_REGION} \
+          --project YOUR_GCP_PROJECT \
+          --wait
+        echo "Migrations complete"
+    waitFor: ['create-migrate-job']
+
+  # Deploy the Cloud Run service.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+        # Resolve self-URL before deploy (returns empty on first deploy — fixed by inject-self-url step).
+        SELF_URL=$$(gcloud run services describe ${_SERVICE_NAME} \
+          --region ${_REGION} \
+          --project YOUR_GCP_PROJECT \
+          --format='value(status.url)' 2>/dev/null || echo "")
+        # BACKEND_URL is the public alias of the platform-backend in this
+        # env. It's used as the OAuth redirect_uri base — Google sends the
+        # browser back to BACKEND_URL/api/connectors/oauth/callback after
+        # consent. MUST be env-specific or callbacks land on the wrong
+        # backend, fail oauth_state lookup, and bounce with invalid_state.
+        # FRONTEND_URL is the base the OAuth callback page is served from.
+        # It MUST match the origin the user's browser is actually on, because the
+        # popup relays its result to the opener over a same-origin BroadcastChannel
+        # ('oauth_callback'). The happy path uses the caller-supplied returnUrl
+        # (window.location.origin), but error redirects fall back to FRONTEND_URL —
+        # if that is a different origin than the parent tab, the relay silently
+        # never arrives and the connect modal hangs. Prod users are on
+        # example.com, so prod must be example.com (NOT the *.run.app direct
+        # URL, which is a different origin). Dev testing runs on localhost via the
+        # returnUrl path, so dev keeps the direct run.app URL as a harmless fallback.
+        if [ "${_ENVIRONMENT}" = "prod" ]; then
+          BACKEND_URL="https://api.example.com"
+          WEBHOOKS_BASE_URL="https://anchor-webhooks.example.com"
+          FRONTEND_URL="https://example.com"
+        else
+          BACKEND_URL="https://api-${_ENVIRONMENT}.example.com"
+          WEBHOOKS_BASE_URL="https://anchor-webhooks-${_ENVIRONMENT}.example.com"
+          FRONTEND_URL="https://liftoff-react-YOUR_PROJECT_HASH-uw.a.run.app"
+        fi
+        gcloud run deploy ${_SERVICE_NAME} \
+          --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+          --region ${_REGION} \
+          --project YOUR_GCP_PROJECT \
+          --platform managed \
+          --allow-unauthenticated \
+          --service-account connector-service-${_ENVIRONMENT}@YOUR_GCP_PROJECT.iam.gserviceaccount.com \
+          --set-cloudsql-instances $$SQL_CONN \
+          --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT} \
+          --vpc-egress private-ranges-only \
+          --min-instances 0 \
+          --max-instances 20 \
+          --cpu 1 \
+          --memory 2Gi \
+          --concurrency 80 \
+          --timeout 300 \
+          --set-env-vars "ENVIRONMENT=${_ENVIRONMENT},GCP_PROJECT_ID=YOUR_GCP_PROJECT,GCP_REGION=${_REGION},CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=connector_app,DB_NAME=connector_service,SERVICE_VERSION=${SHORT_SHA},COMMIT_SHA=${SHORT_SHA},BACKEND_URL=$$BACKEND_URL,WEBHOOKS_BASE_URL=$$WEBHOOKS_BASE_URL,FRONTEND_URL=$$FRONTEND_URL,CONNECTOR_TASKS_QUEUE=connector-tasks-${_ENVIRONMENT},CONNECTOR_SERVICE_SELF_URL=$$SELF_URL,X402_WALLET_PROVIDER=circle,STRALE_X402_ENABLED=true" \
+          --set-secrets "DB_PASSWORD=connector-pg-password:latest,DB_ADMIN_PASSWORD=connector-pg-admin-password:latest,CONNECTOR_SERVICE_TOKEN=connector-service-token:latest,COMPOSIO_API_KEY=composio-api-key:latest,GOOGLE_CLIENT_ID=google-oauth-client-id-${_ENVIRONMENT}:latest,GOOGLE_CLIENT_SECRET=google-oauth-client-secret-${_ENVIRONMENT}:latest,SLACK_CLIENT_ID=slack-oauth-client-id-${_ENVIRONMENT}:latest,SLACK_CLIENT_SECRET=slack-oauth-client-secret-${_ENVIRONMENT}:latest,SLACK_SIGNING_SECRET=slack-oauth-signing-secret-${_ENVIRONMENT}:latest,SLACK_APP_ID=slack-app-id-${_ENVIRONMENT}:latest,GITHUB_CLIENT_ID=github-oauth-client-id-${_ENVIRONMENT}:latest,GITHUB_CLIENT_SECRET=github-oauth-client-secret-${_ENVIRONMENT}:latest,GITHUB_APP_ID=github-app-id-${_ENVIRONMENT}:latest,GITHUB_APP_SLUG=github-app-slug-${_ENVIRONMENT}:latest,GITHUB_APP_PRIVATE_KEY=github-app-private-key-${_ENVIRONMENT}:latest,GITHUB_APP_WEBHOOK_SECRET=github-app-webhook-secret-${_ENVIRONMENT}:latest,GITLAB_CLIENT_ID=gitlab-oauth-client-id-${_ENVIRONMENT}:latest,GITLAB_CLIENT_SECRET=gitlab-oauth-client-secret-${_ENVIRONMENT}:latest,MICROSOFT_CLIENT_ID=microsoft-oauth-client-id-${_ENVIRONMENT}:latest,MICROSOFT_CLIENT_SECRET=microsoft-oauth-client-secret-${_ENVIRONMENT}:latest,DROPBOX_CLIENT_ID=dropbox-oauth-client-id-${_ENVIRONMENT}:latest,DROPBOX_CLIENT_SECRET=dropbox-oauth-client-secret-${_ENVIRONMENT}:latest,BOX_CLIENT_ID=box-oauth-client-id-${_ENVIRONMENT}:latest,BOX_CLIENT_SECRET=box-oauth-client-secret-${_ENVIRONMENT}:latest,ATLASSIAN_CLIENT_ID=atlassian-oauth-client-id-${_ENVIRONMENT}:latest,ATLASSIAN_CLIENT_SECRET=atlassian-oauth-client-secret-${_ENVIRONMENT}:latest,ZOOM_CLIENT_ID=zoom-oauth-client-id-${_ENVIRONMENT}:latest,ZOOM_CLIENT_SECRET=zoom-oauth-client-secret-${_ENVIRONMENT}:latest,SALESFORCE_CLIENT_ID=salesforce-oauth-client-id-${_ENVIRONMENT}:latest,SALESFORCE_CLIENT_SECRET=salesforce-oauth-client-secret-${_ENVIRONMENT}:latest,HUBSPOT_CLIENT_ID=hubspot-oauth-client-id-${_ENVIRONMENT}:latest,HUBSPOT_CLIENT_SECRET=hubspot-oauth-client-secret-${_ENVIRONMENT}:latest,ASANA_CLIENT_ID=asana-oauth-client-id-${_ENVIRONMENT}:latest,ASANA_CLIENT_SECRET=asana-oauth-client-secret-${_ENVIRONMENT}:latest,STRIPE_SECRET_KEY=stripe-api-key-${_ENVIRONMENT}:latest,STRIPE_WEBHOOK_SECRET=stripe-webhook-secret-${_ENVIRONMENT}:latest,META_CLIENT_ID=meta-oauth-client-id-${_ENVIRONMENT}:latest,META_CLIENT_SECRET=meta-oauth-client-secret-${_ENVIRONMENT}:latest,ZENDESK_CLIENT_ID=zendesk-oauth-client-id-${_ENVIRONMENT}:latest,ZENDESK_CLIENT_SECRET=zendesk-oauth-client-secret-${_ENVIRONMENT}:latest,BAMBOOHR_CLIENT_ID=bamboohr-oauth-client-id-${_ENVIRONMENT}:latest,BAMBOOHR_CLIENT_SECRET=bamboohr-oauth-client-secret-${_ENVIRONMENT}:latest,GUSTO_CLIENT_ID=gusto-oauth-client-id-${_ENVIRONMENT}:latest,GUSTO_CLIENT_SECRET=gusto-oauth-client-secret-${_ENVIRONMENT}:latest,RIPPLING_CLIENT_ID=rippling-oauth-client-id-${_ENVIRONMENT}:latest,RIPPLING_CLIENT_SECRET=rippling-oauth-client-secret-${_ENVIRONMENT}:latest,DOCUSIGN_CLIENT_ID=docusign-oauth-client-id-${_ENVIRONMENT}:latest,DOCUSIGN_CLIENT_SECRET=docusign-oauth-client-secret-${_ENVIRONMENT}:latest,PLATFORM_CALLBACK_TOKEN=platform-callback-token:latest,SAP_SF_SAML_PRIVATE_KEY=sap-sf-saml-private-key:latest,SAP_SF_SAML_PUBLIC_CERT=sap-sf-saml-public-cert:latest,STRALE_PLATFORM_API_KEY=strale-platform-api-key:latest,TIKHUB_PLATFORM_API_KEY=tikhub-platform-api-key:latest,PDL_PLATFORM_API_KEY=pdl-platform-api-key:latest,HUNTER_PLATFORM_API_KEY=hunter-platform-api-key:latest,CDP_API_KEY_ID=x402-cdp_api_key_id:latest,CDP_API_KEY_SECRET=x402-cdp_api_key_secret:latest,CDP_WALLET_SECRET=x402-cdp_wallet_secret:latest,CIRCLE_API_KEY=x402-circle_api_key:latest,CIRCLE_ENTITY_SECRET=x402-circle_entity_secret:latest,CIRCLE_X402_WALLET_ID=x402-circle_wallet_id:latest,VAAYA_API_KEY=vaaya_api_key:latest,LOCUS_API_KEY=locus_api_key:latest"
+    waitFor: ['docker-push-app', 'migrate']
+
+  # Inject CONNECTOR_SERVICE_SELF_URL after deploy (handles first-deploy case
+  # where the service URL is not yet available before the deploy step runs).
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'inject-self-url'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        SELF_URL=$$(gcloud run services describe ${_SERVICE_NAME} \
+          --region ${_REGION} \
+          --project YOUR_GCP_PROJECT \
+          --format='value(status.url)')
+        gcloud run services update ${_SERVICE_NAME} \
+          --region ${_REGION} \
+          --project YOUR_GCP_PROJECT \
+          --update-env-vars CONNECTOR_SERVICE_SELF_URL=$$SELF_URL
+    waitFor: ['deploy']
+
+  # ── Backfill: copy connector rows + OAuth secrets from control-plane-pg ──
+  # Phase 1 deployed the connector-service code but never migrated the live
+  # connector + credential rows from platform-backend's DB.  This job runs
+  # once per push (idempotent ON CONFLICT DO NOTHING) and is a no-op once
+  # all rows are present.  connector-service-sa already holds:
+  #   - roles/cloudsql.client (project-level) → can reach control-plane-pg
+  #   - secretAccessor on control-plane-db-password (direct IAM on secret)
+  #   - secretAccessor on connector-* secrets (condition on project binding)
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build-backfill'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        TOKEN=$$(cat /workspace/.ar-token)
+        docker build \
+          --build-arg ARTIFACT_REGISTRY_TOKEN=$$TOKEN \
+          -f Dockerfile.backfill \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-backfill:${SHORT_SHA} \
+          .
+    waitFor: ['build', 'ar-token']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-backfill'
+    args:
+      - 'push'
+      - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-backfill:${SHORT_SHA}'
+    waitFor: ['docker-build-backfill']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'run-backfill'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        SRC_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+        DEST_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+        IMAGE="${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-backfill:${SHORT_SHA}"
+        PROJECT="YOUR_GCP_PROJECT"
+
+        # Verify the source DB password secret exists in this environment before
+        # attempting to create/update the job. If it doesn't exist (e.g. prod
+        # before control-plane-pg credentials have been provisioned), skip the
+        # backfill — the script itself also handles an unreachable source DB
+        # gracefully, but failing here keeps the job config clean.
+        if ! gcloud secrets describe control-plane-db-password \
+            --project $$PROJECT > /dev/null 2>&1; then
+          echo "[backfill] SKIP: control-plane-db-password secret not found in $$PROJECT — skipping backfill for this environment"
+          exit 0
+        fi
+
+        # Shared args used for both create and update so they stay in sync.
+        COMMON_ARGS=(
+          --image $$IMAGE
+          --region ${_REGION}
+          --project $$PROJECT
+          --service-account connector-service-${_ENVIRONMENT}@$$PROJECT.iam.gserviceaccount.com
+          # Both databases live on control-plane-pg now, so one socket serves both.
+          --set-cloudsql-instances "$$SRC_CONN"
+          --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT}
+          --vpc-egress private-ranges-only
+          --set-env-vars "ENVIRONMENT=${_ENVIRONMENT},DRY_RUN=false,SOURCE_DB_NAME=liftoff_control,SOURCE_DB_USER=liftoff_app,SOURCE_DB_HOST=/cloudsql/$$SRC_CONN,DB_NAME=connector_service,DB_USER=connector_app,DB_HOST=/cloudsql/$$DEST_CONN"
+          --set-secrets "SOURCE_DB_PASSWORD=control-plane-db-password:latest,DB_PASSWORD=connector-pg-password:latest"
+          --memory 512Mi
+          --cpu 1
+          --task-timeout 600
+          --max-retries 0
+        )
+
+        if gcloud run jobs describe ${_SERVICE_NAME}-backfill \
+            --region ${_REGION} --project $$PROJECT > /dev/null 2>&1; then
+          echo "Updating backfill job..."
+          gcloud run jobs update ${_SERVICE_NAME}-backfill "$${COMMON_ARGS[@]}"
+        else
+          echo "Creating backfill job..."
+          gcloud run jobs create ${_SERVICE_NAME}-backfill "$${COMMON_ARGS[@]}"
+        fi
+
+        echo "Running connector backfill (idempotent)..."
+        gcloud run jobs execute ${_SERVICE_NAME}-backfill \
+          --region ${_REGION} \
+          --project $$PROJECT \
+          --wait
+        echo "Backfill complete"
+    waitFor: ['docker-push-backfill', 'deploy']
+
+timeout: '2400s'

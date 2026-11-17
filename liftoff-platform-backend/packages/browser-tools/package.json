@@ -1,0 +1,16 @@
+{
+  "name": "@liftoffos/browser-tools",
+  "version": "0.4.0",
+  "license": "Apache-2.0",
+  "description": "The model-facing surface of the browser pane, in one place: the tool definitions every host offers and the paragraph that teaches a model to read the page before answering about it. The machinery is already one service; these are the words, and they used to be hand-copied.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  }
+}

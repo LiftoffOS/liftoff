@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/contracts/internal-agents-create.request.schema.json",
+  "title": "CreateInternalAgentRequest",
+  "description": "Request body for POST /api/internal-agents (post-Phase-1 taxonomy).",
+  "type": "object",
+  "required": ["role"],
+  "properties": {
+    "role": { "type": "string", "minLength": 1, "maxLength": 255 },
+    "responsibilities": { "type": "string", "maxLength": 10000 },
+    "additionalContext": { "type": "string", "maxLength": 10000 },
+    "summary": { "type": "string", "maxLength": 10000 },
+    "systemPrompt": { "type": "string", "maxLength": 50000 },
+    "userInstructions": { "type": "string", "maxLength": 50000 },
+    "status": { "enum": ["draft", "active", "paused"] },
+    "agentType": { "enum": ["agent", "workflow"] },
+    "hitlLevel": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "workflowSteps": {
+      "type": "array",
+      "maxItems": 50,
+      "items": { "$ref": "internal-agent-created.event.schema.json#/definitions/WorkflowStep" }
+    },
+    "triggerConfig": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["cron", "event", "manual"] },
+        "cronExpr": { "type": "string" },
+        "eventTopic": { "type": "string" },
+        "timezone": { "type": "string" }
+      }
+    },
+    "distillSessionId": { "type": "string", "format": "uuid" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "agentType": { "const": "workflow" } },
+        "required": ["agentType"]
+      },
+      "then": {
+        "required": ["workflowSteps", "triggerConfig"]
+      }
+    }
+  ]
+}

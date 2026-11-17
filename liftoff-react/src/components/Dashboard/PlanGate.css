@@ -1,0 +1,92 @@
+/* Launch-time payment gate (ADR-050).
+   Wraps the onboarding PlanStep + SubscribePaymentPanel unchanged inside a
+   modal, so the only styling here is the shell around them. The stylesheets
+   that dress PlanStep itself are imported by PlanGate.tsx — see the comment
+   there for why they cannot be left to the page. */
+
+.plan-gate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  /* The three-card grid is 880px wide inside .onboarding__content--wide. This
+     matches it; the modal box opts into --wide to make room for both. */
+  max-width: 920px;
+  width: 100%;
+  /* Scrolls on a viewport too short for the whole step, rather than clipping
+     the payment form.
+     The height budget itself lives on the modal box, not here. It used to be
+     `max-height: 80vh` on this element, which measured only the content and
+     ignored the box's own --space-6 padding and the overlay's --space-4, so
+     the box stood ~700px tall in an 800px window while this element capped its
+     contents at 640px. The Enterprise row was pushed below a scroll fold that
+     has no visible scrollbar, which reads as clipping, not as scrolling.
+     min-height: 0 is what actually lets a flex child shrink below its content
+     and scroll; without it the auto minimum size wins and it overflows. */
+  min-height: 0;
+  overflow-y: auto;
+  /* .modal-overlay__content centres its text, which is right for the small
+     confirm dialogs it was built for and wrong here: it drags the plan cards'
+     feature lists and the Enterprise row off the alignment they have on
+     /pricing. The cards re-centre what they mean to centre. */
+  text-align: left;
+}
+
+/* The plan cards and the Enterprise row fill with
+   `var(--card-bg, var(--color-white))` and carry `border: none`, so on /pricing
+   they read as cards purely because the page behind them is tinted. Dropped
+   into the modal's white box that became white-on-white: every card edge
+   vanished and all that showed was the cards' own top-right shading radial, as
+   a stray grey patch behind the Enterprise row.
+   Tinting the ground rather than the cards is the fix that matches /pricing —
+   the cards stay exactly the white the design draws them as. Tinting the cards
+   instead does not work: gray-50 sits 3% off white and the cards paint an
+   85%-opaque white radial over most of their own area, so the difference is
+   invisible.
+   Qualified with .modal-overlay__content on purpose: that rule sets
+   `background: var(--color-white)` at the same specificity, so a bare
+   `.plan-gate-modal` is a tie decided by stylesheet order, and it lost. */
+.modal-overlay__content.plan-gate-modal {
+  background: var(--color-gray-50);
+  /* Own the height so the budget counts every box that contributes to it: the
+     overlay pads itself by --space-4 top and bottom, and this box by --space-6.
+     Giving the whole remaining viewport to the modal means the three cards plus
+     the Enterprise row fit outright at ordinary window heights instead of
+     scrolling, and .plan-gate scrolls inside it only when they genuinely
+     cannot. */
+  max-height: calc(100vh - 2 * var(--space-4));
+  display: flex;
+  flex-direction: column;
+}
+
+/* .modal-header centres its two children against each other, which is right
+   for a one-line title and wrong for a heading block that is a title over a
+   subtitle: it floats the close button halfway down. Pin it to the top line.
+   The margin goes because .plan-gate is a flex column with its own gap; the
+   header's own bottom margin would add to it. */
+.plan-gate__header {
+  align-items: flex-start;
+  margin-bottom: 0;
+  gap: var(--space-4);
+}
+
+/* PlanStep positions its own content for the full-screen onboarding shell.
+   Inside the modal it is already inside a padded container, so drop the
+   absolute-positioning context it would otherwise inherit and let it flow. */
+.plan-gate .onboarding__content {
+  gap: var(--space-6);
+  /* The shell centres itself in a full-screen wizard; in the modal the box is
+     already the width, so let it fill rather than leaving a lopsided gutter. */
+  max-width: 100%;
+}
+
+/* PlanStep carries its own copy of the heading. The modal renders that same
+   heading itself, one level up, so it survives the swap to the payment panel
+   and keeps `ariaLabelledBy` pointing at something. Suppress the inner one so
+   the words are not stacked twice.
+   Scoped through .onboarding__content deliberately: that is the wrapper
+   PlanStep renders, and it is what distinguishes PlanStep's heading from the
+   modal's own, which sits outside it and uses the same class. Onboarding is
+   untouched either way. */
+.plan-gate .onboarding__content .onboarding__heading {
+  display: none;
+}

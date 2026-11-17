@@ -1,0 +1,52 @@
+# Dependabot template for Liftoff services
+# (liftoff-billing, liftoff-developer-proxy, liftoff-workforce-service).
+# Copy into `.github/dependabot.yml`.
+#
+# Coverage:
+#   - npm (service code)
+#   - github-actions (workflows)
+#   - docker (base images in Dockerfile / Dockerfile.migrate)
+#
+# All three run weekly, auto-group patches, and label PRs so dashboards
+# can see security posture at a glance.
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - security
+    groups:
+      patch-updates:
+        update-types:
+          - patch
+      minor-updates:
+        update-types:
+          - minor
+    ignore:
+      # Pinned by the Liftoff SDK — bumped only alongside @liftoffos/*
+      # coordinated releases.
+      - dependency-name: "@liftoffos/*"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+      - github-actions
+
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+      - docker-base-image

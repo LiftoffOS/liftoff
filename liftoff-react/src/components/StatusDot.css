@@ -1,0 +1,85 @@
+.status-dot {
+  display: inline-block;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Sizes */
+.status-dot--sm {
+  width: 6px;
+  height: 6px;
+}
+
+.status-dot--md {
+  width: 8px;
+  height: 8px;
+}
+
+.status-dot--lg {
+  width: 10px;
+  height: 10px;
+}
+
+/* Variants */
+.status-dot--connected,
+.status-dot--success {
+  background: #22c55e;
+}
+
+.status-dot--warning {
+  background: #f59e0b;
+}
+
+.status-dot--error {
+  background: #ef4444;
+}
+
+.status-dot--neutral {
+  background: #9ca3af;
+}
+
+.status-dot--info {
+  background: #3b82f6;
+}
+
+.status-dot--accent {
+  background: var(--color-accent);
+}
+
+/* Pulse animation */
+.status-dot--pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 currentColor;
+    opacity: 1;
+  }
+  70% {
+    box-shadow: 0 0 0 6px transparent;
+    opacity: 0.7;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    opacity: 1;
+  }
+}
+
+.status-dot--connected.status-dot--pulse,
+.status-dot--success.status-dot--pulse {
+  color: rgba(34, 197, 94, 0.4);
+}
+
+.status-dot--warning.status-dot--pulse {
+  color: rgba(245, 158, 11, 0.4);
+}
+
+.status-dot--error.status-dot--pulse {
+  color: rgba(239, 68, 68, 0.4);
+}
+
+.status-dot--accent.status-dot--pulse {
+  /* Pulse halo at 40% accent so the orange burst fades cleanly. */
+  color: rgba(251, 65, 31, 0.4);
+}

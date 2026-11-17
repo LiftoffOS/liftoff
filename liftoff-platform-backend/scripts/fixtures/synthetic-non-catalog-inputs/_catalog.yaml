@@ -1,0 +1,14 @@
+# Synthetic connector catalog for the fixture corpus. Pattern-only (no real
+# vendor). synthetic_crm.account declares renewal_date so I1's catalog-side
+# trigger (catalogHasDeadlineField → /renewal/) fires for the i1 fixture.
+synthetic_crm:
+  account:
+    fields:
+      - name: renewal_date
+        type: date
+      - name: account_name
+        type: string
+  contact:
+    fields:
+      - name: email
+        type: string

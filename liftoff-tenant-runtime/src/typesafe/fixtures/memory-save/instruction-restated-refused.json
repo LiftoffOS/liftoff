@@ -1,0 +1,27 @@
+{
+  "set": {
+    "id": "memory_save",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "content": "Every Monday I should read the CRM for last week's closed deals and append a summary row to the Sales tracking sheet.",
+    "layer": "individual",
+    "requestedTags": [
+      "agent-initiated"
+    ],
+    "contract": {
+      "kind": "instructions",
+      "instructions": "Every Monday, read the CRM for last week's closed deals, append one summary row to the Sales tracking sheet, and notify #sales-ops when done. Route billing questions to the finance team.",
+      "role": "You are the Sales Ops assistant for Acme."
+    },
+    "neighbours": []
+  },
+  "expect": {
+    "admit": {
+      "choice": "already_in_instructions",
+      "min": 0.8
+    }
+  },
+  "note": "A restatement of the instructions. Pins ADMIT_REFUSE_T."
+}

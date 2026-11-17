@@ -1,0 +1,108 @@
+.add-credit-modal {
+  text-align: left;
+}
+
+.add-credit-modal__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+}
+
+.add-credit-modal__description {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  line-height: 1.5;
+  margin: 0 0 var(--space-5) 0;
+}
+
+.add-credit-modal__presets {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.add-credit-modal__preset {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-black);
+  background: var(--color-gray-50);
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background var(--duration-fast), border-color var(--duration-fast), color var(--duration-fast);
+  white-space: nowrap;
+}
+
+.add-credit-modal__preset:hover:not(:disabled) {
+  background: var(--color-gray-100);
+}
+
+.add-credit-modal__preset--selected {
+  background: var(--color-black);
+  border-color: var(--color-black);
+  color: var(--color-white);
+}
+
+.add-credit-modal__preset--selected:hover:not(:disabled) {
+  background: var(--color-black);
+}
+
+.add-credit-modal__preset:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.add-credit-modal__custom {
+  margin-bottom: var(--space-4);
+}
+
+.add-credit-modal__payment {
+  margin-bottom: var(--space-5);
+}
+
+.add-credit-modal__payment-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-black);
+  margin-bottom: var(--space-2);
+}
+
+.add-credit-modal__payment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.add-credit-modal__payment-value {
+  font-size: var(--text-sm);
+  color: var(--color-black);
+}
+
+.add-credit-modal__payment-none {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+}
+
+.add-credit-modal__cta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.add-credit-modal__buy-btn {
+  width: 100%;
+}
+
+.add-credit-modal__legal {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  text-align: center;
+  line-height: 1.5;
+  margin: 0;
+}

@@ -1,0 +1,113 @@
+.attention-panel {
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.attention-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.attention-panel__title {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-black);
+}
+
+.attention-panel__count {
+  background: var(--color-accent);
+  color: var(--color-white);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.attention-panel__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.attention-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-light);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.attention-item:last-child {
+  border-bottom: none;
+}
+
+.attention-item:hover {
+  background: var(--color-gray-50);
+}
+
+.attention-item__icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+}
+
+.attention-item--critical .attention-item__icon {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.attention-item--high .attention-item__icon {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.attention-item--medium .attention-item__icon {
+  background: #fefce8;
+  color: #ca8a04;
+}
+
+.attention-item--low .attention-item__icon {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.attention-item--info .attention-item__icon {
+  background: var(--color-blue-light);
+  color: var(--color-blue);
+}
+
+.attention-item__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.attention-item__title {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-black);
+}
+
+.attention-item__description {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}
+
+.attention-item__action {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+  font-weight: 500;
+}

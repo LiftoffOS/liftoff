@@ -1,0 +1,52 @@
+/* Facepile of the other people currently on this thread. Sits between the
+   thread title and the header actions, deliberately NOT inside
+   .chat-page__actions — that container carries a :has() adjacent-sibling
+   negative margin for its icon buttons that a non-button child would disturb. */
+.thread-presence {
+  display: flex;
+  align-items: center;
+}
+
+/* Overlap like the workspace member row on the dashboard home page. The
+   margin goes on Tooltip's wrapper because that is the flex child here. */
+.thread-presence > .tooltip-wrapper {
+  margin-left: -6px;
+}
+
+.thread-presence > .tooltip-wrapper:first-child {
+  margin-left: 0;
+}
+
+/* Circle shape, colours, and the photo/initials/icon ladder come from
+   .user-avatar; this only sizes it and adds the ring that separates
+   overlapping faces. */
+.thread-presence__avatar {
+  width: 26px;
+  height: 26px;
+  font-size: 10px;
+  letter-spacing: normal;
+  border: 2px solid var(--color-white);
+}
+
+.thread-presence__avatar--more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  font-weight: 600;
+  background: var(--color-gray-100);
+  color: var(--color-gray-400);
+  cursor: default;
+}
+
+/* Someone else composing, drawn as the message it is about to become: the
+   dots sit in a user bubble and the avatars sit in the meta row beneath,
+   where a sent message carries its timestamp and avatar. Right-aligned by
+   .chat-message--user, since that is the side people write on. */
+.thread-typing__bubble {
+  /* Tighter than a text bubble: the dots are shorter than a line of type and
+     the default vertical padding leaves the bubble looking half empty. */
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+}

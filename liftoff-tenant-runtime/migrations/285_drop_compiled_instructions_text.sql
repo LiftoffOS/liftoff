@@ -1,0 +1,15 @@
+-- Drop compiled_instructions.instructions_text.
+--
+-- Added by 109_codex_instructions_text.sql for codex-agent-sdk agents.
+-- No caller selects the codex engine, so the consumer chain is unreachable:
+--   1. PB distill LLM never emits `instructions` for any non-codex agent.
+--   2. TR subscriber's createAndActivateForInternalAgent call passes
+--      no instructionsText, so the column would default to NULL even
+--      if PB started populating it.
+--   3. buildSystemPrompt's isCodex branch (only consumer) gated on
+--      engineType='codex-agent-sdk' which was never passed by any
+--      caller — the column was structurally unreachable.
+--
+-- With no writer, every row holds NULL, so the drop is irreversible but
+-- loses no data. Check that on your own database before applying.
+ALTER TABLE compiled_instructions DROP COLUMN IF EXISTS instructions_text;

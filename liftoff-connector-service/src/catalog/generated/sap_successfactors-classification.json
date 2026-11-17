@@ -1,0 +1,14 @@
+[
+  {
+    "tool": "create_user",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "update_user",
+    "categories": [
+      "dataChanges"
+    ]
+  }
+]

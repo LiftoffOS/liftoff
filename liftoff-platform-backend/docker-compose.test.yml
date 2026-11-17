@@ -1,0 +1,21 @@
+# Docker Compose for integration tests
+# Spins up a Postgres instance matching Cloud SQL config
+
+version: '3.8'
+
+services:
+  postgres-test:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: liftoff_control_test
+      POSTGRES_USER: liftoff_test
+      POSTGRES_PASSWORD: test_password
+    ports:
+      - '5433:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U liftoff_test -d liftoff_control_test']
+      interval: 2s
+      timeout: 5s
+      retries: 10
+    tmpfs:
+      - /var/lib/postgresql/data

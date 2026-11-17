@@ -1,0 +1,426 @@
+substitutions:
+  _ENVIRONMENT: 'dev'
+  _REGION: 'us-west1'
+  _SERVICE_NAME: 'governance-engine'
+  # Tenant whose runtime the nightly reconciliation reads its WAL keys from.
+  # One tenant per environment today; when that stops being true this becomes
+  # a loop and the reconciliation job becomes one per tenant, because the
+  # comparison is per-tenant by construction.
+  _TENANT_ID: 'liftoffos'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  # machineType omitted → Cloud Build default (e2-standard-2: 2 vCPU, 8 GB).
+  # ~2.5x cheaper per minute than E2_HIGHCPU_8. Cloud Build's machineType
+  # enum only accepts UNSPECIFIED / E2_MEDIUM / E2_HIGHCPU_8 / E2_HIGHCPU_32.
+  substitution_option: 'ALLOW_LOOSE'
+
+steps:
+  # Step 0: Cancel any older builds for this environment so only the newest runs.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'cancel-stale-builds'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Skip when not started by a trigger (manual `gcloud builds submit`):
+        # those builds carry no TRIGGER_NAME, and the filter would otherwise
+        # match every other manual build in flight.
+        if [ -z "${TRIGGER_NAME}" ]; then
+          echo "Manual build (no TRIGGER_NAME); skipping stale-build cancellation."
+          exit 0
+        fi
+        gcloud builds list \
+          --project=${PROJECT_ID} \
+          --region=${LOCATION} \
+          --filter="status=WORKING OR status=QUEUED" \
+          --format='value(id,substitutions.TRIGGER_NAME)' | \
+          awk -v me="${BUILD_ID}" -v key="${TRIGGER_NAME}" '$$1!=me && $$2==key {print $$1}' | \
+        while read OLD_ID; do
+          echo "Cancelling stale build: $$OLD_ID"
+          gcloud builds cancel "$$OLD_ID" --project=${PROJECT_ID} --region=${LOCATION} --quiet 2>/dev/null || true
+        done
+    waitFor: ['-']
+
+  # Step 1: fetch an Artifact Registry access token for @liftoffos/* pulls.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'ar-token'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud auth print-access-token > /workspace/.ar-token
+        echo "Artifact Registry token fetched (length=$$(wc -c < /workspace/.ar-token))"
+
+  - name: 'node:20-slim'
+    id: 'install'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'ARTIFACT_REGISTRY_TOKEN=$$(cat /workspace/.ar-token) npm ci'
+    waitFor: ['ar-token']
+
+  - name: 'node:20-slim'
+    id: 'lint'
+    entrypoint: 'npm'
+    args: ['run', 'lint']
+    waitFor: ['install']
+
+  - name: 'node:20-slim'
+    id: 'typecheck'
+    entrypoint: 'npm'
+    args: ['run', 'typecheck']
+    waitFor: ['install']
+
+  - name: 'node:20-slim'
+    id: 'test'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'npm test -- --ci --passWithNoTests --maxWorkers=2'
+    waitFor: ['install']
+
+  # Latency benchmark harness. Runs `*.bench.test.ts` under src/__benchmark__
+  # serially (--runInBand) and asserts p95/p99 budgets for the Connect-RPC
+  # hop. --bail (baked into the npm script) fails the build on the first
+  # breach. CI=true signals the bench to widen budgets by a 5× jitter factor
+  # (Cloud Build E2_HIGHCPU_8 shared pool is noisier than bare production);
+  # the plan SLO (p95<3ms, p99<10ms) is measured on deployed Cloud Run via
+  # Cloud Monitoring, not here.
+  - name: 'node:20-slim'
+    id: 'bench'
+    entrypoint: 'npm'
+    args: ['run', 'bench']
+    env: ['CI=true']
+    waitFor: ['test']
+
+  - name: 'node:20-slim'
+    id: 'build'
+    entrypoint: 'npm'
+    args: ['run', 'build']
+    waitFor: ['lint', 'typecheck', 'test']
+
+  # Build app image (service).
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build-app'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        TOKEN=$$(cat /workspace/.ar-token)
+        docker build \
+          --build-arg ARTIFACT_REGISTRY_TOKEN=$$TOKEN \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+          .
+    waitFor: ['build', 'ar-token']
+
+  # Build migrate image.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build-migrate'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        TOKEN=$$(cat /workspace/.ar-token)
+        docker build \
+          --build-arg ARTIFACT_REGISTRY_TOKEN=$$TOKEN \
+          -f Dockerfile.migrate \
+          -t ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA} \
+          .
+    waitFor: ['build', 'ar-token']
+
+  # Push both images — SHA-only. AR vulnerability scanning bills per unique
+  # image; floating :latest / :${ENVIRONMENT} tags multiplied scans per build.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-app'
+    args:
+      - 'push'
+      - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}'
+    waitFor: ['docker-build-app']
+
+  # Re-tag the SHA image as :latest for the governance-adversarial-eval Cloud Run Job.
+  # Uses `artifacts docker tags add` (metadata-only) — does NOT push new layers,
+  # so no additional Artifact Registry vulnerability scan is triggered.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'tag-latest'
+    entrypoint: 'gcloud'
+    args:
+      - 'artifacts'
+      - 'docker'
+      - 'tags'
+      - 'add'
+      - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:latest'
+    waitFor: ['docker-push-app']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-migrate'
+    args:
+      - 'push'
+      - '${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA}'
+    waitFor: ['docker-build-migrate']
+
+  # Create or update the migrate Cloud Run job, then execute it.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-migrate-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        # governance_engine lives on control-plane-pg (a shared instance, to cut
+        # idle cost); governance_app and governance_admin are
+        # roles there, with connect on this database only.
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+        if gcloud run jobs describe ${_SERVICE_NAME}-migrate --region ${_REGION} --project YOUR_GCP_PROJECT 2>/dev/null; then
+          echo "Updating existing migration job..."
+          gcloud run jobs update ${_SERVICE_NAME}-migrate \
+            --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA} \
+            --region ${_REGION} \
+            --project YOUR_GCP_PROJECT \
+            --service-account governance-engine-${_ENVIRONMENT}@YOUR_GCP_PROJECT.iam.gserviceaccount.com \
+            --set-cloudsql-instances $$SQL_CONN \
+            --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT} \
+            --vpc-egress private-ranges-only \
+            --set-env-vars "CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=governance_app,DB_NAME=governance_engine" \
+            --set-secrets "DB_PASSWORD=governance-pg-password:latest"
+        else
+          echo "Creating new migration job..."
+          gcloud run jobs create ${_SERVICE_NAME}-migrate \
+            --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}-migrate:${SHORT_SHA} \
+            --region ${_REGION} \
+            --project YOUR_GCP_PROJECT \
+            --service-account governance-engine-${_ENVIRONMENT}@YOUR_GCP_PROJECT.iam.gserviceaccount.com \
+            --set-cloudsql-instances $$SQL_CONN \
+            --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT} \
+            --vpc-egress private-ranges-only \
+            --set-env-vars "CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=governance_app,DB_NAME=governance_engine" \
+            --set-secrets "DB_PASSWORD=governance-pg-password:latest" \
+            --memory 512Mi \
+            --cpu 1 \
+            --task-timeout 600 \
+            --max-retries 1
+        fi
+    waitFor: ['docker-push-migrate']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'migrate'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        echo "Running governance-pg migrations..."
+        gcloud run jobs execute ${_SERVICE_NAME}-migrate \
+          --region ${_REGION} \
+          --project YOUR_GCP_PROJECT \
+          --wait
+        echo "Migrations complete"
+    waitFor: ['create-migrate-job']
+
+  # Create/update the collab-skill rollup Cloud Run job (operator-executed, NOT
+  # run by the build). Uses the app image + the governance_app credential (RLS
+  # owner bypass). GCS read of the match export is granted separately (infra).
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-collab-rollup-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+        APP_IMAGE="${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}"
+        COMMON_FLAGS=(
+          --region ${_REGION}
+          --project YOUR_GCP_PROJECT
+          --service-account governance-engine-${_ENVIRONMENT}@YOUR_GCP_PROJECT.iam.gserviceaccount.com
+          --set-cloudsql-instances $$SQL_CONN
+          --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT}
+          --vpc-egress private-ranges-only
+          --command node
+          --args dist/jobs/collab-skill-rollup/rollup-collab-skill.js
+          --set-env-vars "CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=governance_app,DB_NAME=governance_engine,COLLAB_GCS_BUCKET=trajectories-${_ENVIRONMENT},COLLAB_ROLLUP_EPOCH=2026-05-01T00:00:00Z,COLLAB_MODEL_VERSION=mechanical-v0"
+          --set-secrets "DB_PASSWORD=governance-pg-password:latest"
+        )
+        if gcloud run jobs describe governance-engine-collab-rollup --region ${_REGION} --project YOUR_GCP_PROJECT 2>/dev/null; then
+          gcloud run jobs update governance-engine-collab-rollup --image "$$APP_IMAGE" "$${COMMON_FLAGS[@]}"
+        else
+          gcloud run jobs create governance-engine-collab-rollup --image "$$APP_IMAGE" "$${COMMON_FLAGS[@]}" \
+            --memory 1Gi --cpu 1 --task-timeout 900 --max-retries 0 --parallelism 1
+        fi
+    waitFor: ['docker-push-app']
+
+  # Create/update the partition-maintenance Cloud Run job, invoked hourly by the
+  # governance-partitions Cloud Scheduler job.
+  #
+  # Owned here rather than in terraform: the governance-engine module is gated
+  # on var.governance_engine_enabled, which is unset in every environment, so
+  # terraform manages none of these jobs. The one it declared was left orphaned
+  # at a `governance-engine:${_ENVIRONMENT}` tag that cloudbuild has never
+  # written — only the commit SHA and :latest — so every execution died on
+  # "Image not found" and the job has never created a partition. Pinning the SHA
+  # image here keeps it in lockstep with the code, the way its sibling jobs are.
+  # Create/update the partition-maintenance Cloud Run job, invoked by the
+  # governance-partitions Cloud Scheduler job.
+  #
+  # Owned here rather than in terraform: the governance-engine module is gated
+  # on var.governance_engine_enabled, which is unset in every environment, so
+  # terraform manages none of these jobs. The one it declared was left orphaned
+  # at a `governance-engine:${_ENVIRONMENT}` tag that cloudbuild has never
+  # written — only the commit SHA and :latest — so every execution died on
+  # "Image not found" and it has never created a partition.
+  #
+  # Flags are written out rather than expanded from an array. A bash array in a
+  # Cloud Build step updated the image and silently dropped every other flag,
+  # which left the job on the terraform-era DB_USER and failed authentication.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-partitions-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        PROJECT="YOUR_GCP_PROJECT"
+        SQL_CONN="$$PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+        APP_IMAGE="${_REGION}-docker.pkg.dev/$$PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}"
+        SA="governance-engine-${_ENVIRONMENT}@$$PROJECT.iam.gserviceaccount.com"
+        JOB="governance-partitions-${_ENVIRONMENT}"
+
+        # governance_app owns actions and usage_events, and RLS on them is not
+        # FORCE, so the owner sees every row. governance_admin's password is not
+        # the one in governance-pg-password, which is why the job had been
+        # failing authentication.
+        if gcloud run jobs describe "$$JOB" --region ${_REGION} --project "$$PROJECT" >/dev/null 2>&1; then
+          VERB=update
+        else
+          VERB=create
+        fi
+
+        gcloud run jobs $$VERB "$$JOB" \
+          --image "$$APP_IMAGE" \
+          --region ${_REGION} \
+          --project "$$PROJECT" \
+          --service-account "$$SA" \
+          --set-cloudsql-instances "$$SQL_CONN" \
+          --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT} \
+          --vpc-egress private-ranges-only \
+          --command node \
+          --args dist/jobs/partitions/manage-partitions.js \
+          --set-env-vars "CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_INSTANCE_CONNECTION_NAME=$$SQL_CONN,DB_USER=governance_app,DB_NAME=governance_engine,FUTURE_MONTHS=6,RETAIN_MONTHS=18" \
+          --set-secrets "DB_PASSWORD=governance-pg-password:latest"
+
+        # Invoker for both identities that start this job: the Cloud Scheduler
+        # account that fires it on cron, and the service account used for manual
+        # runs. Granted here rather than left to terraform because cloudbuild
+        # owns the job — a recreate would otherwise drop the binding and every
+        # fire would return PERMISSION_DENIED into a status field nobody reads.
+        for MEMBER in "governance-sched-${_ENVIRONMENT}@$$PROJECT.iam.gserviceaccount.com" "$$SA"; do
+          gcloud run jobs add-iam-policy-binding "$$JOB" \
+            --region ${_REGION} --project "$$PROJECT" \
+            --member "serviceAccount:$$MEMBER" \
+            --role roles/run.invoker >/dev/null
+        done
+    waitFor: ['docker-push-app']
+
+  # Create/update the nightly WAL-vs-governance reconciliation job.
+  #
+  # Owned here for the same reason the partitions job above is: terraform
+  # declared it pinned to a `governance-engine:${_ENVIRONMENT}` tag cloudbuild
+  # has never written, so every execution died on "Image not found" and it
+  # never reconciled anything. Fixing the image only exposed the next defect —
+  # the script needs five arguments the terraform job passed none of.
+  #
+  # The WAL side is now read over HTTP from the tenant runtime rather than by
+  # connecting to its database. That is not a preference: YOUR_TENANT_PROJECT
+  # is private-IP-only on YOUR_TENANT_PROJECT, this job runs on
+  # vpc-${_ENVIRONMENT}, the networks do not peer, and peering is not
+  # transitive. Wiring the DB arguments reached `SFEClient is nil` under both
+  # vpc-egress settings.
+  #
+  # agent-service enforces IAM run.invoker AND X-Service-Auth, so the job needs
+  # the identity token (minted from its own SA) and the shared secret.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-reconciliation-job'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        PROJECT="YOUR_GCP_PROJECT"
+        SQL_CONN="$$PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+        APP_IMAGE="${_REGION}-docker.pkg.dev/$$PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA}"
+        SA="governance-engine-${_ENVIRONMENT}@$$PROJECT.iam.gserviceaccount.com"
+        JOB="governance-reconciliation-${_ENVIRONMENT}"
+
+        # The runtime URL is looked up rather than hardcoded: the run.app
+        # hostname differs per environment and is not derivable from the
+        # project name.
+        TR_URL=$$(gcloud run services describe agent-service \
+          --region ${_REGION} --project "tenant-${_TENANT_ID}-${_ENVIRONMENT}" \
+          --format 'value(status.url)' 2>/dev/null || true)
+        if [ -z "$$TR_URL" ]; then
+          echo "agent-service URL not resolvable for tenant-${_TENANT_ID}-${_ENVIRONMENT}; skipping reconciliation job wiring"
+          exit 0
+        fi
+
+        if gcloud run jobs describe "$$JOB" --region ${_REGION} --project "$$PROJECT" >/dev/null 2>&1; then
+          VERB=update
+        else
+          VERB=create
+        fi
+
+        # governance_app owns actions; governance_admin's password is not the
+        # one in governance-pg-password. Same trap the partitions job hit.
+        gcloud run jobs $$VERB "$$JOB" \
+          --image "$$APP_IMAGE" \
+          --region ${_REGION} \
+          --project "$$PROJECT" \
+          --service-account "$$SA" \
+          --set-cloudsql-instances "$$SQL_CONN" \
+          --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT} \
+          --vpc-egress private-ranges-only \
+          --command node \
+          --args dist/jobs/reconcile/reconcile-wal-vs-governance.js \
+          --task-timeout 1800 \
+          --max-retries 1 \
+          --set-env-vars "RECONCILE_TENANT_ID=${_TENANT_ID},RECONCILE_TENANT_RUNTIME_URL=$$TR_URL,RECONCILE_GOV_DB_HOST=/cloudsql/$$SQL_CONN,RECONCILE_GOV_DB_USER=governance_app,RECONCILE_GOV_DB_NAME=governance_engine,RECONCILE_WINDOW_HOURS=25" \
+          --set-secrets "RECONCILE_GOV_DB_PASSWORD=governance-pg-password:latest,RECONCILE_TENANT_SERVICE_TOKEN=tenant-runtime-service-token:latest"
+
+        # Without invoker on the job the nightly scheduler returns
+        # PERMISSION_DENIED into a status field nobody reads.
+        gcloud run jobs add-iam-policy-binding "$$JOB" \
+          --region ${_REGION} --project "$$PROJECT" \
+          --member "serviceAccount:$$SA" \
+          --role roles/run.invoker >/dev/null
+    waitFor: ['docker-push-app']
+
+  # Deploy the Cloud Run service.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        SQL_CONN="YOUR_GCP_PROJECT:${_REGION}:control-plane-pg-${_ENVIRONMENT}"
+        gcloud run deploy ${_SERVICE_NAME} \
+          --image ${_REGION}-docker.pkg.dev/YOUR_GCP_PROJECT/YOUR_GCP_PROJECT/${_SERVICE_NAME}:${SHORT_SHA} \
+          --region ${_REGION} \
+          --project YOUR_GCP_PROJECT \
+          --platform managed \
+          --no-allow-unauthenticated \
+          --service-account governance-engine-${_ENVIRONMENT}@YOUR_GCP_PROJECT.iam.gserviceaccount.com \
+          --set-cloudsql-instances $$SQL_CONN \
+          --network=vpc-${_ENVIRONMENT} --subnet=subnet-${_REGION}-${_ENVIRONMENT} \
+          --vpc-egress private-ranges-only \
+          --min-instances 0 \
+          --max-instances 20 \
+          --cpu 1 \
+          --memory 1Gi \
+          --concurrency 80 \
+          --timeout 60 \
+          --set-env-vars "ENVIRONMENT=${_ENVIRONMENT},GCP_PROJECT_ID=YOUR_GCP_PROJECT,CLOUD_SQL_CONNECTION_NAME=$$SQL_CONN,DB_USER=governance_app,DB_NAME=governance_engine,SERVICE_VERSION=${SHORT_SHA},COMMIT_SHA=${SHORT_SHA},AUDIT_EVENTS_TOPIC=audit-events-${_ENVIRONMENT}" \
+          --set-secrets "DB_PASSWORD=governance-pg-password:latest,GOVERNANCE_SERVICE_TOKEN=governance-engine-token:latest"
+    waitFor: ['docker-push-app', 'migrate']
+
+timeout: '2400s'

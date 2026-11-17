@@ -1,0 +1,15 @@
+-- Migration 437: who actually answered a Liftoff-routed MCP run
+--
+-- The MCP server now tells coding tools to send unaddressed messages to the
+-- Liftoff assistant and let IT bring in the right colleague. That makes
+-- "Liftoff's conversation, a colleague's words" the ordinary case, and the
+-- run row — the one durable record the long-poll reads — could not say whose
+-- words they were: the result envelope echoed Liftoff for a reply the
+-- Insights Manager or an AI team wrote.
+--
+-- answered_by is that colleague's display label, copied from the authorship
+-- the Liftoff turn already persists on the message row (author_label, the
+-- stored-at-write name that a later rename does not relabel). NULL means
+-- Liftoff answered itself, and every non-Liftoff run kind leaves it NULL
+-- because there the target IS the answerer and the result already names it.
+ALTER TABLE mcp_chat_runs ADD COLUMN answered_by TEXT;

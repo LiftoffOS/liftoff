@@ -1,0 +1,6 @@
+{
+  "kind": "calendar#events",
+  "etag": "\"p33\"",
+  "summary": "person@example.com",
+  "items": [{"kind": "calendar#event", "etag": "\"abc\"", "id": "evt0000000000001", "status": "confirmed", "summary": "Team standup", "start": {"dateTime": "2026-06-23T10:00:00-07:00"}, "end": {"dateTime": "2026-06-23T10:30:00-07:00"}}]
+}

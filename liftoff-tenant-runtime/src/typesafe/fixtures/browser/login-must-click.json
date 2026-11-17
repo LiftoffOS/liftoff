@@ -1,0 +1,96 @@
+{
+  "set": {
+    "id": "browser_step",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "page": {
+    "url": "https://fixture.test/login",
+    "title": "Fixture",
+    "w": 756,
+    "h": 413,
+    "text": "Sign in\nUsername\nPassword\nSign in",
+    "scroll": {
+      "y": 0,
+      "height": 413
+    },
+    "actions": [
+      {
+        "node": 1,
+        "role": "textbox",
+        "label": "Username",
+        "rect": {
+          "x": 98.859375,
+          "y": 88.4375,
+          "w": 153,
+          "h": 21
+        },
+        "kind": "fill",
+        "value": "jane",
+        "id": "e1"
+      },
+      {
+        "node": 1,
+        "role": "textbox",
+        "label": "Open Username",
+        "rect": {
+          "x": 98.859375,
+          "y": 88.4375,
+          "w": 153,
+          "h": 21
+        },
+        "kind": "click",
+        "value": "jane",
+        "id": "e2"
+      },
+      {
+        "node": 2,
+        "role": "button",
+        "label": "Sign in",
+        "rect": {
+          "x": 470.203125,
+          "y": 88.4375,
+          "w": 56.765625,
+          "h": 21
+        },
+        "kind": "click",
+        "value": "",
+        "id": "e3"
+      },
+      {
+        "id": "wait",
+        "kind": "wait",
+        "label": "Wait for the page to update"
+      }
+    ],
+    "marker": null,
+    "page_key": null,
+    "guards": {},
+    "omitted_actions": 0,
+    "fingerprint": "ecb6d31fe377b52b7a4be915362a4db3f6e15aad84840767cc1ec39de9512478"
+  },
+  "goal": "Sign in as \"jane\" and confirm the welcome page",
+  "history": [
+    {
+      "step": 1,
+      "action": "Username",
+      "kind": "fill",
+      "operation": "TYPE_TEXT",
+      "probability": 1,
+      "confidence": 1,
+      "latencyMs": 100,
+      "url": "https://fixture.test/login",
+      "pageChanged": true,
+      "typed": true
+    }
+  ],
+  "expect": {
+    "operation": {
+      "choice": "CLICK"
+    },
+    "click_target": {
+      "label": "Sign in"
+    }
+  },
+  "note": "The username holds the value; the next step is the submit."
+}

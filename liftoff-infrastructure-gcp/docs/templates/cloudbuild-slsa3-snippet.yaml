@@ -1,0 +1,61 @@
+# Phase 0e — SLSA-3 provenance + per-service attestation snippet.
+# Append to each new Liftoff service repo's `cloudbuild.yaml` after
+# the Docker build step. Produces:
+#   (1) SLSA-3 provenance via `requestedVerifyOption: VERIFIED` + the
+#       provenance-generator step; Cloud Build writes attestations to
+#       Artifact Analysis against the per-service attestor (must match
+#       the attestor name created by the service's terraform module).
+#   (2) A signed attestation that the project-level Binary
+#       Authorization admission policy (modules/binauthz-admission/)
+#       checks at Cloud Run admission time.
+#
+# Substitute:
+#   $_SERVICE_NAME — e.g. 'billing' / 'developer-proxy' / 'workforce-service'
+#   $_PROJECT_ID   — YOUR_GCP_PROJECT
+#   $_REGION       — us-west1
+
+options:
+  # SLSA-3 provenance. Cloud Build signs the provenance with the
+  # Google-hosted key; the attestor on the deploy side verifies.
+  requestedVerifyOption: VERIFIED
+  # Strong provenance — requires source + build info in the attestation.
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
+
+steps:
+  # ... docker build step produces $_REGION-docker.pkg.dev/...:${SHORT_SHA}
+
+  # 1. Compute image digest
+  - name: 'gcr.io/cloud-builders/docker'
+    id: digest
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        IMAGE=$_REGION-docker.pkg.dev/$PROJECT_ID/YOUR_GCP_PROJECT$_ENV/$_SERVICE_NAME:$SHORT_SHA
+        DIGEST=$(docker image inspect $$IMAGE --format='{{index .RepoDigests 0}}')
+        echo "DIGEST=$$DIGEST" > /workspace/digest.env
+
+  # 2. Create + sign per-service attestation. Uses the attestor
+  #    provisioned by the service's terraform module.
+  - name: 'gcr.io/$PROJECT_ID/binauthz-attest-tool'
+    id: attest
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        source /workspace/digest.env
+        gcloud beta container binauthz attestations sign-and-create \
+          --artifact-url="$$DIGEST" \
+          --attestor="projects/$PROJECT_ID/attestors/$_SERVICE_NAME-attestor" \
+          --keyversion="projects/$PROJECT_ID/locations/$_REGION/keyRings/keyring-$_ENV/cryptoKeys/$_SERVICE_NAME-attestor-key/cryptoKeyVersions/1"
+
+substitutions:
+  _SERVICE_NAME: billing
+  _ENV: dev
+  _REGION: us-west1
+
+# The per-service attestor + keyring already exist from terraform
+# (plan 0e). The project-level admission policy (plan 0e gap 3) then
+# rejects any image that doesn't carry an attestation signed by one
+# of the recognised attestors.

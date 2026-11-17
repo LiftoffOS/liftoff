@@ -1,0 +1,136 @@
+{
+  "mode": "hybrid",
+  "modes": [
+    {
+      "id": "auto",
+      "name": "Fully Automated",
+      "description": "AI handles all actions autonomously, with audit logging",
+      "icon": "lightning",
+      "recommended": false
+    },
+    {
+      "id": "hybrid",
+      "name": "Hybrid (Recommended)",
+      "description": "AI handles routine actions, humans review sensitive or low-confidence items",
+      "icon": "balance",
+      "recommended": true
+    },
+    {
+      "id": "review-only",
+      "name": "Review-Only",
+      "description": "AI suggests actions, all require human approval before execution",
+      "icon": "shield",
+      "recommended": false
+    }
+  ],
+  "confidenceThresholds": {
+    "autoApprove": 85,
+    "reviewRequired": 60,
+    "escalate": 40
+  },
+  "actionSettings": [
+    {
+      "id": "lead-qualify",
+      "action": "Lead qualification",
+      "description": "Scoring and categorizing inbound leads",
+      "mode": "auto",
+      "threshold": 80,
+      "category": "qualification"
+    },
+    {
+      "id": "data-enrich",
+      "action": "Data enrichment",
+      "description": "Adding firmographic data from external sources",
+      "mode": "auto",
+      "threshold": 90,
+      "category": "enrichment"
+    },
+    {
+      "id": "meeting-schedule",
+      "action": "Meeting scheduling",
+      "description": "Booking discovery calls and demos",
+      "mode": "auto",
+      "threshold": 85,
+      "category": "scheduling"
+    },
+    {
+      "id": "standard-route",
+      "action": "Standard routing",
+      "description": "Routing to pre-defined queues based on rules",
+      "mode": "auto",
+      "threshold": 75,
+      "category": "routing"
+    },
+    {
+      "id": "enterprise-route",
+      "action": "Enterprise account routing",
+      "description": "Routing high-value enterprise accounts",
+      "mode": "review",
+      "threshold": null,
+      "category": "routing"
+    },
+    {
+      "id": "email-send",
+      "action": "Email communication",
+      "description": "Sending follow-up or response emails",
+      "mode": "review",
+      "threshold": null,
+      "category": "communication"
+    },
+    {
+      "id": "pricing",
+      "action": "Pricing decisions",
+      "description": "Any actions involving pricing or discounts",
+      "mode": "review",
+      "threshold": null,
+      "category": "commercial"
+    },
+    {
+      "id": "handoff",
+      "action": "Sales handoff",
+      "description": "Final handoff to sales representatives",
+      "mode": "review",
+      "threshold": null,
+      "category": "handoff"
+    }
+  ],
+  "sensitiveActions": [
+    "Contract commitments",
+    "Discount approvals over 10%",
+    "Legal language changes",
+    "Customer data exports",
+    "Account deletions",
+    "Integration credential changes"
+  ],
+  "escalationRules": [
+    {
+      "id": "low-confidence",
+      "trigger": "Confidence below threshold",
+      "action": "Route to review queue",
+      "priority": "normal"
+    },
+    {
+      "id": "high-value",
+      "trigger": "Deal value > $100K",
+      "action": "Notify sales director",
+      "priority": "high"
+    },
+    {
+      "id": "vip-account",
+      "trigger": "VIP account flag",
+      "action": "Route to senior reviewer",
+      "priority": "high"
+    },
+    {
+      "id": "sla-risk",
+      "trigger": "SLA deadline approaching",
+      "action": "Auto-escalate to manager",
+      "priority": "urgent"
+    }
+  ],
+  "reviewerRoles": [
+    { "id": "standard", "name": "Standard Reviewer", "permissions": ["approve", "reject", "edit"] },
+    { "id": "senior", "name": "Senior Reviewer", "permissions": ["approve", "reject", "edit", "override", "escalate"] },
+    { "id": "approver", "name": "Final Approver", "permissions": ["approve", "reject", "edit", "override", "escalate", "bypass"] }
+  ]
+}

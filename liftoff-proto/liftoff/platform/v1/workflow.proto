@@ -1,0 +1,60 @@
+syntax = "proto3";
+package liftoff.platform.v1;
+
+// Workflow delay steps.
+//
+// Workflow agents are the declarative non-LLM-loop sibling of agent-loop
+// agents. Today every step runs synchronously inside one Cloud Run request.
+// The `delay` step type adds a single suspend/resume primitive that reuses
+// the existing EngineSessionStore + /api/tasks/resume-execution pattern
+// (HITL approvals use the same path) plus the L1 scheduleTime field on
+// enqueueAgentExecution.
+
+enum WorkflowStepType {
+  WORKFLOW_STEP_TYPE_UNSPECIFIED = 0;
+  WORKFLOW_STEP_TYPE_TOOL_CALL = 1;
+  WORKFLOW_STEP_TYPE_LLM_REASON = 2;
+  WORKFLOW_STEP_TYPE_DELAY = 3;
+  // Hybrid execution engine (ADR 022 / TR ADR 001): suspends the workflow
+  // with a plain-text question posted to the chat thread; the next user
+  // reply is the answer. 24h expiry via agent_scheduled_invocations.
+  WORKFLOW_STEP_TYPE_ASK_USER = 4;
+}
+
+message DelayStepConfig {
+  oneof spec {
+    int64 duration_seconds = 1;   // 60 <= duration <= 30d (2592000s)
+    string until_iso = 2;         // ISO-8601 timestamp; must be in [now+60s, now+30d]
+  }
+  string context_ref = 3;         // optional; defaults to workflow_id; used for cancellation
+}
+
+// ── Hybrid execution engine decision shapes ──────────────────────────────
+//
+// The runtime's recovery LLM (purpose='agent_recovery') emits a
+// ReasoningResult after any step-execution anomaly. ASK_USER is the new
+// fifth decision: pause the run and post a plain-text question to the
+// chat thread; resume on the next user reply (24h expiry).
+enum ReasoningDecision {
+  REASONING_DECISION_UNSPECIFIED = 0;
+  REASONING_DECISION_CONTINUE = 1;
+  REASONING_DECISION_COMPLETE = 2;
+  REASONING_DECISION_ESCALATE = 3;
+  REASONING_DECISION_FAIL = 4;
+  REASONING_DECISION_ASK_USER = 5;
+}
+
+// Subset of the runtime's ReasoningResult that the hybrid engine emits in
+// recovery + llm_reason calls. Optional fields for fields that only apply
+// to specific decision variants.
+message HybridReasoningResult {
+  string thinking = 1;
+  ReasoningDecision decision = 2;
+  // Required when decision == ASK_USER. Plain text — posted as a regular
+  // assistant message in the existing `messages` table.
+  string user_question = 3;
+  // Optional forward-only skip-to-step on decision == CONTINUE.
+  string next_step_id = 4;
+  string escalation_reason = 5;
+  string failure_reason = 6;
+}

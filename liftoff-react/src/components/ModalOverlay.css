@@ -1,0 +1,104 @@
+/* Shared Modal Overlay - Glass Effect */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(180 180 180 / 7.5%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+}
+
+.modal-overlay__content {
+  background: var(--color-white);
+  border-radius: 16px;
+  padding: var(--space-6);
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Opt-in width: size the box to its widest unbreakable row instead of clipping
+   at 400px. Needed where the footer carries more buttons than 400px holds (the
+   footer never wraps — see connectionModals.css), so the box has to grow to the
+   row rather than the row spilling past the box. min-content, not max-content:
+   prose still wraps, only rows that cannot break (the button row, a tag) set the
+   width. Never narrower than a standard modal, never wider than the viewport. */
+.modal-overlay__content--fit {
+  width: min-content;
+  min-width: min(400px, 100%);
+  max-width: min(640px, 100%);
+}
+
+/* Opt-in width for a modal whose content is a list of prose rows that must
+   each sit on ONE line. `--fit` cannot do this: it is `width: min-content`,
+   which deliberately lets prose wrap, so a box of sentences collapses back to
+   the 400px floor and every long row breaks. This sets the cap directly and
+   lets the base `width: 100%` fill it. */
+.modal-overlay__content--rows {
+  max-width: min(620px, 100%);
+}
+
+/* Opt-in width for a modal carrying the three-card pricing grid. Both the
+   400px default and the 640px `--fit` cap collapse
+   `.pricing-page__plans-grid` to a single stacked column, which is why the
+   plan gate looked nothing like /pricing however its own max-width was set:
+   a child cannot be wider than the box it sits in. 960px is the grid's three
+   cards plus this box's own padding. */
+.modal-overlay__content--wide {
+  max-width: min(960px, 100%);
+}
+
+/* Opt-in for a modal whose content brings its OWN dimensions — an expanded
+   photograph.
+   
+   Every variant above sets `width: 100%` and differs only in the cap, because
+   each is a box that imposes a shape on prose or on a grid. A picture is the
+   opposite case: it already has a shape, and the box has to take it. Reusing
+   `--wide` here left a portrait photo centred in a 960px landscape box with
+   two columns of white either side of it.
+   
+   `width: auto` makes this shrink to the image; the image is bounded by the
+   VIEWPORT rather than by this box, so there is no circular sizing between the
+   two. The padding is tighter than a text modal's for the same reason a frame
+   was dropped in the thread — the picture is the content, not something to be
+   matted. */
+.modal-overlay__content--media {
+  width: auto;
+  max-width: none;
+  padding: var(--space-3);
+  /* The base rule centres text; there is none here, and it would centre the
+     alt text of a broken image against the box rather than the picture. */
+  text-align: initial;
+  line-height: 0;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.modal-close {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--color-gray-400);
+  transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+
+.modal-close:hover {
+  background: var(--color-gray-100);
+  color: var(--color-black);
+}

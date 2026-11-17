@@ -1,0 +1,68 @@
+.metric-card {
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metric-card--large {
+  padding: 24px;
+}
+
+/* With a tooltip, the whole card body sits inside the tooltip's hover wrapper
+   so the tooltip shows over the number and trend line too, not just the label.
+   The wrapper must then lay out its children exactly as the card itself does. */
+.metric-card > .tooltip-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metric-card__label {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.metric-card__value {
+  font-size: var(--text-2xl);
+  font-weight: 400;
+  color: var(--color-black);
+  font-variation-settings: "opsz" 32, "wght" 400;
+}
+
+.metric-card--large .metric-card__value {
+  font-size: var(--text-3xl);
+}
+
+.metric-card__change {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metric-card__change-value {
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+.metric-card__change-value--positive {
+  color: #22c55e;
+}
+
+.metric-card__change-value--negative {
+  color: var(--color-accent);
+}
+
+.metric-card__change-value--neutral {
+  color: var(--color-gray-400);
+}
+
+.metric-card__period {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}

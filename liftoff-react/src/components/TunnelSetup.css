@@ -1,0 +1,93 @@
+/* TunnelSetup — rendered inside a ModalOverlay. Container, code block,
+   status row, and banner styles live here so they load with the component
+   regardless of which page the parent modal is opened from. */
+
+.tunnel-setup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  text-align: left;
+}
+
+.tunnel-setup__heading {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+}
+
+.tunnel-setup__hint {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tunnel-setup__code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  color: var(--color-black);
+  background: var(--color-gray-50);
+  padding: var(--space-3);
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+}
+
+.tunnel-setup__status-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-gray-700);
+}
+
+/* Soft info block for the pending-timeout case. NOT an error — the
+   tunnel is just slow to come online and the action is a Reset button.
+   Plain text on the standard gray-50 surface, no border, no red. */
+.tunnel-setup__banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.tunnel-setup__banner-text {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tunnel-setup__actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+/* Hint text + Copy button on the same line beneath the docker command. */
+.tunnel-setup__copy-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.tunnel-setup__copy-row .tunnel-setup__hint {
+  margin: 0;
+}
+
+/* Left-aligned spot for a single secondary action (e.g. "New tunnel",
+   "Edit subdomain") that lives between fields. Mirrors the same pattern
+   as .agent-connector__field-action. */
+.tunnel-setup__inline-action {
+  display: flex;
+  justify-content: flex-start;
+}
+

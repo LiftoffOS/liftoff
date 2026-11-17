@@ -1,0 +1,416 @@
+{
+  "connectorType": "tapfiliate",
+  "harvestedAt": "2026-09-15",
+  "source": "vendor_docs",
+  "sourceUrl": "https://tapfiliate.com/docs/rest/",
+  "tools": [
+    {
+      "name": "Retrieve a Customer",
+      "description": "Retrieve a Customer",
+      "httpMethod": "GET",
+      "path": "/customers/{id}/"
+    },
+    {
+      "name": "Update a Customer",
+      "description": "Update a Customer",
+      "httpMethod": "PATCH",
+      "path": "/customers/{id}/"
+    },
+    {
+      "name": "Delete a Customer",
+      "description": "Delete a Customer",
+      "httpMethod": "DELETE",
+      "path": "/customers/{id}/"
+    },
+    {
+      "name": "List all Customers",
+      "description": "List all Customers",
+      "httpMethod": "GET",
+      "path": "/customers/{?program_id,customer_id,affiliate_id,date_from,date_to}"
+    },
+    {
+      "name": "Create a Customer",
+      "description": "Create a Customer",
+      "httpMethod": "POST",
+      "path": "/customers/{?override_max_cookie_time}"
+    },
+    {
+      "name": "Cancel a customer",
+      "description": "Cancel a customer",
+      "httpMethod": "DELETE",
+      "path": "/customers/{id}/status/"
+    },
+    {
+      "name": "Uncancel a customer",
+      "description": "Uncancel a customer. The customer will jump back to the appropriate status.",
+      "httpMethod": "PUT",
+      "path": "/customers/{id}/status/"
+    },
+    {
+      "name": "Retrieve meta data",
+      "description": "Retrieve meta data for a customer",
+      "httpMethod": "GET",
+      "path": "/customers/{id}/meta-data/"
+    },
+    {
+      "name": "Update (replace) meta data",
+      "description": "Update (replace) meta data for a customer",
+      "httpMethod": "PUT",
+      "path": "/customers/{id}/meta-data/"
+    },
+    {
+      "name": "Retrieve meta data by key",
+      "description": "Retrieve meta data by key for a customer",
+      "httpMethod": "GET",
+      "path": "/customers/{id}/meta-data/{key}/"
+    },
+    {
+      "name": "Set meta data by key",
+      "description": "Set meta data by key for a customer",
+      "httpMethod": "PUT",
+      "path": "/customers/{id}/meta-data/{key}/"
+    },
+    {
+      "name": "Delete meta data by key",
+      "description": "Delete meta data by key for a customer",
+      "httpMethod": "DELETE",
+      "path": "/customers/{id}/meta-data/{key}/"
+    },
+    {
+      "name": "Retrieve a Conversion",
+      "description": "Retrieve a Conversion",
+      "httpMethod": "GET",
+      "path": "/conversions/{conversion_id}/"
+    },
+    {
+      "name": "Update a Conversion",
+      "description": "Update a Conversion",
+      "httpMethod": "PATCH",
+      "path": "/conversions/{conversion_id}/{?recalculate_commissions}"
+    },
+    {
+      "name": "Delete a Conversion",
+      "description": "Delete a Conversion",
+      "httpMethod": "DELETE",
+      "path": "/conversions/{conversion_id}/"
+    },
+    {
+      "name": "List all conversions",
+      "description": "List all conversions",
+      "httpMethod": "GET",
+      "path": "/conversions/{?program_id,external_id,affiliate_id,pending,date_from,date_to,use_profile_timezone}"
+    },
+    {
+      "name": "Create a conversion",
+      "description": "Create a conversion",
+      "httpMethod": "POST",
+      "path": "/conversions/{?override_max_cookie_time}"
+    },
+    {
+      "name": "Add commissions to a conversion",
+      "description": "Add commissions to a conversion",
+      "httpMethod": "POST",
+      "path": "/conversions/{conversion_id}/commissions/"
+    },
+    {
+      "name": "Retrieve a commission",
+      "description": "Retrieve a commission",
+      "httpMethod": "GET",
+      "path": "/commissions/{commission_id}/"
+    },
+    {
+      "name": "Update a commission",
+      "description": "Update a commission",
+      "httpMethod": "PATCH",
+      "path": "/commissions/{commission_id}/"
+    },
+    {
+      "name": "List all commissions",
+      "description": "List all commissions",
+      "httpMethod": "GET",
+      "path": "/commissions/{?affiliate_id,status,paid}"
+    },
+    {
+      "name": "Approve a commission",
+      "description": "Approve a commission",
+      "httpMethod": "PUT",
+      "path": "/commissions/{commission_id}/approved/"
+    },
+    {
+      "name": "Disapprove a commission",
+      "description": "Disapprove a commission",
+      "httpMethod": "DELETE",
+      "path": "/commissions/{commission_id}/approved/"
+    },
+    {
+      "name": "Retrieve an affiliate",
+      "description": "Retrieve an affiliate",
+      "httpMethod": "GET",
+      "path": "/affiliates/{affiliate_id}/"
+    },
+    {
+      "name": "Delete an affiliate",
+      "description": "Delete an affiliate",
+      "httpMethod": "DELETE",
+      "path": "/affiliates/{affiliate_id}/"
+    },
+    {
+      "name": "List all affiliates",
+      "description": "List all affiliates",
+      "httpMethod": "GET",
+      "path": "/affiliates/{?click_id,source_id,email,referral_code,parent_id,affiliate_group_id}"
+    },
+    {
+      "name": "Create an affiliate",
+      "description": "Create an affiliate",
+      "httpMethod": "POST",
+      "path": "/affiliates/"
+    },
+    {
+      "name": "Set affiliate group",
+      "description": "Set affiliate group",
+      "httpMethod": "PUT",
+      "path": "/affiliates/{affiliate_id}/group/"
+    },
+    {
+      "name": "Remove affiliate group",
+      "description": "Remove affiliate group",
+      "httpMethod": "DELETE",
+      "path": "/affiliates/{affiliate_id}/group/"
+    },
+    {
+      "name": "Update note",
+      "description": "Update note for an affiliate",
+      "httpMethod": "PUT",
+      "path": "/affiliates/{affiliate_id}/notes/{id}/"
+    },
+    {
+      "name": "Delete note",
+      "description": "Delete note for an affiliate",
+      "httpMethod": "DELETE",
+      "path": "/affiliates/{affiliate_id}/notes/{id}/"
+    },
+    {
+      "name": "List notes",
+      "description": "List notes for an affiliate",
+      "httpMethod": "GET",
+      "path": "/affiliates/{affiliate_id}/notes/"
+    },
+    {
+      "name": "Create note",
+      "description": "Create note for an affiliate",
+      "httpMethod": "POST",
+      "path": "/affiliates/{affiliate_id}/notes/"
+    },
+    {
+      "name": "Get payout method",
+      "description": "Get payout method for an affiliate",
+      "httpMethod": "GET",
+      "path": "/affiliates/{affiliate_id}/payout-methods/{payout_method_id}/"
+    },
+    {
+      "name": "Set payout method",
+      "description": "Set payout method for an affiliate",
+      "httpMethod": "PUT",
+      "path": "/affiliates/{affiliate_id}/payout-methods/{payout_method_id}/"
+    },
+    {
+      "name": "List payout methods",
+      "description": "List payout methods for an affiliate",
+      "httpMethod": "GET",
+      "path": "/affiliates/{affiliate_id}/payout-methods/"
+    },
+    {
+      "name": "Set parent",
+      "description": "Set parent affiliate (MLM)",
+      "httpMethod": "POST",
+      "path": "/affiliates/{child_affiliate_id}/parent/"
+    },
+    {
+      "name": "Remove parent",
+      "description": "Remove parent affiliate (MLM)",
+      "httpMethod": "DELETE",
+      "path": "/affiliates/{child_affiliate_id}/parent/"
+    },
+    {
+      "name": "Retrieve affiliate's balances",
+      "description": "Retrieve affiliate's balances",
+      "httpMethod": "GET",
+      "path": "/affiliates/{affiliate_id}/balances/"
+    },
+    {
+      "name": "List affiliate's payments",
+      "description": "List affiliate's payments",
+      "httpMethod": "GET",
+      "path": "/affiliates/{affiliate_id}/payments/"
+    },
+    {
+      "name": "Get affiliations",
+      "description": "Get affiliations (affiliate programs) for an affiliate",
+      "httpMethod": "GET",
+      "path": "/affiliates/{id}/programs/"
+    },
+    {
+      "name": "Get custom fields",
+      "description": "Get custom fields for affiliates",
+      "httpMethod": "GET",
+      "path": "/affiliates/custom-fields/"
+    },
+    {
+      "name": "List all affiliate groups",
+      "description": "List all affiliate groups",
+      "httpMethod": "GET",
+      "path": "/affiliate-groups/"
+    },
+    {
+      "name": "Create new affiliate group",
+      "description": "Create new affiliate group",
+      "httpMethod": "POST",
+      "path": "/affiliate-groups/"
+    },
+    {
+      "name": "Update affiliate group",
+      "description": "Update affiliate group",
+      "httpMethod": "PUT",
+      "path": "/affiliate-groups/{id}/"
+    },
+    {
+      "name": "List all affiliate prospects",
+      "description": "List all affiliate prospects",
+      "httpMethod": "GET",
+      "path": "/affiliate-prospects/"
+    },
+    {
+      "name": "Create an affiliate prospect",
+      "description": "Create an affiliate prospect",
+      "httpMethod": "POST",
+      "path": "/affiliate-prospects/"
+    },
+    {
+      "name": "Retrieve an affiliate prospect",
+      "description": "Retrieve an affiliate prospect",
+      "httpMethod": "GET",
+      "path": "/affiliate-prospects/{id}/"
+    },
+    {
+      "name": "Delete an affiliate prospect",
+      "description": "Delete an affiliate prospect",
+      "httpMethod": "DELETE",
+      "path": "/affiliate-prospects/{id}/"
+    },
+    {
+      "name": "Retrieve a Program",
+      "description": "Retrieve a Program",
+      "httpMethod": "GET",
+      "path": "/programs/{program_id}/"
+    },
+    {
+      "name": "List all programs",
+      "description": "List all programs",
+      "httpMethod": "GET",
+      "path": "/programs/"
+    },
+    {
+      "name": "List all affiliates in program",
+      "description": "List all affiliates in program",
+      "httpMethod": "GET",
+      "path": "/programs/{program_id}/affiliates/"
+    },
+    {
+      "name": "Add an affiliate to a program",
+      "description": "Add an affiliate to a program",
+      "httpMethod": "POST",
+      "path": "/programs/{program_id}/affiliates/"
+    },
+    {
+      "name": "Retrieve an affiliate in a program",
+      "description": "Retrieve an affiliate in a program",
+      "httpMethod": "GET",
+      "path": "/programs/{program_id}/affiliates/{affiliate_id}/"
+    },
+    {
+      "name": "Update an affiliate in a program",
+      "description": "Update an affiliate in a program",
+      "httpMethod": "PUT",
+      "path": "/programs/{program_id}/affiliates/{affiliate_id}/"
+    },
+    {
+      "name": "Approve an affiliate",
+      "description": "Approve an affiliate in a program",
+      "httpMethod": "PUT",
+      "path": "/programs/{program_id}/affiliates/{affiliate_id}/approved/"
+    },
+    {
+      "name": "Disapprove an affiliate",
+      "description": "Disapprove an affiliate in a program",
+      "httpMethod": "DELETE",
+      "path": "/programs/{program_id}/affiliates/{affiliate_id}/approved/"
+    },
+    {
+      "name": "List program commission types",
+      "description": "List program commission types",
+      "httpMethod": "GET",
+      "path": "/programs/{program_id}/commission-types/"
+    },
+    {
+      "name": "List program MLM levels",
+      "description": "List program MLM levels",
+      "httpMethod": "GET",
+      "path": "/programs/{program_id}/mlm-levels/"
+    },
+    {
+      "name": "List program bonuses",
+      "description": "List program bonuses",
+      "httpMethod": "GET",
+      "path": "/programs/{program_id}/bonuses/"
+    },
+    {
+      "name": "List all balances",
+      "description": "List all balances",
+      "httpMethod": "GET",
+      "path": "/balances/"
+    },
+    {
+      "name": "Retrieve payment",
+      "description": "Retrieve payment",
+      "httpMethod": "GET",
+      "path": "/payments/{payment_id}/"
+    },
+    {
+      "name": "Cancel payment",
+      "description": "Cancel payment",
+      "httpMethod": "DELETE",
+      "path": "/payments/{payment_id}/"
+    },
+    {
+      "name": "List all payments",
+      "description": "List all payments",
+      "httpMethod": "GET",
+      "path": "/payments/"
+    },
+    {
+      "name": "Create a payment",
+      "description": "Create a payment",
+      "httpMethod": "POST",
+      "path": "/payments/"
+    },
+    {
+      "name": "List all clicks",
+      "description": "List all clicks",
+      "httpMethod": "GET",
+      "path": "/clicks/"
+    },
+    {
+      "name": "Create a Click",
+      "description": "Create a Click",
+      "httpMethod": "POST",
+      "path": "/clicks/"
+    },
+    {
+      "name": "Get detailed information about click",
+      "description": "Get detailed information about click",
+      "httpMethod": "GET",
+      "path": "/clicks/{click_id}/"
+    }
+  ]
+}

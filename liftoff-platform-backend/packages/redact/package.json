@@ -1,0 +1,16 @@
+{
+  "name": "@liftoffos/redact",
+  "version": "0.2.1",
+  "license": "Apache-2.0",
+  "description": "Credential redaction for text on its way out of a service (E4), and the browser record's safe URL and text sanitizers.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  }
+}

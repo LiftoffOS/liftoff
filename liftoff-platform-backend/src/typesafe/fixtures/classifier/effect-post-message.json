@@ -1,0 +1,35 @@
+{
+  "set": {
+    "id": "classifier",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "tool": {
+      "name": "post_message",
+      "description": "Post a message to a Slack channel."
+    }
+  },
+  "expect": {
+    "customerCommunication": {
+      "choice": "no"
+    },
+    "financialActions": {
+      "choice": "no"
+    },
+    "dataChanges": {
+      "choice": "no",
+      "advisory": true
+    },
+    "externalPublishing": {
+      "choice": "yes"
+    },
+    "hiringDecisions": {
+      "choice": "no"
+    },
+    "effect": {
+      "choice": "outbound"
+    }
+  },
+  "note": "1b: post_message is outbound. dataChanges is advisory: the guideline states externalPublishing and says nothing about dataChanges for a post; Jev adds it (a sent message is a record), which is the stricter answer."
+}

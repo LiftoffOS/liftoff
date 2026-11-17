@@ -1,0 +1,21 @@
+{
+  "name": "@liftoffos/sandbox-contracts",
+  "version": "1.0.0",
+  "description": "API contract types for sandbox sidecar (shell, file, browser, auth, sandbox-info, errors)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "NOTICE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "author": "Liftoff",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

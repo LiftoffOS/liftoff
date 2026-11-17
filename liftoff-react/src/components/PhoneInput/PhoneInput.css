@@ -1,0 +1,59 @@
+.phone-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: 9999px;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.phone-input:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+
+.phone-input__prefix {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 0 14px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  flex-shrink: 0;
+}
+
+.phone-input__flag {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.phone-input__dial {
+  font-weight: 500;
+  color: var(--color-gray-500);
+}
+
+.phone-input__number,
+.phone-input__number:focus,
+.phone-input__number:focus-visible {
+  flex: 1;
+  padding: 14px 20px 14px 10px;
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  min-width: 0;
+}
+
+.phone-input__number::placeholder {
+  color: var(--color-gray-400);
+}

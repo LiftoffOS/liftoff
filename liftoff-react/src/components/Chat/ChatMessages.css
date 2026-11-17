@@ -1,0 +1,825 @@
+/* Message bubbles */
+.chat-message {
+  /* The tallest a picture may stand in the transcript, declared ONCE for
+     everything inside a message. It lives here rather than on .chat-media
+     because an image an agent LINKED in markdown is not inside that wrapper,
+     and the two must agree: a linked screenshot and an attached one should not
+     be different sizes in the same bubble. */
+  --chat-media-max-h: 420px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--space-3);
+}
+
+.chat-message--user {
+  align-items: flex-end;
+}
+
+.chat-message--assistant {
+  align-items: stretch;
+}
+
+.chat-message__bubble--user {
+  max-width: 75%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: 16px;
+  background: var(--color-gray-50);
+  color: var(--color-black);
+  border-bottom-right-radius: 4px;
+}
+
+.chat-message__bubble--assistant {
+  max-width: 100%;
+  color: var(--color-black);
+}
+
+.chat-message__text {
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-line;
+  word-break: break-word;
+}
+
+/* What the person attached when they sent the message. Deliberately the same
+   pill language as the composer's staged attachments, so a file looks like the
+   same object before and after sending. */
+.chat-message__attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  list-style: none;
+  margin: var(--space-2) 0 0 0;
+  padding: 0;
+}
+
+.chat-message__attachment {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  max-width: 100%;
+  padding: 2px var(--space-2);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-white) 22%, transparent);
+  font-size: var(--text-xs);
+}
+
+.chat-message__attachment-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-message__attachment-source {
+  opacity: 0.7;
+}
+
+/* Markdown styles for assistant messages */
+.chat-message__markdown {
+  white-space: normal;
+}
+
+.chat-message__markdown p {
+  margin: 0 0 0.5em;
+}
+
+.chat-message__markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.chat-message__markdown strong {
+  font-weight: 600;
+}
+
+.chat-message__markdown em {
+  font-style: italic;
+}
+
+.chat-message__markdown ul,
+.chat-message__markdown ol {
+  margin: 0.4em 0;
+  padding-left: 1.4em;
+}
+
+.chat-message__markdown li {
+  margin-bottom: 0.2em;
+}
+
+.chat-message__markdown li:last-child {
+  margin-bottom: 0;
+}
+
+.chat-message__markdown code {
+  font-family: var(--font-mono, 'SF Mono', 'Fira Code', monospace);
+  font-size: 0.88em;
+  background: var(--color-gray-100, #f3f4f6);
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+}
+
+.chat-message__markdown pre {
+  margin: 0.5em 0;
+  padding: 0.75em 1em;
+  background: var(--color-gray-100, #f3f4f6);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.chat-message__markdown pre code {
+  background: none;
+  padding: 0;
+}
+
+.chat-message__markdown blockquote {
+  margin: 0.5em 0;
+  padding-left: 0.75em;
+  border-left: 3px solid var(--color-gray-300, #d1d5db);
+  color: var(--color-gray-500, #4b5563);
+}
+
+.chat-message__markdown h1,
+.chat-message__markdown h2,
+.chat-message__markdown h3 {
+  font-size: 1em;
+  font-weight: 600;
+  margin: 0.6em 0 0.3em;
+}
+
+.chat-message__markdown h1:first-child,
+.chat-message__markdown h2:first-child,
+.chat-message__markdown h3:first-child {
+  margin-top: 0;
+}
+
+.chat-message__markdown a {
+  color: var(--color-accent, #FB411F);
+  text-decoration: none;
+}
+
+.chat-message__markdown a:hover {
+  text-decoration: underline;
+}
+
+.chat-message__markdown hr {
+  margin: 0.75em 0;
+  border: none;
+  border-top: 1px solid var(--color-gray-200, #e5e7eb);
+}
+
+.chat-message__markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  margin: 0.5em 0;
+  overflow-x: auto;
+  display: block;
+}
+
+.chat-message__markdown th,
+.chat-message__markdown td {
+  border: 1px solid var(--border-light, #e5e7eb);
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.chat-message__markdown th {
+  background: var(--color-gray-50, #f9fafb);
+  font-weight: 600;
+}
+
+/* Footer under each bubble: timestamp, plus the sender avatar on user messages */
+.chat-message__meta {
+  --chat-sender-avatar-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+  padding: 0 var(--space-2);
+}
+
+.chat-message--assistant .chat-message__meta {
+  padding: 0;
+}
+
+.chat-message__time {
+  font-size: 11px;
+  color: var(--color-gray-400);
+}
+
+/* Match the avatar's box exactly on rows that have one, so the two are
+   centered on each other at any browser zoom rather than relying on two
+   different-height boxes rounding the same way. */
+.chat-message--user .chat-message__time {
+  line-height: var(--chat-sender-avatar-size);
+}
+
+/* Circle shape, colours, and the photo/initials/icon ladder come from
+   .user-avatar; this only sizes it for the message footer. */
+.chat-message__sender-avatar {
+  width: var(--chat-sender-avatar-size);
+  height: var(--chat-sender-avatar-size);
+  font-size: 9px;
+  letter-spacing: normal;
+}
+
+/* Citation marker */
+.citation-marker {
+  font-size: 0.75em;
+  font-weight: 600;
+  color: var(--color-accent, #2563eb);
+  cursor: help;
+  margin: 0 1px;
+  vertical-align: super;
+}
+
+/* Citation list */
+.citation-list {
+  margin-top: var(--space-2, 8px);
+  font-size: var(--text-xs, 12px);
+}
+
+.citation-list__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: var(--text-xs, 12px);
+  color: var(--color-gray-500, #6b7280);
+  background: var(--color-gray-100, #f3f4f6);
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.citation-list__toggle:hover {
+  background: var(--color-gray-200, #e5e7eb);
+}
+
+.citation-list__items {
+  margin: var(--space-2, 8px) 0 0;
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.citation-list__item {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: var(--text-xs, 12px);
+  color: var(--color-gray-500, #6b7280);
+}
+
+.citation-list__ref {
+  font-weight: 600;
+  color: var(--color-accent, #2563eb);
+  flex-shrink: 0;
+}
+
+.citation-list__filename {
+  font-weight: 500;
+  color: var(--color-black, #111827);
+  flex-shrink: 0;
+}
+
+.citation-list__page {
+  color: var(--color-gray-400, #9ca3af);
+  flex-shrink: 0;
+}
+
+.citation-list__quote-btn {
+  font-size: var(--text-xs, 12px);
+  color: var(--color-gray-400, #9ca3af);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  font-style: italic;
+  transition: color 0.15s ease;
+}
+
+.citation-list__quote-btn:hover {
+  color: var(--color-black, #111827);
+}
+
+/* Citation modal */
+.citation-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4, 16px);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.citation-modal__content {
+  background: var(--color-white, #fff);
+  border-radius: 12px;
+  padding: var(--space-5, 20px);
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+}
+
+.citation-modal__header {
+  font-size: var(--text-sm, 14px);
+  color: var(--color-black, #111827);
+}
+
+.citation-modal__quote {
+  margin: 0;
+  padding: var(--space-3, 12px);
+  font-size: var(--text-sm, 14px);
+  color: var(--color-gray-700, #374151);
+  background: var(--color-gray-50, #f9fafb);
+  border-left: 3px solid var(--color-accent, #2563eb);
+  border-radius: 4px;
+  line-height: 1.6;
+}
+
+.citation-modal__content > button {
+  align-self: flex-end;
+  padding: 6px 16px;
+  font-size: var(--text-sm, 14px);
+  color: var(--color-gray-500, #6b7280);
+  background: var(--color-gray-100, #f3f4f6);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.citation-modal__content > button:hover {
+  background: var(--color-gray-200, #e5e7eb);
+}
+
+/* File output card */
+.file-output-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  margin-top: var(--space-1);
+}
+
+.file-output-card__icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--color-gray-400);
+}
+
+.file-output-card__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.file-output-card__name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-black);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-output-card__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.file-output-card__action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--color-gray-400);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color var(--duration-base) var(--ease-out);
+}
+
+.file-output-card__action-btn svg {
+  width: 100%;
+  height: 100%;
+}
+
+.file-output-card__action-btn:hover {
+  color: var(--color-black);
+}
+
+.file-output-card__reauth-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+  cursor: pointer;
+}
+
+/* ── Agent activity indicator ─────────────────────────────────────────────── */
+
+/* Full-size: shown before any content exists */
+.chat-message__activity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+}
+
+/* Compact: shown below text/extra content when agent resumes working */
+.chat-message__activity--inline {
+  padding: var(--space-2) 0 0;
+  opacity: 0.55;
+}
+
+/* Pulsing dot for tool-call state */
+.chat-message__activity-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-gray-400);
+  flex-shrink: 0;
+  animation: chat-pulse 1.4s ease-in-out infinite;
+}
+
+.chat-message__activity--inline .chat-message__activity-pulse {
+  width: 5px;
+  height: 5px;
+}
+
+.chat-message__activity-label {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  line-height: 1.6;
+}
+
+.chat-message__activity--inline .chat-message__activity-label {
+  font-size: var(--text-xs);
+}
+
+@keyframes chat-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.75); }
+}
+
+/* ── Typing indicator (thinking state — bouncing dots) ─────────────────────── */
+
+.chat-message__typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-1) 0;
+}
+
+/* Compact variant shown below existing content */
+.chat-message__typing--inline {
+  padding: var(--space-2) 0 0;
+  opacity: 0.55;
+  gap: 3px;
+}
+
+.chat-message__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-gray-400);
+  animation: chat-bounce 0.8s ease-in-out infinite;
+}
+
+.chat-message__typing--inline .chat-message__dot {
+  width: 4px;
+  height: 4px;
+}
+
+.chat-message__dot:nth-child(2) {
+  animation-delay: 150ms;
+}
+
+.chat-message__dot:nth-child(3) {
+  animation-delay: 300ms;
+}
+
+@keyframes chat-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* ── Media ──────────────────────────────────────────────────────────────
+   Images, video and audio a team produced, and images an agent linked in
+   markdown. Both go through the same rules so an artifact and an inline link
+   are not two different-looking things in the same bubble.
+
+   Every value comes from the tokens in src/index.css. The height cap is the
+   load-bearing one: a full-page screenshot is routinely 3000px tall, and
+   without it a single reply pushes the whole conversation off the screen. */
+
+.chat-message__media {
+  display: flex;
+  flex-direction: column;
+  /* Each piece of media sizes to ITSELF.
+  
+     A column flex container stretches its children across the cross axis by
+     default, so every wrapper was as wide as the bubble no matter what it held.
+     A portrait screenshot then sat in a landscape-shaped box: the picture a
+     couple of hundred pixels wide, the container several hundred, and the
+     difference dead space the reader has to scroll past. `flex-start` makes the
+     wrapper shrink to its content, so the box IS the shape of the media —
+     landscape stays wide, portrait becomes narrow and tall. */
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.chat-message__media:last-child {
+  margin-bottom: 0;
+}
+
+/* File cards shown into a message. A column like the media beside it, but the
+   cards size to the bubble rather than to themselves: a file card is a fixed
+   piece of chrome with a name in it, not a picture with its own shape, and
+   stretching is what makes a row of them line up. */
+.chat-message__files {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.chat-message__files:last-child {
+  margin-bottom: 0;
+}
+
+.chat-media {
+  max-width: 100%;
+}
+
+/* Holds the space before the bytes arrive, so the transcript does not jump
+   under the reader.
+   
+   The width is what makes this correct for PORTRAIT media. A placeholder that
+   is simply `width: 100%` with the image's aspect ratio reserves a box as tall
+   as the bubble is wide divided by the ratio — for a phone screenshot at
+   1080x2400 that is an enormous grey rectangle, and the picture then collapses
+   into a narrow strip when it loads. Clamping the width to
+   `max-height x ratio` reproduces exactly what `max-height` + `width: auto`
+   will do to the real image: landscape fills the bubble, portrait stands at
+   most --chat-media-max-h tall and only as wide as that height allows.
+   
+   --chat-media-ar and --chat-media-ar-num are set inline from the stored
+   dimensions. Without them this falls back to a squat block, which is the
+   honest shape for media whose size nobody recorded. */
+.chat-media--loading {
+  aspect-ratio: var(--chat-media-ar, auto);
+  width: min(100%, calc(var(--chat-media-max-h) * var(--chat-media-ar-num, 1)));
+  min-height: 120px;
+  max-height: var(--chat-media-max-h);
+  border-radius: var(--radius-md);
+  /* No border. A skeleton is a stand-in for the picture, and the picture has
+     none — a framed placeholder replaced by an unframed image is a visible
+     change of shape at the moment the bytes land. The fill alone is enough to
+     say something is coming. */
+  background: var(--color-gray-50);
+}
+
+/* A photograph is content, not a component: it brings its own edges and needs
+   no frame drawn around it. The 1px grey rule that used to be here read as a
+   border on the BUBBLE for anything with light edges, and it traced the
+   letterbox rather than the picture whenever the two disagreed. Rounded
+   corners stay — they match the bubble — and the border is gone. */
+.chat-media__image,
+.chat-message__markdown img {
+  display: block;
+  max-width: 100%;
+  max-height: var(--chat-media-max-h, 420px); /* fallback unreachable inside a message */
+  width: auto;
+  height: auto;
+  /* Never distort, whatever box the layout computes.
+  
+     This was removed in an earlier pass as redundant — with `width: auto` and
+     `height: auto` the box matches the image and `contain` is a no-op. That
+     reasoning holds only while nothing IMPOSES a ratio, and something did: the
+     stored dimensions come from a JPEG's frame header, which is raw pixels
+     before EXIF rotation. A phone photo shot in portrait is stored landscape
+     with an orientation flag, the browser rotates it on render, and the imposed
+     landscape ratio then stretched a portrait picture sideways to fill it.
+     
+     The imposed ratio is gone (see MediaCard), so this is a no-op again — and
+     it stays, because the cost of being wrong here is a visibly deformed
+     photograph and the cost of keeping it is nothing. */
+  object-fit: contain;
+  border-radius: var(--radius-md);
+}
+
+/* The click targets for expanding and collapsing an image. Buttons so both are
+   reachable by keyboard; everything that makes a button look like a button is
+   removed. The collapse target is the expanded image itself — the overlay stops
+   propagation on its own content, so clicking the picture is otherwise the one
+   gesture that does not close it. */
+.chat-media__expand,
+.chat-media__collapse {
+  display: block;
+  padding: 0;
+  border: none;
+  background: none;
+  max-width: 100%;
+}
+
+.chat-media__expand {
+  cursor: zoom-in;
+}
+
+.chat-media__collapse {
+  cursor: zoom-out;
+  /* Hugs the picture. `width: 100%` made this button as wide as the modal, so
+     the click target and the white behind it were landscape whatever the photo
+     was. */
+  width: auto;
+}
+
+/* An image the reply linked that will not load. Reads as the link it always
+   was, rather than as the browser's broken-image glyph mid-sentence. */
+.chat-media__broken {
+  color: var(--color-accent);
+  text-decoration: underline;
+  word-break: break-word;
+}
+
+/* Positions the close control over the picture's top-right corner.
+   
+   `fit-content` matters: without it this wrapper would be a block at the full
+   width of its parent and the absolutely-positioned button would sit against
+   the BOX's corner rather than the image's, which for a portrait photo is a
+   different place entirely. */
+.chat-media__expanded-frame {
+  position: relative;
+  width: fit-content;
+  line-height: 0;
+}
+
+.chat-media__expanded-close {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 1;
+  /* The picture behind it is arbitrary, so the control cannot rely on contrast
+     with it. A translucent light chip keeps the glyph legible over a dark
+     photograph and over a white one. */
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+  color: var(--color-black);
+}
+
+.chat-media__expanded-close:hover {
+  background: var(--color-white);
+}
+
+.chat-media__image--expanded {
+  /* The expanded view answers a different question — "show me this properly" —
+     so it is bounded by the VIEWPORT rather than by the in-thread height, and
+     a portrait image is allowed to use the height it needs.
+     
+     Both bounds are viewport units on purpose. The modal box around this now
+     shrinks to its content, so sizing the image as a percentage OF that box
+     would be circular; measuring against the screen instead leaves the box free
+     to take the picture's shape. */
+  max-height: 84vh;
+  max-width: 92vw;
+  margin: 0 auto;
+}
+
+/* Same reasoning as the image, and one addition: the black background is what
+   fills a video's own letterbox while its first frame loads, so a border here
+   would draw a grey line around a black box. */
+.chat-media__video {
+  display: block;
+  max-width: 100%;
+  max-height: var(--chat-media-max-h, 420px); /* fallback unreachable inside a message */
+  border-radius: var(--radius-md);
+  background: var(--color-black);
+}
+
+.chat-media__audio {
+  display: block;
+  width: 100%;
+}
+
+/* A line of narration while a run works.
+ *
+ * Block, not flex. The shared status row lays the dot and the text out as two
+ * flex items, which is right for a short sentence and wrong for these: they
+ * carry a step number and a running tally, so they grow, and flex-wrap put the
+ * text on its own line with the dot stranded above it.
+ *
+ * Inline dot instead, so it sits at the start of the first line and the text
+ * wraps under it however long it gets. Styled here rather than in ChatPage.css
+ * because the row is rendered from ChatMessages, and a component that depends on
+ * a stylesheet it does not import is a component that renders unstyled on the
+ * next surface someone adds. */
+.chat-run-progress {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  /* Left, not centred: a centred two-line sentence is measurably harder to
+     scan, and these lines are read as a sequence. */
+  text-align: left;
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  /* Reset the body's variable-font weight and tracking, which otherwise make
+     small text drift lighter than intended beside the message bubbles. */
+  font-variation-settings: "wght" 400;
+  letter-spacing: normal;
+}
+
+.chat-run-progress__dot {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin-right: var(--space-2);
+  /* Optical centre of the first line, so the dot reads as a bullet rather than
+     as a character sitting on the baseline. */
+  vertical-align: middle;
+  border-radius: var(--radius-full);
+  background: currentColor;
+}
+
+/* A run's narration, folded to one line. The rows are still written one per
+   update; this is only how they are shown. Inherits the single row's muted
+   treatment so a folded run and an unfolded one read as the same kind of thing
+   rather than as two different features. */
+.chat-run-progress-group {
+  display: block;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  font-variation-settings: "wght" 400;
+  letter-spacing: normal;
+}
+
+.chat-run-progress-group__summary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-1) 0;
+  background: none;
+  border: 0;
+  /* Inherit rather than restate: the button must not pick up the UA's default
+     blue and centred text, which would read as a link in the transcript. */
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chat-run-progress-group__summary:hover {
+  color: var(--color-gray-700);
+}
+
+.chat-run-progress-group__chevron {
+  flex: 0 0 auto;
+  width: 10px;
+  line-height: 1;
+}
+
+.chat-run-progress-group__label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.chat-run-progress-group__count {
+  flex: 0 0 auto;
+  color: var(--color-gray-400);
+  font-size: var(--text-xs);
+}
+
+.chat-run-progress-group__lines {
+  /* Aligned under the label, past the chevron, so the expanded lines read as
+     belonging to the summary above them. */
+  padding-left: calc(10px + var(--space-2));
+}
+
+.chat-run-progress-group__line {
+  padding: var(--space-1) 0;
+  color: var(--color-gray-500);
+}

@@ -1,0 +1,27 @@
+{
+  "set": {
+    "id": "memory_save",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "content": "The ticket is at step 3 of 5: deals read, sheet row not yet appended, notification pending.",
+    "layer": "individual",
+    "requestedTags": [
+      "agent-initiated"
+    ],
+    "contract": {
+      "kind": "instructions",
+      "instructions": "Every Monday, read the CRM for last week's closed deals, append one summary row to the Sales tracking sheet, and notify #sales-ops when done. Route billing questions to the finance team.",
+      "role": "You are the Sales Ops assistant for Acme."
+    },
+    "neighbours": []
+  },
+  "expect": {
+    "admit": {
+      "choice": "task_state",
+      "min": 0.8
+    }
+  },
+  "note": "The state of the current task. Pins ADMIT_REFUSE_T."
+}

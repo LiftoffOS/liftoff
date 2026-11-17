@@ -1,0 +1,33 @@
+{
+  "set": {
+    "id": "browser_goal_check",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "goal": "Sign in as \"jane\" and confirm the welcome page",
+    "final": {
+      "url": "https://fixture.test/login",
+      "title": "Fixture",
+      "text": "Welcome back, jane\\nSigned in"
+    },
+    "recent_actions": [
+      {
+        "action": "Username",
+        "kind": "fill",
+        "page_changed": true
+      },
+      {
+        "action": "Sign in",
+        "kind": "click",
+        "page_changed": true
+      }
+    ]
+  },
+  "expect": {
+    "goal_met": {
+      "min": 0.7
+    }
+  },
+  "note": "The welcome page after the sign-in."
+}

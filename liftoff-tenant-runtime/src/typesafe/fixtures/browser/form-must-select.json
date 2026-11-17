@@ -1,0 +1,98 @@
+{
+  "set": {
+    "id": "browser_step",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "page": {
+    "url": "https://fixture.test/form",
+    "title": "Fixture",
+    "w": 756,
+    "h": 413,
+    "text": "Category\nBook",
+    "scroll": {
+      "y": 0,
+      "height": 413
+    },
+    "actions": [
+      {
+        "node": 2,
+        "role": "combobox",
+        "label": "Category → Design",
+        "rect": {
+          "x": 92.65625,
+          "y": 31,
+          "w": 68,
+          "h": 19
+        },
+        "kind": "select",
+        "value": "Design",
+        "current_value": "All",
+        "id": "e1"
+      },
+      {
+        "node": 2,
+        "role": "combobox",
+        "label": "Category → Coastal",
+        "rect": {
+          "x": 92.65625,
+          "y": 31,
+          "w": 68,
+          "h": 19
+        },
+        "kind": "select",
+        "value": "Coastal",
+        "current_value": "All",
+        "id": "e2"
+      },
+      {
+        "node": 3,
+        "role": "button",
+        "label": "Book",
+        "rect": {
+          "x": 160.65625,
+          "y": 30,
+          "w": 46.390625,
+          "h": 21
+        },
+        "kind": "click",
+        "value": "",
+        "id": "e3"
+      },
+      {
+        "id": "wait",
+        "kind": "wait",
+        "label": "Wait for the page to update"
+      }
+    ],
+    "marker": null,
+    "page_key": null,
+    "guards": {},
+    "omitted_actions": 0,
+    "fingerprint": "3a167c36be080080bd16c92d09be5773c0a90682e17fa558efbe1e5cbcc0681d"
+  },
+  "goal": "Accept cookies, choose the Coastal category and book",
+  "history": [
+    {
+      "step": 1,
+      "action": "Accept",
+      "kind": "click",
+      "operation": "CLICK",
+      "probability": 1,
+      "confidence": 1,
+      "latencyMs": 100,
+      "url": "https://fixture.test/login",
+      "pageChanged": true,
+      "typed": false
+    }
+  ],
+  "expect": {
+    "operation": {
+      "choice": "SELECT"
+    },
+    "select_target": {
+      "label": "Coastal"
+    }
+  },
+  "note": "The dropdown before the submit; the banner is gone."
+}

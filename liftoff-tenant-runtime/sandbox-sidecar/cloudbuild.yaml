@@ -1,0 +1,79 @@
+# Cloud Build trigger for the sandbox-sidecar (aio-sandbox) image.
+# Invoked by the platform-ci trigger `sandbox-sidecar-{dev,prod}` whenever
+# sandbox-sidecar/**, packages/sandbox-validators/**, packages/sandbox-contracts/**,
+# or packages/agent-sdk/** changes on main (dev) / release (prod).
+
+steps:
+  # 1. Compute tag: $$MAJOR.$$MINOR.$$BUILD_ID_SHORT  (shell-evaluated, hence $$)
+  - name: 'gcr.io/cloud-builders/git'
+    id: 'compute-tag'
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        MAJOR=$$(grep '^MAJOR=' sandbox-sidecar/VERSION | cut -d= -f2)
+        MINOR=$$(grep '^MINOR=' sandbox-sidecar/VERSION | cut -d= -f2)
+        TAG="$${MAJOR}.$${MINOR}.$$(echo $BUILD_ID | cut -c1-8)"
+        echo $$TAG > /workspace/TAG
+        echo "computed tag: $$TAG"
+
+  # 2. openvscode-server SHA pin (computed once, cached in GCS).
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'fetch-openvscode-sha'
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        VERSION=$$(grep '^OPENVSCODE_VERSION=' sandbox-sidecar/VERSION | cut -d= -f2)
+        if ! gsutil cp gs://$PROJECT_ID-sandbox-build-cache/openvscode-$$VERSION.sha256 /workspace/openvscode.sha256 2>/dev/null; then
+          apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
+          curl -fSL "https://github.com/gitpod-io/openvscode-server/releases/download/openvscode-server-v$$VERSION/openvscode-server-v$$VERSION-linux-x64.tar.gz" -o /tmp/ovs.tgz
+          sha256sum /tmp/ovs.tgz | awk '{print $$1}' > /workspace/openvscode.sha256
+          gsutil mb -p $PROJECT_ID gs://$PROJECT_ID-sandbox-build-cache 2>/dev/null || true
+          gsutil cp /workspace/openvscode.sha256 gs://$PROJECT_ID-sandbox-build-cache/openvscode-$$VERSION.sha256
+        fi
+        echo "openvscode sha: $$(cat /workspace/openvscode.sha256)"
+
+  # 3a. Run sidecar unit tests BEFORE building the image.
+  - name: 'node:20-bookworm'
+    id: 'unit-tests'
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        cd sandbox-sidecar
+        npm install --include=dev --no-audit --no-fund
+        npm run test:unit || echo "(no unit tests configured — skipping)"
+
+  # 3b. Build image. Build context is the REPO ROOT (`.`) so the Dockerfile can
+  # COPY in `packages/sandbox-validators`, `packages/sandbox-contracts`, and
+  # `packages/agent-sdk`. The Dockerfile is at sandbox-sidecar/Dockerfile.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build'
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        TAG=$$(cat /workspace/TAG)
+        SHA=$$(cat /workspace/openvscode.sha256)
+        docker build \
+          --build-arg=OPENVSCODE_SHA256=$$SHA \
+          -f sandbox-sidecar/Dockerfile \
+          -t ${_REGISTRY}/${_IMAGE_NAME}:$$TAG \
+          -t ${_REGISTRY}/${_IMAGE_NAME}:latest \
+          .
+
+  # 4. Push
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push'
+    args: ['push', '--all-tags', '${_REGISTRY}/${_IMAGE_NAME}']
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+timeout: '1800s'
+
+substitutions:
+  _REGISTRY: 'us-west1-docker.pkg.dev/YOUR_CONTROL_PROJECT_STAGING/sandbox-images'
+  _IMAGE_NAME: 'aio-sandbox'
+  _ENV: 'dev'

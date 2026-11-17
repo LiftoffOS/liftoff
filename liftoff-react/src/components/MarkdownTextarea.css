@@ -1,0 +1,219 @@
+.markdown-textarea {
+  position: relative;
+  width: 100%;
+  overflow-anchor: none;
+}
+
+/* Editor container - match original textarea styling */
+.markdown-textarea .tiptap {
+  width: 100%;
+  min-height: 120px;
+  padding: 14px 16px;
+  padding-right: 52px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  text-align: left;
+  color: var(--color-black);
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+  overflow-anchor: none;
+}
+
+.markdown-textarea .tiptap:focus-visible {
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+
+/* Remove default margins */
+.markdown-textarea .tiptap p {
+  margin: 0;
+}
+
+/* Style h2 headings - subtle styling matching original spec */
+.markdown-textarea .tiptap h2 {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-gray-400);
+  line-height: 1.6;
+}
+
+/* Read-only mode — rendered markdown, same box as the Tiptap editor */
+.markdown-textarea__rendered {
+  width: 100%;
+  padding: 14px 16px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-black);
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  box-sizing: border-box;
+  user-select: text;
+}
+
+.markdown-textarea__rendered p {
+  margin: 0 0 0.25em 0;
+}
+
+.markdown-textarea__rendered p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-textarea__rendered h2,
+.markdown-textarea__rendered h3 {
+  margin: 0.75em 0 0.25em 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-gray-400);
+  line-height: 1.6;
+}
+
+.markdown-textarea__rendered h2:first-child,
+.markdown-textarea__rendered h3:first-child {
+  margin-top: 0;
+}
+
+.markdown-textarea__rendered ul,
+.markdown-textarea__rendered ol {
+  margin: 0.25em 0;
+  padding-left: 1.25em;
+}
+
+.markdown-textarea__rendered li {
+  margin-bottom: 0.15em;
+}
+
+.markdown-textarea__rendered strong {
+  font-weight: 600;
+}
+
+/* Inline code (e.g. `lead_score`, `last_enriched_at`) — render identically to
+   surrounding prose. Backtick spans in template content otherwise fall back to
+   the browser's default monospace at full weight, which clashes with the light
+   body text and reads as oversized/emphasized. */
+.markdown-textarea__rendered code {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  font-variation-settings: inherit;
+  letter-spacing: inherit;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.markdown-textarea__rendered table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5em 0;
+  font-size: var(--text-xs);
+}
+
+.markdown-textarea__rendered th,
+.markdown-textarea__rendered td {
+  text-align: left;
+  padding: 0.25em 0.5em;
+  border: 1px solid var(--border-light);
+}
+
+.markdown-textarea__rendered th {
+  font-weight: 600;
+  background: var(--color-white, #fff);
+}
+
+/* Placeholder styling */
+.markdown-textarea .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--color-gray-400);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Inline knowledge chip (rendered mention node) */
+.knowledge-chip {
+  display: inline-block;
+  padding: 0 6px;
+  background: var(--color-white, #fff);
+  border: 1px solid var(--border-light);
+  border-radius: 9999px;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+  color: var(--color-black);
+}
+
+/* Broken chip: the pinned item is no longer reachable — either the underlying
+ * knowledge_item was deleted, or the connector that owns it was unbound from
+ * the agent. Operators see this on hover via the Tooltip in KnowledgeMentionChip. */
+.knowledge-chip--broken {
+  text-decoration: line-through;
+  color: var(--color-text-muted, #94a3b8);
+  background: transparent;
+  border: 1px dashed var(--color-border-muted, #cbd5e1);
+  cursor: help;
+}
+
+/* Inline agent chip (rendered agentMention node) */
+.agent-chip {
+  display: inline-block;
+  padding: 0 6px;
+  background: var(--color-white, #fff);
+  border: 1px solid var(--border-light);
+  border-radius: 9999px;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+  color: var(--color-black);
+}
+
+/* Floating picker dropdown */
+.knowledge-mention-list {
+  min-width: 220px;
+  max-width: 320px;
+  background: var(--color-white, #fff);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg, 8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+}
+
+.knowledge-mention-list__item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-black);
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.knowledge-mention-list__item:hover,
+.knowledge-mention-list__item--selected {
+  background: var(--color-gray-50);
+}
+
+.knowledge-mention-list__empty {
+  padding: 8px 12px;
+  color: var(--color-gray-400);
+  font-size: var(--text-sm);
+}

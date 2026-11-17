@@ -1,0 +1,28 @@
+name: npm-audit
+# Phase 0e — npm audit CI gate. Fails the build on high / critical
+# vulnerabilities. Copy verbatim into `.github/workflows/npm-audit.yml`
+# in every new Liftoff service repo.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Daily catch — a vendor disclosure landing between PRs still gets
+    # surfaced within 24 h.
+    - cron: "0 8 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci --ignore-scripts
+      - name: npm audit (high+critical fail)
+        run: npm audit --omit=dev --audit-level=high

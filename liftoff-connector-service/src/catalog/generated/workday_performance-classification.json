@@ -1,0 +1,26 @@
+[
+  {
+    "tool": "perf_workers_requestfeedbackonselfevents",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "perf_workers_requestfeedbackonworkerevents",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "perf_workers_createfeedbackevent",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "perf_giverequestedfeedbackevents_updateevent",
+    "categories": [
+      "dataChanges"
+    ]
+  }
+]

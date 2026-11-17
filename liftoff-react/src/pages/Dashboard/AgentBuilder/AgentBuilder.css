@@ -1,0 +1,554 @@
+.agent-builder {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: var(--space-6);
+  background: var(--color-white);
+}
+
+.agent-builder__content {
+  width: 100%;
+  max-width: 560px;
+  text-align: center;
+}
+
+.agent-builder__content:has(.completion-step) {
+  max-width: 1000px;
+}
+
+/* Step Container */
+.agent-builder-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+/* Operating-rules disclosure on the responsibilities step. Full width so it
+   lines up with the editor above it; the step's own flex gap spaces it. */
+.agent-builder-step__guidance {
+  width: 100%;
+}
+
+/* The builder's own editor cap. Prefilled template text runs to several
+   hundred words, and an editor that grows to fit it pushed Continue far below
+   the fold, so cap it and let it scroll in place and the step stays roughly one
+   screen. Covers both editors on the responsibilities step.
+
+   The update page caps its editors too, but with its own rule and its own
+   value. That is deliberate, not duplication waiting to be factored out: a
+   one-question-per-screen wizard and a long settings document want different
+   proportions, and tuning this number is not meant to move that one.
+
+   Mention dropdowns portal to <body>, so this scroll container never clips
+   them, and the attach button is a sibling of the editor rather than a child,
+   so it stays pinned instead of scrolling away. */
+.agent-builder-step .markdown-textarea .tiptap {
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.agent-builder-step__header {
+  font-size: var(--text-3xl);
+  font-weight: 500;
+  color: var(--color-black);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.agent-builder-step__subtext {
+  font-size: var(--text-base);
+  color: var(--color-gray-400);
+  margin-top: var(--space-2);
+}
+
+.agent-builder-input__ellipsis {
+  display: inline-flex;
+  width: 24px;
+  gap: 2px;
+}
+
+.agent-builder-input__ellipsis span {
+  opacity: 0;
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+
+.agent-builder-input__ellipsis span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.agent-builder-input__ellipsis span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.agent-builder-input__ellipsis span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dotPulse {
+  0%, 20% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  60%, 100% {
+    opacity: 0;
+  }
+}
+
+/* Textarea for responsibilities */
+.agent-builder-input__textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 14px 16px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  outline: none;
+  resize: vertical;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.agent-builder-input__textarea::placeholder {
+  color: var(--color-gray-400);
+}
+
+
+/* Input with action button */
+.agent-builder-input--with-action {
+  position: relative;
+}
+
+.agent-builder-input--with-action .agent-builder-input__textarea {
+  padding-right: 52px;
+}
+
+.agent-builder-input__action {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.agent-builder-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--color-gray-400);
+  transition: all var(--duration-base) var(--ease-out);
+}
+
+.agent-builder-add-btn:hover {
+  background: var(--color-gray-100);
+  color: var(--color-black);
+}
+
+.agent-builder-add-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* The .agent-builder-popover rules that used to live here were the attachment
+   picker's only styling, even though the picker is a shared component and this
+   is a page stylesheet. Any route that rendered it without importing this file
+   got bare icons and no chrome, which is what the dashboard home composer
+   shipped. They now live with the component, in
+   components/FileAttach/FileUploadPopover.css, under its own class names. */
+
+/* Import Modal Content Styles */
+.import-modal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--space-5);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-lg);
+  color: var(--color-gray-400);
+}
+
+.import-modal__icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.import-modal__title {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--color-black);
+  margin-bottom: var(--space-2);
+}
+
+.import-modal__description {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  margin-bottom: var(--space-6);
+}
+
+.import-modal__permissions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  text-align: left;
+}
+
+.import-modal__permission {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+}
+
+.import-modal__permission svg {
+  width: 16px;
+  height: 16px;
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.import-modal__actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+/* Navigation */
+.agent-builder-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+/* Back Arrow Button - Top Left */
+.agent-builder-back {
+  position: absolute;
+  top: var(--space-6);
+  left: var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-out);
+  color: var(--color-gray-400);
+}
+
+.agent-builder-back:hover {
+  color: var(--color-black);
+  background: var(--color-gray-100);
+}
+
+.agent-builder-back svg {
+  width: 18px;
+  height: 18px;
+}
+
+
+/* Loading Screen — moved to steps/LoadingStep.css, which the component
+   imports itself. See the note there: this stylesheet is builder-only, and
+   the update page renders LoadingStep too. */
+
+/* Completion Screen */
+.completion-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+}
+
+.completion-step__message {
+  text-align: center;
+}
+
+.completion-step__header {
+  font-size: var(--text-3xl);
+  font-weight: 500;
+  color: var(--color-black);
+  letter-spacing: -0.02em;
+}
+
+.completion-step__subtext {
+  font-size: var(--text-base);
+  color: var(--color-gray-400);
+  margin-top: var(--space-2);
+}
+
+.completion-step__columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-8);
+  width: 100%;
+}
+
+.completion-step__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-6);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-xl);
+  text-align: left;
+}
+
+.completion-step__decision {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-6);
+  text-align: left;
+}
+
+.completion-step__detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.completion-step__detail-label {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.completion-step__detail-value {
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  line-height: 1.5;
+  /* The Scope detail comes from the LLM distill output, and Working with
+     can contain wrapped lines — preserve any newlines so multi-line copy
+     renders with the breaks intended instead of collapsing to one line. */
+  white-space: pre-wrap;
+}
+
+.completion-step__integrations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.completion-step__integration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+}
+
+.completion-step__integration svg {
+  width: 20px;
+  height: 20px;
+}
+
+.completion-step__integration--external svg {
+  color: var(--color-gray-400);
+}
+
+.completion-step__integration-count {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-gray-400);
+}
+
+.completion-step__integration-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--color-gray-100);
+  border-radius: var(--radius-md);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-gray-400);
+}
+
+
+.completion-step__why {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.completion-step__why-title {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.completion-step__why-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.completion-step__why-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+}
+
+.completion-step__why-list li::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--color-accent);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.completion-step__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.completion-step__control-note {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  text-align: center;
+  margin: 0;
+}
+
+/* Shown while a decision waits on the rest of the distillation. Under the waved
+   strategy this screen is readable before the artifact is finished, so someone
+   who decides quickly is held here — and a spinning button alone reads as
+   stuck. Sits directly under the actions, in the same muted register as the
+   control note beneath it, because it is a status line and not an alert. */
+.completion-step__waiting {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  text-align: center;
+  margin: 0;
+}
+
+/* Shown when creating the team was rejected. Before this a failed create was
+   invisible: the button stopped spinning and nothing else changed. */
+.completion-step__error-message {
+  font-size: var(--text-sm);
+  color: var(--color-error, #dc2626);
+  text-align: center;
+  margin: 0 0 var(--space-3, 12px);
+}
+
+/* Attached Files */
+.attached-files {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.attached-file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 12px;
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+}
+
+.attached-file__icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--color-gray-400);
+}
+
+.attached-file__name {
+  flex: 1;
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+.attached-file__date {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  white-space: nowrap;
+}
+
+.attached-file__remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-gray-400);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.attached-file__remove:hover {
+  background: var(--color-gray-100);
+  color: var(--color-gray-500);
+}
+
+.attached-file__remove svg {
+  width: 12px;
+  height: 12px;
+}
+
+@media (max-width: 768px) {
+  .agent-builder {
+    min-height: calc(100vh - 72px);
+    min-height: calc(100dvh - 72px);
+    padding: var(--space-4);
+  }
+
+  .agent-builder-back {
+    top: var(--space-4);
+    left: var(--space-4);
+  }
+
+  .agent-builder-step__header {
+    font-size: var(--text-2xl);
+  }
+
+  .integrations-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

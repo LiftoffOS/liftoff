@@ -1,0 +1,116 @@
+# Runtime-extensions alert definitions (Cloud Monitoring policy YAML).
+# Apply via:
+#   gcloud monitoring policies create --policy-from-file=docs/alerts/runtime-extensions.yaml
+# (Adjust the notificationChannel resource names per environment before apply.)
+
+- displayName: DelegationKillSwitchEngaged
+  documentation:
+    content: |
+      Cluster-wide or per-tenant delegate_task spawn pause is active. SRE inserted
+      a row into delegation_spawn_pause. New delegate_task calls are throwing
+      'spawn_paused' until the row is removed. See docs/runbooks/DELEGATION_RUNAWAY.md.
+  combiner: OR
+  conditions:
+    - displayName: delegation_spawn_paused = 1 for 1 minute
+      conditionThreshold:
+        filter: 'metric.type="logging.googleapis.com/user/delegation_spawn_paused"'
+        comparison: COMPARISON_GT
+        thresholdValue: 0
+        duration: 60s
+        aggregations:
+          - alignmentPeriod: 60s
+            perSeriesAligner: ALIGN_MAX
+
+- displayName: CrossTenantDelegationAttempted
+  documentation:
+    content: |
+      A delegate_task call attempted to spawn a child in a different tenant. The
+      attempt was blocked and audit-logged. This is a security signal — investigate
+      the parent agent's instructions and recent compromise indicators.
+  combiner: OR
+  conditions:
+    - displayName: cross_tenant_blocked rate > 0 for 1 minute
+      conditionThreshold:
+        filter: 'metric.type="logging.googleapis.com/user/delegation_cross_tenant_blocked_total"'
+        comparison: COMPARISON_GT
+        thresholdValue: 0
+        duration: 60s
+        aggregations:
+          - alignmentPeriod: 60s
+            perSeriesAligner: ALIGN_RATE
+
+- displayName: TrajectorySinkFailureRateHigh
+  documentation:
+    content: |
+      trajectory_sink_failed_total rate exceeds 1% over 10 minutes. The sink is
+      non-fatal so the agent loop keeps running, but write attempts are failing.
+      Common causes: GCS quota, IAM drift, malformed canonical schema. See
+      docs/runbooks/TRAJECTORY_RECONCILIATION.md.
+  combiner: OR
+  conditions:
+    - displayName: trajectory_sink_failed > 0.01/s for 10m
+      conditionThreshold:
+        filter: 'metric.type="logging.googleapis.com/user/trajectory_sink_failed_total"'
+        comparison: COMPARISON_GT
+        thresholdValue: 0.01
+        duration: 600s
+        aggregations:
+          - alignmentPeriod: 60s
+            perSeriesAligner: ALIGN_RATE
+
+- displayName: TenantConfigClampedHigh
+  documentation:
+    content: |
+      A tenant has repeatedly UPSERTed runtime config values that exceed the hard
+      cap. Either the operator is testing the cap (benign) or there is a misconfig
+      that needs review. Check tenant_runtime_config for the offending tenant_id +
+      key.
+  combiner: OR
+  conditions:
+    - displayName: tenant_config_clamped > 0.1/s for 15m
+      conditionThreshold:
+        filter: 'metric.type="logging.googleapis.com/user/tenant_config_clamped_total"'
+        comparison: COMPARISON_GT
+        thresholdValue: 0.1
+        duration: 900s
+        aggregations:
+          - alignmentPeriod: 60s
+            perSeriesAligner: ALIGN_RATE
+
+- displayName: OpenAIAdapterMissingUsageEvents
+  documentation:
+    content: |
+      OpenAI invocations completing with totalInputTokens=0 + totalOutputTokens=0
+      indicate the usage-emission path in OpenAIAdapter has regressed (commit
+      1c5c447 baseline). Bisect against recent changes to openai/index.ts around
+      runResult.rawResponses aggregation.
+  combiner: OR
+  conditions:
+    - displayName: openai missing-usage > 0 for 5m
+      conditionThreshold:
+        filter: 'metric.type="logging.googleapis.com/user/openai_adapter_missing_usage_event_total"'
+        comparison: COMPARISON_GT
+        thresholdValue: 0
+        duration: 300s
+        aggregations:
+          - alignmentPeriod: 60s
+            perSeriesAligner: ALIGN_RATE
+
+- displayName: TrajectoryUnknownBlockTypeSeen
+  documentation:
+    content: |
+      Recorder observed a vendor block type not in the canonical schema. New
+      Anthropic / OpenAI / Gemini blocks should be added to the per-vendor mapper
+      so they survive into canonical output before they ship to prod. Check
+      metric.label.block_type for the new type.
+  combiner: OR
+  conditions:
+    - displayName: unknown block type seen
+      conditionThreshold:
+        filter: 'metric.type="logging.googleapis.com/user/trajectory_unknown_block_type_total"'
+        comparison: COMPARISON_GT
+        thresholdValue: 0
+        duration: 60s
+        aggregations:
+          - alignmentPeriod: 60s
+            perSeriesAligner: ALIGN_RATE

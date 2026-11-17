@@ -1,0 +1,47 @@
+name: Publish tunnel-client to Docker Hub
+
+# Builds + pushes the customer-side tunnel-client image to
+# docker.io/liftoffos/tunnel-client on every push to main.
+#
+# Customers pull this image with:
+#   docker run liftoffos/tunnel-client:latest ...
+#
+# Repo secrets required (Settings → Secrets and variables → Actions):
+#   DOCKERHUB_USERNAME — a Docker Hub user with push access to the liftoffos org
+#   DOCKERHUB_TOKEN    — a Docker Hub access token (Account Settings → Security)
+#
+# Docker Hub doesn't link back to the GitHub org, so the LiftoffOS GitHub
+# membership/repos stay invisible to anyone who pulls the image.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'client/**'
+      - '.github/workflows/publish-tunnel-client.yml'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push tunnel-client
+        uses: docker/build-push-action@v5
+        with:
+          context: client
+          file: client/Dockerfile
+          push: true
+          tags: |
+            liftoffos/tunnel-client:latest
+            liftoffos/tunnel-client:${{ github.sha }}

@@ -1,0 +1,37 @@
+# Dependencies
+# Both forms: the trailing-slash form matches the real directory; the bare
+# form also matches a `node_modules` *symlink* (as created by per-worktree
+# node_modules linking), which `node_modules/` alone does NOT ignore.
+node_modules/
+node_modules
+
+# Build output
+dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+
+# Secrets
+*.pem
+*.key
+credentials.json
+
+*.tgz

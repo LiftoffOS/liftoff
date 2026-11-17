@@ -1,0 +1,65 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "noEmitOnError": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    // These two packages publish their types behind an `exports` map, and this
+    // project compiles with module=commonjs and so classic node resolution,
+    // which does not read `exports`. The mapping says where the .d.ts actually
+    // is.
+    //
+    // EACH MAPPING LISTS TWO CANDIDATES, and the second is not redundant.
+    // TypeScript tries them in order and takes the first that exists. The first
+    // is this package's own node_modules, which is where npm puts a dependency
+    // when this repo is installed on its own. The second is one level up, which
+    // is where npm HOISTS it when this tree is a member of a workspace: the
+    // layout of the root workspace, where every service is a directory under
+    // one root and they share one node_modules.
+    //
+    // With only the first candidate the hoisted layout resolves to nothing and
+    // every import of these two modules fails with TS2307. That was 101 errors
+    // in the workspace build while this package compiled clean on its own, which
+    // is the worst shape of the failure: nothing is wrong where you are looking.
+    "paths": {
+      // Four candidates, because this package also MOVED its entry point: 1.43
+      // ships build/src/index-incubating.d.ts and 1.45 ships
+      // dist/index-incubating.d.cts. A mapping that knows only one layout breaks
+      // on a minor bump, which is what a caret range invites. Listing both
+      // layouts in both locations costs nothing and survives the upgrade.
+      "@opentelemetry/semantic-conventions/incubating": [
+        "./node_modules/@opentelemetry/semantic-conventions/build/src/index-incubating",
+        "../node_modules/@opentelemetry/semantic-conventions/build/src/index-incubating",
+        "./node_modules/@opentelemetry/semantic-conventions/dist/index-incubating.d.cts",
+        "../node_modules/@opentelemetry/semantic-conventions/dist/index-incubating.d.cts"
+      ],
+      // Pin zod to THIS package's copy for the whole compilation, including
+      // inside other packages' .d.ts files. The runtime is on zod 4; a consumer
+      // that hoists to the workspace root — @modelcontextprotocol/sdk is the one
+      // that bit — resolves zod from there, which is zod 3, and then every
+      // schema handed to it is a different Zod than its types expect. That was
+      // 97 of this package's errors in the workspace build.
+      "zod": ["./node_modules/zod", "../node_modules/zod"],
+      "zod/*": ["./node_modules/zod/*", "../node_modules/zod/*"],
+      "@opencode-ai/sdk": [
+        "./node_modules/@opencode-ai/sdk/dist/index.d.ts",
+        "../node_modules/@opencode-ai/sdk/dist/index.d.ts"
+      ]
+    },
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "useUnknownInCatchVariables": false
+  },
+  "include": ["src/**/*", "src/types/**/*.d.ts"],
+  "exclude": ["node_modules", "dist", "tests", "**/*.test.ts", "**/__tests__/**"]
+}

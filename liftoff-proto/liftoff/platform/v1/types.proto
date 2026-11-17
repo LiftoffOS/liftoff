@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+// Platform → TenantRuntime domain types. Covers tenant metadata, agent
+// configuration, and entitlement snapshots that platform-backend ships
+// to the tenant-runtime over Pub/Sub or via synchronous RPC.
+package liftoff.platform.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// Tier of tenancy. Affects which project the runtime is deployed to,
+// whether the tenant gets a dedicated Cloud SQL instance, and which
+// connector pool is used.
+enum TenancyTier {
+  TENANCY_TIER_UNSPECIFIED = 0;
+  TENANCY_TIER_SHARED_STANDARD = 1;
+  TENANCY_TIER_DEDICATED_STANDARD = 2;
+  TENANCY_TIER_DEDICATED_ENTERPRISE = 3;
+}
+
+// Capability tier from R5 classification. Determines which Claude SDK
+// built-in tools (Bash, Read, Write, Edit, Glob, Grep) the agent is
+// allowed to invoke.
+enum CapabilityTier {
+  CAPABILITY_TIER_UNSPECIFIED = 0;
+  CAPABILITY_TIER_STANDARD = 1;
+  CAPABILITY_TIER_SANDBOX = 2;
+  CAPABILITY_TIER_EXECUTION = 3;
+}
+
+message Tenant {
+  string id = 1;
+  string slug = 2;
+  string display_name = 3;
+  TenancyTier tenancy_tier = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+// Internal agent configuration shipped from control plane to runtime.
+// The runtime stores this in compiled_instructions and recompiles when
+// anything changes.
+message InternalAgent {
+  string id = 1;
+  string tenant_id = 2;
+  string name = 3;
+  string purpose = 4;
+  // Claude model identifier (e.g. "claude-opus-4-7").
+  string model = 5;
+  CapabilityTier capability_tier = 6;
+  // Connector integrations the agent has access to.
+  repeated Integration integrations = 7;
+  // Compiled system prompt.
+  string system_prompt = 8;
+  // Compiled user instructions.
+  string user_instructions = 9;
+  int32 instruction_version = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+message Integration {
+  // Canonical connector type string.
+  string type = 1;
+  // Connector instance id (from connector.v1.Connector.id).
+  string connector_id = 2;
+  // OAuth scopes actually granted.
+  repeated string granted_scopes = 3;
+}
+
+// Entitlement snapshot for a tenant. Cached in the runtime for fast
+// admission checks; invalidated when control plane publishes
+// tenant.entitlement-updated.
+message Entitlement {
+  string tenant_id = 1;
+  // Credit balance in USD.
+  double credit_balance_usd = 2;
+  // Max concurrent invocations across all agents.
+  int32 max_concurrent_invocations = 3;
+  // Max active agents the tenant may run.
+  int32 max_active_agents = 4;
+  // Per-minute rate limit for tool calls.
+  int32 max_actions_per_minute = 5;
+  // Feature flags — opaque string-keyed bools the runtime consults.
+  map<string, bool> feature_flags = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}

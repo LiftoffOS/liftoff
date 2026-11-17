@@ -1,0 +1,1431 @@
+{
+  "connectorType": "klaviyo",
+  "harvestedAt": "2026-09-15",
+  "source": "vendor_docs",
+  "sourceUrl": "https://developers.klaviyo.com/en/docs/klaviyo_mcp_server",
+  "tools": [
+    {
+      "name": "get_account_details",
+      "description": "Get details of your account.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_campaigns",
+      "description": "List your campaigns.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_campaign",
+      "description": "Get details of a campaign.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_campaign",
+      "description": "Create a campaign."
+    },
+    {
+      "name": "assign_template_to_campaign_message",
+      "description": "Assign an email template to a campaign message."
+    },
+    {
+      "name": "get_campaign_send_job",
+      "description": "Get the status of a campaign send job.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_campaign_recipient_estimation_job",
+      "description": "Get the status of a campaign recipient estimation job.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_campaign_recipient_estimation",
+      "description": "Get the estimated number of recipients for a campaign.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_campaign_message",
+      "description": "Get details of a campaign message.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "refresh_campaign_recipient_estimation",
+      "description": "Refresh a campaign's recipient estimation."
+    },
+    {
+      "name": "create_campaign_clone",
+      "description": "Clone a campaign."
+    },
+    {
+      "name": "update_campaign",
+      "description": "Update a campaign."
+    },
+    {
+      "name": "delete_campaign",
+      "description": "Delete a campaign."
+    },
+    {
+      "name": "update_campaign_message",
+      "description": "Update a campaign message."
+    },
+    {
+      "name": "update_image_for_campaign_message",
+      "description": "Update the image associated with a campaign message."
+    },
+    {
+      "name": "send_campaign",
+      "description": "Send a campaign to its configured audience."
+    },
+    {
+      "name": "cancel_campaign_send",
+      "description": "Cancel or revert a campaign send."
+    },
+    {
+      "name": "get_catalog_items",
+      "description": "List your catalog items.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_catalog_item",
+      "description": "Get details of a catalog item.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_catalog_variant",
+      "description": "Get details of a catalog variant.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_catalog_category",
+      "description": "Get details of a catalog category.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_create_catalog_items_job",
+      "description": "Get the status of a bulk catalog item create job.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_update_catalog_items_job",
+      "description": "Get the status of a bulk catalog item update job.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_delete_catalog_items_job",
+      "description": "Get the status of a bulk catalog item delete job.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_create_variants_job",
+      "description": "Get the status of a bulk catalog variant create job.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_update_variants_job",
+      "description": "Get the status of a bulk catalog variant update job.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_delete_variants_job",
+      "description": "Get the status of a bulk catalog variant delete job.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_catalog_variants",
+      "description": "List catalog variants.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_catalog_categories",
+      "description": "List catalog categories.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_create_catalog_items_jobs",
+      "description": "List bulk catalog item create jobs.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_update_catalog_items_jobs",
+      "description": "List bulk catalog item update jobs.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_delete_catalog_items_jobs",
+      "description": "List bulk catalog item delete jobs.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_create_variants_jobs",
+      "description": "List bulk catalog variant create jobs.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_update_variants_jobs",
+      "description": "List bulk catalog variant update jobs.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_delete_variants_jobs",
+      "description": "List bulk catalog variant delete jobs.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_catalog_item",
+      "description": "Create a catalog item."
+    },
+    {
+      "name": "update_catalog_item",
+      "description": "Update a catalog item."
+    },
+    {
+      "name": "delete_catalog_item",
+      "description": "Delete a catalog item."
+    },
+    {
+      "name": "add_categories_to_catalog_item",
+      "description": "Add categories to a catalog item."
+    },
+    {
+      "name": "remove_categories_from_catalog_item",
+      "description": "Remove categories from a catalog item."
+    },
+    {
+      "name": "update_categories_for_catalog_item",
+      "description": "Update the categories for a catalog item."
+    },
+    {
+      "name": "create_back_in_stock_subscription",
+      "description": "Create a back-in-stock subscription."
+    },
+    {
+      "name": "create_catalog_variant",
+      "description": "Create a catalog variant."
+    },
+    {
+      "name": "update_catalog_variant",
+      "description": "Update a catalog variant."
+    },
+    {
+      "name": "delete_catalog_variant",
+      "description": "Delete a catalog variant."
+    },
+    {
+      "name": "create_catalog_category",
+      "description": "Create a catalog category."
+    },
+    {
+      "name": "update_catalog_category",
+      "description": "Update a catalog category."
+    },
+    {
+      "name": "delete_catalog_category",
+      "description": "Delete a catalog category."
+    },
+    {
+      "name": "add_items_to_catalog_category",
+      "description": "Add items to a catalog category."
+    },
+    {
+      "name": "remove_items_from_catalog_category",
+      "description": "Remove items from a catalog category."
+    },
+    {
+      "name": "update_items_for_catalog_category",
+      "description": "Update the items in a catalog category."
+    },
+    {
+      "name": "bulk_create_catalog_items",
+      "description": "Create catalog items in bulk."
+    },
+    {
+      "name": "bulk_update_catalog_items",
+      "description": "Update catalog items in bulk."
+    },
+    {
+      "name": "bulk_delete_catalog_items",
+      "description": "Delete catalog items in bulk."
+    },
+    {
+      "name": "bulk_create_catalog_variants",
+      "description": "Create catalog variants in bulk."
+    },
+    {
+      "name": "bulk_update_catalog_variants",
+      "description": "Update catalog variants in bulk."
+    },
+    {
+      "name": "bulk_delete_catalog_variants",
+      "description": "Delete catalog variants in bulk."
+    },
+    {
+      "name": "get_events",
+      "description": "List events.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_event",
+      "description": "Create an event for a profile."
+    },
+    {
+      "name": "get_metrics",
+      "description": "List event metrics.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_metric",
+      "description": "Get details of an event metric.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "query_metric_aggregates",
+      "description": "Query and aggregate event data associated with a metric.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_event",
+      "description": "Get details of an event.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_custom_metric",
+      "description": "Get details of a custom metric.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_mapped_metric",
+      "description": "Get details of a mapped metric.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_metric_property",
+      "description": "Get details of a metric property.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_custom_metrics",
+      "description": "List custom metrics.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_mapped_metrics",
+      "description": "List mapped metrics.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_flows_triggered_by_metric",
+      "description": "List flows triggered by a metric.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_custom_metric",
+      "description": "Create a custom metric."
+    },
+    {
+      "name": "update_custom_metric",
+      "description": "Update a custom metric."
+    },
+    {
+      "name": "delete_custom_metric",
+      "description": "Delete a custom metric."
+    },
+    {
+      "name": "update_mapped_metric",
+      "description": "Update a mapped metric."
+    },
+    {
+      "name": "bulk_create_events",
+      "description": "Create events for multiple profiles in bulk."
+    },
+    {
+      "name": "get_download_for_event_bulk_export_job",
+      "description": "Get the download URL for an event bulk export job. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_event_bulk_export_job",
+      "description": "Get the status of an event bulk export job.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_flows",
+      "description": "List your flows.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_flow",
+      "description": "Get details of a flow.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_flow_message",
+      "description": "Get details of a flow message.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_flow_action",
+      "description": "Get details of a flow action.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_flow",
+      "description": "Create a flow."
+    },
+    {
+      "name": "update_flow",
+      "description": "Update a flow's status."
+    },
+    {
+      "name": "delete_flow",
+      "description": "Delete a flow."
+    },
+    {
+      "name": "update_flow_action",
+      "description": "Update a flow action."
+    },
+    {
+      "name": "get_lists",
+      "description": "List your lists.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_list",
+      "description": "Get details of a list.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_segments",
+      "description": "List your segments.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_segment",
+      "description": "Get details of a segment.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_flows_triggered_by_list",
+      "description": "List flows triggered by a list.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_flows_triggered_by_segment",
+      "description": "List flows triggered by a segment.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_list",
+      "description": "Create a list."
+    },
+    {
+      "name": "update_list",
+      "description": "Update a list."
+    },
+    {
+      "name": "delete_list",
+      "description": "Delete a list."
+    },
+    {
+      "name": "add_profiles_to_list",
+      "description": "Add profiles to a list."
+    },
+    {
+      "name": "remove_profiles_from_list",
+      "description": "Remove profiles from a list."
+    },
+    {
+      "name": "create_segment",
+      "description": "Create a segment."
+    },
+    {
+      "name": "update_segment",
+      "description": "Update a segment."
+    },
+    {
+      "name": "delete_segment",
+      "description": "Delete a segment."
+    },
+    {
+      "name": "upload_image_from_file",
+      "description": "Upload image from a local file."
+    },
+    {
+      "name": "upload_image_from_url",
+      "description": "Upload image from a URL."
+    },
+    {
+      "name": "get_image",
+      "description": "Get details of an image.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_images",
+      "description": "List images.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "update_image",
+      "description": "Update an image's metadata."
+    },
+    {
+      "name": "get_profiles",
+      "description": "List your profiles.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_profile",
+      "description": "Get details of a profile.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_profile",
+      "description": "Create a profile."
+    },
+    {
+      "name": "update_profile",
+      "description": "Update a profile."
+    },
+    {
+      "name": "subscribe_profile_to_marketing",
+      "description": "Subscribe a profile to marketing for a given channel and list."
+    },
+    {
+      "name": "unsubscribe_profile_from_marketing",
+      "description": "Unsubscribe a profile from marketing for a given channel and list."
+    },
+    {
+      "name": "get_bulk_import_profiles_job",
+      "description": "Get the status of a bulk profile import job.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_suppress_profiles_job",
+      "description": "Get the status of a bulk profile suppression job.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_unsuppress_profiles_job",
+      "description": "Get the status of a bulk profile unsuppression job.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_push_token",
+      "description": "Get details of a push token.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_import_profiles_jobs",
+      "description": "List bulk profile import jobs.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_suppress_profiles_jobs",
+      "description": "List bulk profile suppression jobs.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_unsuppress_profiles_jobs",
+      "description": "List bulk profile unsuppression jobs.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_push_tokens",
+      "description": "List push tokens.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_or_update_profile",
+      "description": "Create or update a profile."
+    },
+    {
+      "name": "create_push_token",
+      "description": "Create or update a push token."
+    },
+    {
+      "name": "delete_push_token",
+      "description": "Delete a push token."
+    },
+    {
+      "name": "bulk_import_profiles",
+      "description": "Import profiles in bulk."
+    },
+    {
+      "name": "bulk_suppress_profiles",
+      "description": "Suppress profiles from marketing in bulk."
+    },
+    {
+      "name": "bulk_unsuppress_profiles",
+      "description": "Unsuppress profiles in bulk."
+    },
+    {
+      "name": "merge_profiles",
+      "description": "Merge two profiles."
+    },
+    {
+      "name": "get_download_for_profile_bulk_export_job",
+      "description": "Get the download URL for a profile bulk export job. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_profile_bulk_export_job",
+      "description": "Get the status of a profile bulk export job.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_campaign_report",
+      "description": "Get a report of your campaign performance.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_flow_report",
+      "description": "Get a report of your flow performance.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "query_form_values",
+      "description": "Query form performance values.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "query_form_series",
+      "description": "Query form performance over time.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "query_segment_values",
+      "description": "Query segment membership values.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "query_segment_series",
+      "description": "Query segment membership over time.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_email_template",
+      "description": "Create an HTML email template."
+    },
+    {
+      "name": "get_email_template",
+      "description": "Get the details of an email template.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_dnd_email_template",
+      "description": "Create a drag-and-drop (DND) email template with a structured definition."
+    },
+    {
+      "name": "update_dnd_email_template",
+      "description": "Update an existing drag-and-drop (DND) email template."
+    },
+    {
+      "name": "list_email_templates",
+      "description": "List your email templates.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "update_email_template",
+      "description": "Update an HTML email template."
+    },
+    {
+      "name": "clone_email_template",
+      "description": "Clone an email template."
+    },
+    {
+      "name": "delete_email_template",
+      "description": "Delete an email template."
+    },
+    {
+      "name": "render_email_template",
+      "description": "Render an email template with provided context.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_universal_content",
+      "description": "Get details of a universal content block.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_all_universal_content",
+      "description": "List universal content blocks.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_universal_content",
+      "description": "Create a universal content block."
+    },
+    {
+      "name": "update_universal_content",
+      "description": "Update a universal content block."
+    },
+    {
+      "name": "delete_universal_content",
+      "description": "Delete a universal content block."
+    },
+    {
+      "name": "create_template_preview_send_job",
+      "description": "Send a preview of a template to specified recipients. (Beta)"
+    },
+    {
+      "name": "get_translations",
+      "description": "List all translation collections. Supports filtering by channel, resource type, and resource ID. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_translation",
+      "description": "Get a translation collection by ID, optionally including translated values per locale. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_translation",
+      "description": "Create a translation collection for a campaign variation, flow message, template, or universal content. (Beta)"
+    },
+    {
+      "name": "update_translation",
+      "description": "Update translation settings (locales) and/or import translated values for a resource. (Beta)"
+    },
+    {
+      "name": "delete_translation",
+      "description": "Delete a translation collection and all its localized values. (Beta)"
+    },
+    {
+      "name": "get_coupon",
+      "description": "Get details of a coupon.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_create_coupon_codes_job",
+      "description": "Get the status of a bulk coupon code create job.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_coupons",
+      "description": "List coupons.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_coupon_codes",
+      "description": "List coupon codes.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_coupon_code",
+      "description": "Get details of a coupon code.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_bulk_create_coupon_code_jobs",
+      "description": "List bulk coupon code create jobs.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_coupon",
+      "description": "Create a coupon."
+    },
+    {
+      "name": "update_coupon",
+      "description": "Update a coupon."
+    },
+    {
+      "name": "create_coupon_code",
+      "description": "Create a coupon code."
+    },
+    {
+      "name": "update_coupon_code",
+      "description": "Update a coupon code."
+    },
+    {
+      "name": "delete_coupon_code",
+      "description": "Delete a coupon code."
+    },
+    {
+      "name": "delete_coupon",
+      "description": "Delete a coupon."
+    },
+    {
+      "name": "bulk_create_coupon_codes",
+      "description": "Create coupon codes in bulk."
+    },
+    {
+      "name": "get_tag_group",
+      "description": "Get details of a tag group.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_tags",
+      "description": "List tags.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_tag",
+      "description": "Get details of a tag.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_tag_groups",
+      "description": "List tag groups.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_tag",
+      "description": "Create a tag."
+    },
+    {
+      "name": "update_tag",
+      "description": "Update a tag."
+    },
+    {
+      "name": "delete_tag",
+      "description": "Delete a tag."
+    },
+    {
+      "name": "create_tag_group",
+      "description": "Create a tag group."
+    },
+    {
+      "name": "update_tag_group",
+      "description": "Update a tag group."
+    },
+    {
+      "name": "delete_tag_group",
+      "description": "Delete a tag group."
+    },
+    {
+      "name": "tag_campaigns",
+      "description": "Add a tag to campaigns."
+    },
+    {
+      "name": "tag_flows",
+      "description": "Add a tag to flows."
+    },
+    {
+      "name": "tag_lists",
+      "description": "Add a tag to lists."
+    },
+    {
+      "name": "tag_segments",
+      "description": "Add a tag to segments."
+    },
+    {
+      "name": "remove_tag_from_campaigns",
+      "description": "Remove a tag from campaigns."
+    },
+    {
+      "name": "remove_tag_from_flows",
+      "description": "Remove a tag from flows."
+    },
+    {
+      "name": "remove_tag_from_lists",
+      "description": "Remove a tag from lists."
+    },
+    {
+      "name": "remove_tag_from_segments",
+      "description": "Remove a tag from segments."
+    },
+    {
+      "name": "get_webhook",
+      "description": "Get details of a webhook.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_webhook_topics",
+      "description": "List webhook topics.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_webhook_topic",
+      "description": "Get details of a webhook topic.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_webhooks",
+      "description": "List webhooks.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "delete_webhook",
+      "description": "Delete a webhook."
+    },
+    {
+      "name": "get_form",
+      "description": "Get details of a form.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_forms",
+      "description": "List forms.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_form_version",
+      "description": "Get details of a form version.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_form",
+      "description": "Create a form."
+    },
+    {
+      "name": "delete_form",
+      "description": "Delete a form."
+    },
+    {
+      "name": "update_review",
+      "description": "Update a review."
+    },
+    {
+      "name": "request_profile_deletion",
+      "description": "Request deletion of a profile's data."
+    },
+    {
+      "name": "get_applications",
+      "description": "List OAuth applications. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "list_billing_usage",
+      "description": "List billing usage records. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_billing_usage",
+      "description": "Get details of a billing usage record. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_brand_button",
+      "description": "Create a brand button. (Beta)"
+    },
+    {
+      "name": "create_brand_color",
+      "description": "Create a brand color. (Beta)"
+    },
+    {
+      "name": "create_brand_logo",
+      "description": "Create a brand logo. (Beta)"
+    },
+    {
+      "name": "create_brand_social_group",
+      "description": "Create a brand social group. (Beta)"
+    },
+    {
+      "name": "delete_brand_button",
+      "description": "Delete a brand button. (Beta)"
+    },
+    {
+      "name": "delete_brand_color",
+      "description": "Delete a brand color. (Beta)"
+    },
+    {
+      "name": "delete_brand_logo",
+      "description": "Delete a brand logo. (Beta)"
+    },
+    {
+      "name": "delete_brand_social_group",
+      "description": "Delete a brand social group. (Beta)"
+    },
+    {
+      "name": "get_brand_button",
+      "description": "Get details of a brand button. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_brand_buttons",
+      "description": "List brand buttons. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_brand_color",
+      "description": "Get details of a brand color. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_brand_colors",
+      "description": "List brand colors. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_brand_email_default",
+      "description": "Get details of a brand email default. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_brand_email_defaults",
+      "description": "List brand email defaults. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_brand_logo",
+      "description": "Get details of a brand logo. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_brand_logos",
+      "description": "List brand logos. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_brand_social_group",
+      "description": "Get details of a brand social group. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_brand_social_groups",
+      "description": "List brand social groups. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_brand_voice",
+      "description": "Get the brand voice. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "update_brand_button",
+      "description": "Update a brand button. (Beta)"
+    },
+    {
+      "name": "update_brand_color",
+      "description": "Update a brand color. (Beta)"
+    },
+    {
+      "name": "update_brand_email_default",
+      "description": "Update a brand email default. (Beta)"
+    },
+    {
+      "name": "update_brand_logo",
+      "description": "Update a brand logo. (Beta)"
+    },
+    {
+      "name": "update_brand_social_group",
+      "description": "Update a brand social group. (Beta)"
+    },
+    {
+      "name": "update_brand_voice",
+      "description": "Update the brand voice. (Beta)"
+    },
+    {
+      "name": "create_agent_knowledge",
+      "description": "Create an agent knowledge entry. (Beta)"
+    },
+    {
+      "name": "create_agent_skill",
+      "description": "Create an agent skill. (Beta)"
+    },
+    {
+      "name": "create_agent_tool",
+      "description": "Create an agent tool. (Beta)"
+    },
+    {
+      "name": "create_customer_agent_response",
+      "description": "Create a customer agent response. (Beta)"
+    },
+    {
+      "name": "delete_agent_knowledge",
+      "description": "Delete an agent knowledge entry. (Beta)"
+    },
+    {
+      "name": "delete_agent_skill",
+      "description": "Delete an agent skill. (Beta)"
+    },
+    {
+      "name": "delete_agent_tool",
+      "description": "Delete an agent tool. (Beta)"
+    },
+    {
+      "name": "get_agent_knowledge",
+      "description": "Get details of an agent knowledge entry. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "list_agent_knowledge",
+      "description": "List agent knowledge entries. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_agent_skill",
+      "description": "Get details of an agent skill. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_agent_skills",
+      "description": "List agent skills. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_agent_tool",
+      "description": "Get details of an agent tool. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_agent_tools",
+      "description": "List agent tools. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_customer_agent",
+      "description": "Get details of a customer agent. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "retrieve_customer_agent_conversation",
+      "description": "Get details of a customer agent conversation. (Beta)"
+    },
+    {
+      "name": "list_customer_agent_conversations",
+      "description": "List customer agent conversations. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_agent_messages_for_customer_agent_conversation",
+      "description": "List messages in a customer agent conversation. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_skills_for_agent_tool",
+      "description": "List the skills for an agent tool. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "query_customer_agent_skill_values",
+      "description": "Query customer agent skill values. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "query_customer_agent_values",
+      "description": "Query customer agent values. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "update_agent_knowledge",
+      "description": "Update an agent knowledge entry. (Beta)"
+    },
+    {
+      "name": "update_agent_skill",
+      "description": "Update an agent skill. (Beta)"
+    },
+    {
+      "name": "update_agent_tool",
+      "description": "Update an agent tool. (Beta)"
+    },
+    {
+      "name": "update_customer_agent",
+      "description": "Update a customer agent. (Beta)"
+    },
+    {
+      "name": "update_customer_agent_conversation",
+      "description": "Update a customer agent conversation. (Beta)"
+    },
+    {
+      "name": "create_sending_domain_activation_job",
+      "description": "Create a sending domain activation job. (Beta)"
+    },
+    {
+      "name": "create_sending_domain",
+      "description": "Create a sending domain. (Beta)"
+    },
+    {
+      "name": "delete_sending_domain",
+      "description": "Delete a sending domain. (Beta)"
+    },
+    {
+      "name": "get_sending_domain",
+      "description": "Get details of a sending domain. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_sending_domains",
+      "description": "List sending domains. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_sending_domain_verification_job",
+      "description": "Create a sending domain verification job. (Beta)"
+    },
+    {
+      "name": "create_text_messaging_configuration",
+      "description": "Create a text messaging configuration. (Beta)"
+    },
+    {
+      "name": "create_text_messaging_sender",
+      "description": "Create a text messaging sender. (Beta)"
+    },
+    {
+      "name": "create_text_messaging_sender_registration",
+      "description": "Create a text messaging sender registration. (Beta)"
+    },
+    {
+      "name": "get_messaging_sender_registration_id_for_text_messaging_sender",
+      "description": "Get the registration ID for a text messaging sender. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_text_messaging_configuration",
+      "description": "Get details of a text messaging configuration. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_text_messaging_sender",
+      "description": "Get details of a text messaging sender. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_text_messaging_sender_registration",
+      "description": "Get details of a text messaging sender registration. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_text_messaging_senders",
+      "description": "List text messaging senders. (Beta)",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    }
+  ]
+}

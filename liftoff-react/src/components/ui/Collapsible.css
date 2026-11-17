@@ -1,0 +1,85 @@
+/* Collapsible - Modern Glass */
+.collapsible {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.collapsible__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.collapsible__header:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.collapsible__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-black);
+}
+
+.collapsible__count {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-gray-400);
+  background: rgba(0, 0, 0, 0.04);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.collapsible__icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: var(--radius-sm);
+  color: var(--color-gray-400);
+  transition: all var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.collapsible__header:hover .collapsible__icon {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.collapsible--open .collapsible__icon {
+  transform: rotate(180deg);
+  background: rgba(251, 65, 31, 0.08);
+  color: var(--color-accent);
+}
+
+.collapsible__content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s var(--ease-out);
+}
+
+.collapsible--open .collapsible__content {
+  grid-template-rows: 1fr;
+}
+
+.collapsible__inner {
+  overflow: hidden;
+}
+
+.collapsible--open .collapsible__inner {
+  padding: 0 18px 14px;
+}

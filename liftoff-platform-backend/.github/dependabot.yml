@@ -1,0 +1,73 @@
+version: 2
+
+# Two streams, tuned in opposite directions.
+#
+# SECURITY updates are switched on in repository settings and are deliberately
+# NOT configured here. They bypass everything below by design: they ignore
+# `groups`, and `ignore` rules do not suppress them. They should arrive fast,
+# individually, and for any severity of version jump.
+#
+# VERSION updates are the noisy half, and every option here exists to keep them
+# quiet — grouped so one pull request carries a whole tier, cooled off so a
+# release is never taken on the day it ships, and majors excluded because a
+# major is a migration somebody schedules, not a pull request somebody merges.
+#
+# This replaced a configuration that produced 45 open Dependabot pull requests
+# across the org, nearly all of them majors and the oldest 110 days old, while
+# 90 security alerts sat unaddressed because security updates were disabled.
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+    # Never on release day. This is noise control and a supply-chain measure at
+    # once: a compromised publish is usually caught within days of going out.
+    cooldown:
+      semver-minor-days: 7
+      semver-patch-days: 3
+
+    # Majors are planned work. This does NOT weaken security cover: ignore
+    # rules do not apply to security updates, so a major that fixes a CVE
+    # still opens a pull request.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+      # Our own packages. They live in a PRIVATE GCP Artifact Registry
+      # (us-west1-npm.pkg.dev/YOUR_CONTROL_PROJECT_STAGING/npm-packages-dev),
+      # which Dependabot cannot authenticate to — Artifact Registry npm auth is a
+      # short-lived `gcloud auth print-access-token`, and Dependabot can only hold
+      # a static secret. Every run therefore failed the whole job with
+      # `private_source_authentication_failure` on @liftoffos/proto-gen, taking
+      # the legitimate updates in the same run down with it.
+      #
+      # Ignoring them is not a workaround, it is the correct scope: these are
+      # first-party packages we publish ourselves (.github/workflows/publish-packages.yml)
+      # and bump deliberately when the contract changes. Dependabot was never the
+      # right mechanism for them.
+      #
+      # The alternative — a long-lived service-account key stored as a Dependabot
+      # secret — trades a noisy failure for a credential with no rotation story,
+      # readable by any workflow a dependency update can influence.
+      - dependency-name: "@liftoffos/*"
+
+    # Split by blast radius rather than by package, so the auto-merge workflow
+    # can take the harmless tier and leave runtime dependencies to a human.
+    groups:
+      production:
+        dependency-type: "production"
+      development:
+        dependency-type: "development"
+
+  # Ungrouped, this was 16 of the 45 open pull requests — one per action, every
+  # week. There is no reason to review `actions/checkout` on its own.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns: ["*"]

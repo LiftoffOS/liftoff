@@ -1,0 +1,164 @@
+name: Publish Packages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/**'
+  workflow_dispatch: {}
+
+concurrency:
+  group: publish-packages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish changed @liftoffos/* packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      # No registry-url here — default registry is public npm for deps.
+      # @liftoffos/* scope is redirected to GCP AR via .npmrc written below.
+      - uses: actions/setup-node@v7
+        with:
+          # The publish step upgrades to npm@12, which requires Node >=22.22.2.
+          # On Node 20 `npm i -g npm@latest` fails EBADENGINE and publishing
+          # has been broken (no @liftoffos/* package published since early July).
+          node-version: 22
+          cache: npm
+
+      - id: auth
+        name: Authenticate to GCP via WIF
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
+          service_account: YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com
+          token_format: access_token
+          access_token_lifetime: 600s
+          access_token_scopes: https://www.googleapis.com/auth/cloud-platform
+
+      - name: Configure npm for GCP Artifact Registry
+        run: |
+          cat > .npmrc <<EOF
+          @liftoffos:registry=https://us-west1-npm.pkg.dev/YOUR_CONTROL_PROJECT_STAGING/npm-packages-dev/
+          //us-west1-npm.pkg.dev/YOUR_CONTROL_PROJECT_STAGING/npm-packages-dev/:always-auth=true
+          //us-west1-npm.pkg.dev/YOUR_CONTROL_PROJECT_STAGING/npm-packages-dev/:_authToken=${{ steps.auth.outputs.access_token }}
+          EOF
+
+      - run: npm ci
+
+      # Providers first. npm iterates --workspaces alphabetically, so a package
+      # that imports a sibling is compiled before that sibling's dist/ exists:
+      # chat-attachments (c) imports service-runtime (s) and failed with TS2307
+      # the first time it was published. ci.yml and cloudbuild.yaml carry the
+      # same list; this workflow had no pre-build at all, which is why the hole
+      # was invisible until a package finally landed in the wrong half of the
+      # alphabet. A new package that imports a sibling belongs on this line.
+      - name: Build provider packages first
+        run: npm run build --workspace=packages/connector-types --workspace=packages/shared-types --workspace=packages/service-runtime
+
+      - name: Build all workspace packages
+        run: npm run build --workspaces --if-present
+
+      # Recurrence gate for the boot-breaking-schema incident: every composio-overlays
+      # tool inputSchema must be valid for the LLM tool API (no un-compilable `pattern`,
+      # no `nullable` without `type`, no bare `type: array`). Mirrors tenant-runtime's
+      # cold-start registry-validator exactly. Deterministic + offline (no secret) → an
+      # unconditional HARD gate. A malformed schema here dead-deploys the tool-gateway.
+      - name: Validate composio-overlays tool schemas (blocks boot-breaking schemas)
+        run: npm run validate:schemas --workspace=packages/composio-overlays
+
+      # Recurrence gate for the fabricated-slug incident: every composio-overlays
+      # slug must exist in live Composio. Self-activating — becomes a HARD gate
+      # once npm-publisher SA has secretmanager.secretAccessor on composio-api-key;
+      # until then the key fetch fails softly and the gate is skipped (never blocks).
+      - name: Fetch Composio API key (for slug validation gate)
+        id: composio_key
+        continue-on-error: true
+        run: |
+          KEY=$(curl -sf -H "Authorization: Bearer ${{ steps.auth.outputs.access_token }}" \
+            "https://secretmanager.googleapis.com/v1/projects/YOUR_CONTROL_PROJECT_STAGING/secrets/composio-api-key/versions/latest:access" \
+            | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['payload']['data']).decode())") || { echo "no secret access — skipping slug gate"; exit 0; }
+          echo "::add-mask::$KEY"
+          echo "COMPOSIO_API_KEY=$KEY" >> "$GITHUB_ENV"
+
+      - name: Validate composio-overlays slugs are real (blocks fabricated slugs)
+        if: env.COMPOSIO_API_KEY != ''
+        run: npm run validate:slugs --workspace=packages/composio-overlays
+
+      # OIDC trusted publishing requires npm ≥ 11.5.1 for automatic token exchange.
+      # setup-node ships an older npm; upgrade before the publish steps.
+      - name: Upgrade npm for OIDC trusted publishing
+        run: npm install -g npm@latest
+
+      - name: Publish internal packages to GCP Artifact Registry
+        run: |
+          set -e
+          for DIR in packages/*/; do
+            PKG_NAME=$(node -p "require('./$DIR/package.json').name")
+            LOCAL_VER=$(node -p "require('./$DIR/package.json').version")
+            if [ -z "$PKG_NAME" ] || [ -z "$LOCAL_VER" ]; then continue; fi
+
+            if ! node -e "const p=require('./$DIR/package.json'); if(!p.publishConfig) process.exit(1);"; then
+              echo "::notice::$PKG_NAME has no publishConfig — skipping"
+              continue
+            fi
+
+            # Packages with no publishConfig.registry go to public npm (handled in next step)
+            if ! node -e "const p=require('./$DIR/package.json'); if(!p.publishConfig.registry) process.exit(1);"; then
+              echo "::notice::$PKG_NAME targets public npm — handled by OIDC step"
+              continue
+            fi
+
+            REGISTRY_VER=$(npm view "$PKG_NAME" version 2>/dev/null || echo "")
+            if [ "$LOCAL_VER" = "$REGISTRY_VER" ]; then
+              echo "::notice::$PKG_NAME@$LOCAL_VER already in AR — skipping"
+              continue
+            fi
+            echo "::group::Publishing $PKG_NAME@$LOCAL_VER to AR (was: ${REGISTRY_VER:-none})"
+            (cd "$DIR" && npm publish --access restricted)
+            echo "::endgroup::"
+          done
+
+      # No NPM_TOKEN needed. npm ≥ 11.5.1 automatically exchanges the GitHub
+      # Actions OIDC token for a publish token when NODE_AUTH_TOKEN is empty
+      # and id-token: write is set. Requires trusted publisher configured on
+      # npmjs.org for this repo/workflow (Settings → Trusted Publishing).
+      - name: Publish public packages to npm (OIDC — no token required)
+        env:
+          NODE_AUTH_TOKEN: ""
+        run: |
+          set -e
+          for DIR in packages/*/; do
+            PKG_NAME=$(node -p "require('./$DIR/package.json').name")
+            LOCAL_VER=$(node -p "require('./$DIR/package.json').version")
+            if [ -z "$PKG_NAME" ] || [ -z "$LOCAL_VER" ]; then continue; fi
+
+            # Only packages with publishConfig and no publishConfig.registry
+            if ! node -e "const p=require('./$DIR/package.json'); if(!p.publishConfig || p.publishConfig.registry) process.exit(1);"; then
+              continue
+            fi
+
+            # curl avoids @liftoffos scope redirect to GCP AR that npm view would follow
+            PKG_ENCODED=$(echo "$PKG_NAME" | sed 's|/|%2f|g')
+            REGISTRY_VER=$(curl -sf "https://registry.npmjs.org/${PKG_ENCODED}/latest" \
+              | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])" 2>/dev/null || echo "")
+            if [ "$LOCAL_VER" = "$REGISTRY_VER" ]; then
+              echo "::notice::$PKG_NAME@$LOCAL_VER already on npm — skipping"
+              continue
+            fi
+
+            echo "::group::Publishing $PKG_NAME@$LOCAL_VER to npm via OIDC (was: ${REGISTRY_VER:-none})"
+            # Redirect scope to public npm for this publish; GCP AR line was for npm ci only
+            cp .npmrc .npmrc.bak
+            sed -i 's|@liftoffos:registry=.*|@liftoffos:registry=https://registry.npmjs.org/|' .npmrc
+            (cd "$DIR" && npm publish --access public)
+            mv .npmrc.bak .npmrc
+            echo "::endgroup::"
+          done

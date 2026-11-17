@@ -1,0 +1,76 @@
+.split-name-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.split-name-input__label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+}
+
+.split-name-input__wrapper {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: 9999px;
+  overflow: hidden;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.split-name-input__wrapper:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+
+.split-name-input__wrapper--error {
+  border-color: var(--status-error);
+}
+
+.split-name-input__input {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 10px 20px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+/* Wrapper handles the focus ring as one pill — suppress the global per-input
+   focus shadow defined in src/index.css so each zone doesn't draw its own.
+   Match the global rule's specificity (attribute selector) so this wins. */
+input[type="text"].split-name-input__input:focus-visible {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* Placeholders only appear once the user has engaged with the pill — the
+   empty resting state stays clean (no "First name | Last name" hint until
+   focus). focus-within means clicking either zone reveals both placeholders. */
+.split-name-input__input::placeholder {
+  color: transparent;
+}
+
+.split-name-input__wrapper:focus-within .split-name-input__input::placeholder {
+  color: var(--color-gray-400);
+}
+
+/* Tighten the gap between first/last name — reduce inner padding by 75%
+   (20px → 5px on each adjacent edge) so the two zones read as one pill. */
+.split-name-input__wrapper > .split-name-input__input:first-child {
+  padding-right: 5px;
+}
+
+.split-name-input__wrapper > .split-name-input__input:last-child {
+  padding-left: 5px;
+}

@@ -1,0 +1,22 @@
+{
+  "set": {
+    "id": "browser_goal_check",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "goal": "Search flights from ZRH to LHR on 2026-10-03 and show the results",
+    "final": {
+      "url": "https://fixture.test/flights",
+      "title": "Fixture",
+      "text": "Flight search\nFrom\nTo\nDate\nSearch flights"
+    },
+    "recent_actions": []
+  },
+  "expect": {
+    "goal_met": {
+      "max": 0.3
+    }
+  },
+  "note": "A page still on the form. Pins GOAL_T."
+}

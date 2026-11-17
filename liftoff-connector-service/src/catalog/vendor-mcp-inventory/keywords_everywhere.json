@@ -1,0 +1,106 @@
+{
+  "connectorType": "keywords_everywhere",
+  "harvestedAt": "2026-09-15",
+  "source": "vendor_docs",
+  "sourceUrl": "https://mcp.keywordseverywhere.com/docs",
+  "tools": [
+    {
+      "name": "get_credit_balance",
+      "description": "Get your account's credit balance.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_countries",
+      "description": "Get a list of the countries supported by the API.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_currencies",
+      "description": "Get a list of the currencies supported by the API.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_keyword_data",
+      "description": "Get keyword metrics for a list of keywords.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_pasf_keywords",
+      "description": "Get \"People Also Search For\" (PASF) keywords for a seed keyword.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_related_keywords",
+      "description": "Get related keyword suggestions for a given keyword.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_domain_keywords",
+      "description": "Get a list of keywords that a domain ranks for.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_url_keywords",
+      "description": "Get a list of keywords that a URL ranks for.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_domain_traffic_metrics",
+      "description": "Get the traffic metrics for a list of domains.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_url_traffic_metrics",
+      "description": "Get the traffic metrics for a list of URLs.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_domain_backlinks",
+      "description": "Get the top backlinks for a domain.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_unique_domain_backlinks",
+      "description": "Get the top backlinks for a domain, with only one backlink per source domain.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_page_backlinks",
+      "description": "Get the top backlinks for a single webpage.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_unique_page_backlinks",
+      "description": "Get the top backlinks for a single webpage, with only one backlink per source domain.",
+      "annotations": {
+        "readOnlyHint": true
+      }
+    }
+  ]
+}

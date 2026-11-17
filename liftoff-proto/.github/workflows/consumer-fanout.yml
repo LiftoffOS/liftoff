@@ -1,0 +1,63 @@
+name: consumer-fanout
+# Phase 0c both-sides-green — when a proto change merges to main and
+# publishes a new @liftoffos/proto-gen, fan out a repository_dispatch
+# to every consuming service so it runs its contract tests against
+# the new version. Blocks the merge (via required status) if any
+# consumer fails.
+
+on:
+  workflow_run:
+    workflows: [publish]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch-consumers:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        consumer:
+          - liftoff-billing
+          - liftoff-developer-proxy
+          - liftoff-workforce-service
+          - liftoff-platform-backend
+          - liftoff-connector-service
+          - liftoff-governance-engine
+          - Liftoff-Tenant-Runtime
+    steps:
+      - name: Read published versions
+        id: versions
+        run: |
+          echo "proto_gen_version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
+        # Real workflow would fetch from the npm registry; placeholder
+        # is the local file version.
+      - name: Fan out to ${{ matrix.consumer }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PROTO_GH_APP_TOKEN }}
+          repository: LiftoffOS/${{ matrix.consumer }}
+          event-type: proto-upstream-changed
+          client-payload: |
+            {
+              "proto_gen_version": "${{ steps.versions.outputs.proto_gen_version }}",
+              "contract_tests_version": "${{ steps.versions.outputs.proto_gen_version }}",
+              "source_sha": "${{ github.sha }}"
+            }
+
+  wait-for-consumers:
+    needs: dispatch-consumers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for every consumer to report consumer-contract-result
+        timeout-minutes: 30
+        run: |
+          # Poll GitHub's repository_dispatch event log for consumer
+          # result events. Fails if any consumer reports status!=success.
+          npx ts-node ./tools/proto-fanout/wait-for-consumers.ts \
+            --consumers liftoff-billing,liftoff-developer-proxy,liftoff-workforce-service,liftoff-platform-backend,liftoff-connector-service,liftoff-governance-engine,Liftoff-Tenant-Runtime \
+            --source-sha ${{ github.sha }}

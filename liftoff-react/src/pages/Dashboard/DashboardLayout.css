@@ -1,0 +1,123 @@
+/* Dashboard Layout */
+.dashboard-layout {
+  min-height: 100vh;
+  background: var(--color-white);
+  position: relative;
+}
+
+.dashboard-main {
+  margin-left: 240px;
+  min-height: 100vh;
+  transition: margin-left var(--duration-base) var(--ease-out);
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-layout--collapsed .dashboard-main {
+  margin-left: 48px;
+}
+
+.dashboard-content-loading { display: flex; align-items: center; justify-content: center; min-height: 60vh; }
+
+.dashboard-page {
+  padding: 24px 28px;
+  max-width: 1600px;
+}
+
+.dashboard-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.dashboard-page__header-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.dashboard-page__title {
+  font-size: var(--text-2xl);
+  font-weight: 400;
+  color: var(--color-black);
+  margin-bottom: 4px;
+}
+
+.dashboard-page__subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+}
+
+@media (max-width: 1024px) {
+  .dashboard-main {
+    margin-left: 48px;
+  }
+  .dashboard-page {
+    padding: 20px;
+  }
+}
+
+/* Mobile header - hidden on desktop */
+.dashboard-mobile-header {
+  display: none;
+}
+
+/* Mobile overlay */
+.dashboard-mobile-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .dashboard-mobile-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--color-white);
+    border-bottom: 1px solid var(--border-light);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 90;
+  }
+
+  .dashboard-mobile-header__toggle {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    color: var(--color-black);
+    background: transparent;
+    transition: background var(--duration-fast) var(--ease-out);
+  }
+
+  .dashboard-mobile-header__toggle:hover {
+    background: var(--color-gray-100);
+  }
+
+  .dashboard-mobile-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 95;
+  }
+
+  .dashboard-main,
+  .dashboard-layout--collapsed .dashboard-main {
+    margin-left: 0;
+    padding-top: 72px;
+  }
+
+  .dashboard-page {
+    padding: 16px;
+  }
+
+  .dashboard-page__title {
+    font-size: var(--text-xl);
+  }
+}

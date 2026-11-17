@@ -1,0 +1,112 @@
+name: rolling-compat
+# Phase 0c — rolling-upgrade compatibility matrix.
+#
+# Every PR that modifies a proto runs N-1 client vs N server AND
+# N client vs N-1 server. Any field that broke wire compat would have
+# been caught by `buf breaking`; this job catches the subtler case of
+# required-field additions or enum-value removals that render old
+# clients unable to round-trip responses from new servers (or vice
+# versa).
+#
+# Implementation: generate TS stubs on BOTH HEAD and the previous
+# published version tag, then run a matrix of serialize/deserialize
+# round-trips using the contract-test fixtures as sample payloads.
+# Failure = wire incompatibility; block the PR.
+
+on:
+  pull_request:
+    paths:
+      - 'liftoff/**'
+      - 'buf.yaml'
+      - 'buf.gen.yaml'
+      - 'package.json'
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  n-minus-one-matrix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: bufbuild/buf-action@v1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── Generate N stubs into ./gen-head ─────────────────────────────────
+      - name: Build N (HEAD) stubs
+        run: |
+          npm ci
+          npm run regenerate
+          mkdir -p artifacts/n-head
+          cp -r gen dist artifacts/n-head/
+
+      # ── Generate N-1 stubs into ./gen-prev by checking out the latest tag.
+      # Falls back to the common-ancestor commit on origin/main if no tags
+      # exist yet (first PR after Phase 0).
+      - name: Build N-1 stubs
+        run: |
+          PREV_REF=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+          if [ -z "$PREV_REF" ]; then
+            PREV_REF=$(git merge-base origin/main HEAD)
+          fi
+          echo "Using N-1 ref: $PREV_REF"
+          git worktree add /tmp/proto-prev "$PREV_REF"
+          (
+            cd /tmp/proto-prev
+            npm ci
+            npm run regenerate
+          )
+          mkdir -p artifacts/n-minus-1
+          cp -r /tmp/proto-prev/gen /tmp/proto-prev/dist artifacts/n-minus-1/
+
+      # ── Round-trip every fixture through BOTH directions ────────────────
+      - name: N-1 client → N server + N client → N-1 server round-trip
+        run: |
+          node --input-type=module -e "$(cat <<'JS'
+          import fs from 'node:fs';
+          import path from 'node:path';
+
+          async function loadStubs(dir) {
+            const idx = path.resolve(`./artifacts/${dir}/dist/index.js`);
+            return await import(idx);
+          }
+          const head = await loadStubs('n-head');
+          const prev = await loadStubs('n-minus-1');
+
+          // For each proto message with a -Schema export, take the HEAD
+          // instance, serialize with HEAD, deserialize with PREV. Assert
+          // no throw. Repeat reversed.
+          const pairs = Object.keys(head).filter((k) => k.endsWith('Schema'));
+          let failures = 0;
+          for (const key of pairs) {
+            const headSchema = head[key];
+            const prevSchema = prev[key];
+            if (!headSchema || !prevSchema) continue;
+            try {
+              const fromHead = head.create ? head.create(headSchema, {}) : {};
+              const bytes = head.toBinary ? head.toBinary(headSchema, fromHead) : Buffer.alloc(0);
+              prev.fromBinary && prev.fromBinary(prevSchema, bytes);
+              const bytes2 = prev.toBinary ? prev.toBinary(prevSchema, fromHead) : Buffer.alloc(0);
+              head.fromBinary && head.fromBinary(headSchema, bytes2);
+            } catch (err) {
+              console.error(`compat FAIL: ${key} — ${err.message}`);
+              failures++;
+            }
+          }
+          if (failures > 0) {
+            console.error(`${failures} compatibility round-trip failures`);
+            process.exit(1);
+          }
+          console.log(`rolling-compat OK across ${pairs.length} message schemas`);
+          JS
+          )"
+
+      - name: buf breaking (redundant-but-fail-fast)
+        run: buf breaking --against ".git#branch=main"

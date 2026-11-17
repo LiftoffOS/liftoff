@@ -1,0 +1,65 @@
+name: both-sides-green
+# Phase 0c — when the proto package upstream changes, fetch the latest
+# @liftoffos/proto-gen + @liftoffos/contract-tests and re-run this
+# repo's contract tests against them. Triggered by repository_dispatch
+# from liftoff-proto on every publish of @liftoffos/proto-gen.
+#
+# The mirror job in liftoff-proto's rolling-compat.yml fires a dispatch
+# event at every consuming service's `contract-sync` endpoint. This
+# workflow runs contract tests and fails the proto upstream if the
+# consumer cannot compile / validate fixtures against the new types.
+
+on:
+  repository_dispatch:
+    types: [proto-upstream-changed]
+  pull_request:
+    paths:
+      - 'src/rpc/**'
+      - 'src/events/**'
+      - 'package.json'
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # federate to GCP (WIF) so npm can read @liftoffos/* from Artifact Registry
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: npm
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
+          service_account: YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Artifact Registry npm token
+        run: |
+          TOKEN="$(gcloud auth print-access-token)"
+          echo "::add-mask::$TOKEN"
+          echo "ARTIFACT_REGISTRY_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+      - name: Align @liftoffos/proto-gen + @liftoffos/contract-tests with upstream
+        if: github.event_name == 'repository_dispatch'
+        run: |
+          echo "Upstream @liftoffos/proto-gen version: ${{ github.event.client_payload.proto_gen_version }}"
+          npm install \
+            @liftoffos/proto-gen@${{ github.event.client_payload.proto_gen_version }} \
+            @liftoffos/contract-tests@${{ github.event.client_payload.contract_tests_version }}
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test:contracts
+      - name: Report back to proto repo
+        if: always() && github.event_name == 'repository_dispatch'
+        uses: peter-evans/repository-dispatch@v4
+        with:
+          token: ${{ secrets.PROTO_GH_APP_TOKEN }}
+          repository: LiftoffOS/liftoff-proto
+          event-type: consumer-contract-result
+          client-payload: '{"consumer":"liftoff-billing","sha":"${{ github.sha }}","status":"${{ job.status }}"}'

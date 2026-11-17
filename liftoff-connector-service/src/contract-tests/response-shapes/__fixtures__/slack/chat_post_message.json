@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "channel": "C01ABCD2EFG",
+  "ts": "1700000000.000100",
+  "message": {
+    "type": "message",
+    "subtype": null,
+    "text": "Hello from harness",
+    "user": "C01ABCD2EFG",
+    "ts": "1700000000.000100",
+    "team": "C01ABCD2EFG"
+  }
+}

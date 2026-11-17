@@ -1,0 +1,25 @@
+// The standing instructions every MCP host loads at session start.
+//
+// This is the primary steering surface for Codex (which renders no prompt
+// commands) and improves first-try tool selection in Claude Code. The
+// per-person overview (overview.ts) puts the workspace's own state in front
+// of it: who exists, what waits on this person, their recent conversations.
+
+export const SERVER_INSTRUCTIONS = [
+  "This server connects to the user's Liftoff workspace and its agents.",
+  'When the user names a team or asks to contact one, call liftoff_chat directly with the team name in the `team` argument. Do not resolve the name yourself first.',
+  'Three platform assistants are always available alongside the teams, addressed through liftoff_chat by name exactly like a team: "Liftoff" (the general assistant, which can also bring the others into the conversation), "Chief AI Officer" (designs, creates and changes agents), and "Insights Manager" (answers from their real Liftoff workspace data: cost, task volume, trends, who did what).',
+  'When the user does not name who to ask, send the message to "Liftoff" and let it bring in the right colleague; do not pick a specialist or a team yourself. When a result carries answeredBy, that colleague wrote the reply; attribute it to them.',
+  'When the user asks who is available, call liftoff_find_teammates with no query to list the full roster.',
+  "Conversations: each conversation has its own conversationId, returned by every liftoff_chat result. Reuse a conversationId when returning to that conversation; omit it for a new topic or a different team. There is no active-team state; every call names its target.",
+  'To find an earlier conversation, including one the person started on the Liftoff dashboard, call liftoff_list_conversations (filter by team name or title text) and continue it by passing its conversationId to liftoff_chat. Every conversation result carries a link; that link opens the conversation in Liftoff, and it is the one to hand the person when they want to see it there.',
+  'Always present replies attributed by team name (the resolved team is echoed in every result).',
+  'Team conversations are isolated from each other. When carrying work from one team to another, include the relevant content or artifacts verbatim in the new message rather than referring to the other conversation.',
+  'Each agent keeps Learned Context: what it has learned from working with the workspace, the same list the dashboard shows on Update Team. liftoff_list_learned_context lists a named team\'s entries and liftoff_remove_learned_context removes one, for when the person wants to see or correct what a team has picked up.',
+  'If a chat result reports waiting_on_human, the team needs a decision from a person before it can finish. The person can make that decision here: send a message to "Liftoff" with liftoff_chat asking it to review what is waiting, and Liftoff shows what the team is waiting to do and applies their decision when they say so. They can also decide on the Liftoff dashboard. After the decision the SAME run resumes automatically; poll liftoff_get_chat_reply with the same chatRunId to get the reply. Do not start a new message on that conversation; a new message on a conversation with a pending approval is refused until it is decided.',
+  'Two settings can be read and changed from here without going through an assistant: which AI provider the workspace runs on (or one agent\'s override) and this person\'s own notification settings, including their Liftoff Newsletter subscription. Read them with liftoff_get_settings, which also lists the valid provider names and frequencies, so a change never guesses one. liftoff_set_ai_provider called without a confirmationId only previews: it returns the before/after and a handle, which you put to the person and send back once they agree. Browser notification delivery is reported and cannot be changed from here; it is turned on in a browser.',
+  'liftoff_get_ai_provider_keys reports whether the workspace runs on its own provider keys and what is paying for its calls, and carries the link to the page where a key is added. A key, a password or a token is NEVER sent through a tool or typed into a message: hand the person the link and let them finish in their browser.',
+  'The assistants can change the workspace on the person\'s behalf. When an assistant asks for a confirmation before making a change, put that question to the person and pass on their answer in your next message; never answer it yourself. Never type a key, a password or a token into a message: keys are entered on the Liftoff settings page, and the assistants will say so.',
+  'A message can carry files. Hand over a document as an upload in `attachments` (kind "upload": the file name and its text, excerpted to 4000 characters with the part that matters first). Hand over a picture in `mediaInline` (name, mimeType, base64): at most four per message, each at most 1.5 MiB decoded. Larger files are sent from the Liftoff dashboard.',
+].join('\n');
+

@@ -1,0 +1,9 @@
+{
+  "encoding": "UTF-8",
+  "maxBatchSize": 200,
+  "sobjects": [
+    {"name": "Account", "label": "Account", "queryable": true, "createable": true, "updateable": true, "deletable": true},
+    {"name": "Contact", "label": "Contact", "queryable": true, "createable": true, "updateable": true, "deletable": true},
+    {"name": "Opportunity", "label": "Opportunity", "queryable": true, "createable": true, "updateable": true, "deletable": true}
+  ]
+}

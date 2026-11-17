@@ -1,0 +1,521 @@
+/* Inter Variable font - exactly.ai style */
+@font-face {
+  font-family: "Inter Variable";
+  src: url("https://framerusercontent.com/assets/zGkzF6Kz3BzLVskEElr1XWKCSro.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+:root {
+  /* Colors - exactly.ai inspired palette */
+  --color-black: #1e1e1e;
+  --color-white: #ffffff;
+  --color-gray-50: #f7f7f7;
+  --color-gray-100: #f0f0f0;
+  --color-gray-200: #e4e4e4;
+  --color-gray-300: #c4c4c4;
+  --color-gray-400: rgba(64, 64, 64, 0.6);
+  --color-gray-500: rgba(64, 64, 64, 0.48);
+  --color-gray-600: rgba(64, 64, 64, 0.36);
+
+  /* Brand accent - exactly.ai orange-red */
+  --color-accent: #FB411F;
+  --color-accent-hover: #e63a1a;
+  --color-accent-light: rgba(251, 65, 31, 0.1);
+
+  /* Blue accent for highlights */
+  --color-blue: #3293FF;
+  --color-blue-light: rgba(51, 147, 255, 0.09);
+
+  /* Borders */
+  --border-light: rgba(124, 124, 124, 0.08);
+  --border-medium: rgba(124, 124, 124, 0.12);
+  --border-dark: rgba(0, 0, 0, 0.08);
+
+  /* Backgrounds */
+  --bg-light: #f7f7f7;
+  --bg-card: #ffffff;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Shadows - exactly.ai style layered shadows */
+  --shadow-sm: rgba(0, 0, 0, 0.07) 0px 0.6px 1.8px -1.25px,
+               rgba(0, 0, 0, 0.06) 0px 2.3px 6.9px -2.5px,
+               rgba(0, 0, 0, 0.03) 0px 10px 30px -3.75px;
+  --shadow-md: rgba(0, 0, 0, 0.1) 0px 2px 6px 0px,
+               rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
+  --shadow-lg: rgba(0, 0, 0, 0.15) 0px 1px 3px 0px,
+               rgba(0, 0, 0, 0.1) 0px 0px 20px 0px;
+
+  /* Typography - Inter Variable (exactly.ai style) */
+  --font-sans: "Inter Variable", "Inter Variable Placeholder", sans-serif;
+
+  /* Font sizes - exactly.ai scale */
+  --text-xs: 11px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 21px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-3xl: 36px;
+  --text-4xl: 48px;
+  --text-5xl: 56px;
+
+  /* Font weights - proportionally balanced for optical consistency */
+  --weight-xs: 400;
+  --weight-sm: 500;
+  --weight-base: 500;
+  --weight-lg: 500;
+  --weight-xl: 500;
+  --weight-2xl: 600;
+  --weight-3xl: 500;
+  --weight-4xl: 500;
+  --weight-5xl: 500;
+
+  /* Letter spacing - exactly.ai tight tracking */
+  --tracking-tight: -0.01em;
+  --tracking-normal: -0.01em;
+  --tracking-wide: -0.01em;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* Border radius - exactly.ai very rounded style */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-3xl: 40px;
+  --radius-4xl: 48px;
+  --radius-full: 1000px;
+
+  /* Dashboard Status Colors - muted, calm palette */
+  --status-success: #22c55e;
+  --status-success-muted: #86efac;
+  --status-success-bg: #f0fdf4;
+  --status-warning: #f59e0b;
+  --status-warning-muted: #fcd34d;
+  --status-warning-bg: #fffbeb;
+  --status-error: #ef4444;
+  --status-error-muted: #fca5a5;
+  --status-error-bg: #fef2f2;
+
+  /* Dashboard Surfaces */
+  --surface-raised: #ffffff;
+  --surface-sunken: #fafafa;
+  --surface-overlay: rgba(255, 255, 255, 0.95);
+
+  /* Transitions */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+
+  /* Focus ring for text-input-like fields. NON-input components (buttons,
+     dropdowns, cards, links, …) should NOT use this — they're rid of any
+     focus ring entirely. */
+  --focus-ring: 0 0 0 3px var(--color-accent-light);
+
+  /* Layout */
+  --max-width: 1200px;
+  --max-width-narrow: 800px;
+  --section-padding: 120px;
+  --container-padding: 24px;
+}
+
+/* Reset */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-white);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--color-black);
+  background-color: var(--color-white);
+  background-image: radial-gradient(ellipse 90% 300px at 50% 0%, rgba(214, 222, 248, 0.18) 0%, transparent 100%);
+  text-rendering: optimizeLegibility;
+  font-variation-settings: "opsz" 32, "wght" 320;
+  font-feature-settings: 'blwf' on;
+  letter-spacing: -0.01em;
+}
+
+/* Typography defaults */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.22;
+  font-variation-settings: "opsz" 32, "wght" 320;
+  font-feature-settings: 'blwf' on;
+}
+
+h1 { font-size: var(--text-4xl); }
+h2 { font-size: var(--text-3xl); }
+h3 { font-size: var(--text-xl); }
+h4 { font-size: var(--text-lg); }
+
+p {
+  line-height: 1.6;
+  letter-spacing: var(--tracking-normal);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Selection */
+::selection {
+  background: var(--color-accent-light);
+  color: inherit;
+}
+
+/* Focus styles — suppress browser outline globally; inputs use border+shadow instead */
+:focus-visible {
+  outline: none;
+}
+
+/* Screen reader only - visually hidden but accessible */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Global input focus — text inputs keep their accent border + ring so
+   keyboard users see which field is active. Buttons / dropdowns / cards
+   suppress focus styling individually in their own CSS. */
+input[type="text"]:focus-visible,
+input[type="email"]:focus-visible,
+input[type="password"]:focus-visible,
+input[type="search"]:focus-visible,
+input[type="url"]:focus-visible,
+input[type="tel"]:focus-visible,
+input[type="number"]:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+
+/* Scroll Animations */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s var(--ease-out),
+              transform 0.6s var(--ease-out);
+}
+
+.animate-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered animation delays */
+.stagger-1 { transition-delay: 0.05s; }
+.stagger-2 { transition-delay: 0.1s; }
+.stagger-3 { transition-delay: 0.15s; }
+.stagger-4 { transition-delay: 0.2s; }
+.stagger-5 { transition-delay: 0.25s; }
+.stagger-6 { transition-delay: 0.3s; }
+
+/* Container utility */
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--container-padding);
+}
+
+/* Labels/Tags - exactly.ai style */
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--label-bg, var(--color-gray-50));
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-black);
+  letter-spacing: -0.01em;
+  font-variation-settings: "opsz" 32, "wght" 320;
+  font-feature-settings: 'blwf' on;
+}
+
+.label--accent {
+  background: var(--color-accent-light);
+  border-color: transparent;
+  color: var(--color-accent);
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-on-scroll {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  :root {
+    --container-padding: 48px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --container-padding: 64px;
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --container-padding: 80px;
+  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+    --container-padding: 120px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --section-padding: 80px;
+    --text-lg: 16px;
+  }
+
+  h1 { font-size: var(--text-3xl); }
+  h2 { font-size: var(--text-2xl); }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --section-padding: 64px;
+    --text-lg: 16px;
+  }
+
+  h1 { font-size: var(--text-2xl); }
+  h2 { font-size: var(--text-xl); }
+}
+
+/* Prevent iOS zoom on input focus */
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Loading screen */
+.loading-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-gray-50);
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--color-gray-200);
+  border-top-color: var(--color-black);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Inline spinner for tight spots (list sentinels, buttons, table rows) where
+ * the 32px default would overwhelm the surrounding content. */
+.loading-spinner--sm {
+  width: 16px;
+  height: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* The blanket reduced-motion rule above stops every animation after one
+ * iteration, which leaves a spinner frozen as a static ring — it reads as
+ * decoration, not progress, and there is no "Loading…" text beside it any
+ * more to say otherwise. Rotation is the vestibular trigger, so swap it for
+ * an opacity fade rather than dropping the feedback entirely. Skeletons are
+ * deliberately left frozen: a static grey block already reads as a
+ * placeholder by its shape. */
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner,
+  .btn__spinner {
+    animation: loading-fade 1.4s ease-in-out infinite !important;
+  }
+}
+
+@keyframes loading-fade {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* Skeleton placeholders
+ *
+ * Global primitives, kept here beside .loading-spinner rather than in a page
+ * stylesheet. These class names are rendered by 11 components spread across
+ * routes that do not share a CSS chunk. While each page carried its own copy,
+ * a route whose chunk happened to contain no definition painted its skeletons
+ * as zero-height transparent boxes — /dashboard/teams did exactly that on any
+ * cold load. Defining them once in the entry sheet makes that impossible.
+ * Page stylesheets still own their scoped wrappers (.agent-card--skeleton,
+ * .connection-card--skeleton, and friends); only the shared names live here. */
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.skeleton-pulse {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* Rendered on <span> as well as <div>, so inline-block is load-bearing: a bare
+ * inline span ignores width and height. */
+.skeleton-text {
+  display: inline-block;
+  height: 14px;
+  background: var(--color-gray-100);
+  border-radius: 4px;
+}
+
+.skeleton-text--title {
+  height: 14px;
+  width: 80px;
+  margin-bottom: 6px;
+}
+
+.skeleton-text--subtitle {
+  height: 12px;
+  width: 60px;
+}
+
+.skeleton-text--section-title {
+  height: 18px;
+  width: 100px;
+}
+
+.skeleton-block {
+  background: var(--color-gray-100);
+  border-radius: 6px;
+}
+
+.skeleton-button {
+  height: 28px;
+  width: 70px;
+  background: var(--color-gray-100);
+  border-radius: 9999px;
+}
+
+.skeleton-badge {
+  height: 24px;
+  width: 64px;
+  background: var(--color-gray-100);
+  border-radius: 9999px;
+}
+
+.skeleton-icons {
+  height: 20px;
+  width: 88px;
+  background: var(--color-gray-100);
+  border-radius: 4px;
+}
+
+.skeleton {
+  background: var(--color-gray-100);
+  border-radius: 4px;
+}
+
+.skeleton--title {
+  height: 28px;
+}
+
+.skeleton--badge {
+  height: 24px;
+  border-radius: 9999px;
+}
+
+.skeleton--text {
+  height: 14px;
+  margin-bottom: var(--space-2);
+}
+
+.skeleton--icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  margin-bottom: var(--space-4);
+}

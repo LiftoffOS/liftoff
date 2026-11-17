@@ -1,0 +1,34 @@
+# Dependencies - will be installed fresh in container
+node_modules
+
+# Build artifacts - will be built fresh in container
+dist
+
+# Git and IDE
+.git
+.gitignore
+.DS_Store
+.vscode
+.idea
+
+# Environment files (SECURITY: never include in image)
+.env
+.env.*
+!.env.example
+
+# Test files
+*.test.ts
+*.spec.ts
+__tests__
+coverage
+jest.config.js
+jest.integration.config.js
+
+# Documentation
+README.md
+CLAUDE.md
+docs
+
+# Cloud Build config (not needed in image)
+cloudbuild.yaml
+

@@ -1,0 +1,43 @@
+{
+  "set": {
+    "id": "memory_used",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "memories": [
+      {
+        "memory": 0,
+        "id": "m-hubspot",
+        "content": "The HubSpot deals export omits rows whose region field is empty; filter on region before summing."
+      },
+      {
+        "memory": 1,
+        "id": "m-priya",
+        "content": "Priya prefers the weekly summary as short bullet points."
+      },
+      {
+        "memory": 2,
+        "id": "m-printer",
+        "content": "The office printer on floor 2 needs the manual feed for A3 paper."
+      }
+    ],
+    "run": {
+      "objective": "Reconcile last week's closed deals into the Sales tracking sheet.",
+      "toolTrail": "[{\"name\": \"hubspot-4e2f__list_deals\", \"success\": true, \"note\": \"filtered region != empty\"}, {\"name\": \"google_sheets-2a1b__append_row\", \"success\": true, \"sheet\": \"Sales\"}, {\"name\": \"slack-b9b3__send_message\", \"success\": true}]",
+      "outcomeSummary": "Filtered 3 deals with an empty region out of the HubSpot export, appended the summary row to the Sales tab, and posted a three-bullet summary to #sales-ops."
+    }
+  },
+  "expect": {
+    "used_0": {
+      "min": 0.7
+    },
+    "used_1": {
+      "min": 0.7
+    },
+    "used_2": {
+      "max": 0.3
+    }
+  },
+  "note": "The run's actions name the connector and the filter the first memory describes, and the summary took the second's form. Pins USED_T."
+}

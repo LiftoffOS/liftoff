@@ -1,0 +1,114 @@
+/* AgentChatPage — minimal additions on top of ChatPage.css */
+
+/* Title row with back button inline */
+.agent-chat-page__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Override BackButton absolute positioning — render inline in header */
+.agent-chat-page__back {
+  position: static;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+/* Channel badge for thread history items */
+.agent-chat-page__channel-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  line-height: 1.4;
+}
+
+.agent-chat-page__channel-badge--slack {
+  color: #611f69;
+  background: rgba(97, 31, 105, 0.08);
+}
+
+.agent-chat-page__channel-badge--web {
+  color: var(--color-gray-500);
+  background: var(--color-gray-100);
+}
+
+/* HITL approval pending — inline status at the top of the conversation while a
+   tool call awaits approval. Placement mirrors .chat-page__hybrid-indicator; the
+   CTA is the shared <Button variant="primary" size="sm">Review</Button> (no new
+   approval UI, no bespoke link color) that deep-links into /dashboard/review. */
+.chat-page__hitl-indicator {
+  display: flex;
+  align-items: center;
+  /* Status (dot + text) reads from the left; the Review CTA anchors right. */
+  justify-content: space-between;
+  gap: var(--space-2);
+  /* Vertical padding gives the glass bar its height (matches the box that was
+     designed in the preview); horizontal aligns it with the conversation. */
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+
+  /* Persistent: a pending approval is a blocking, actionable state, so pin it to
+     the top of the conversation instead of letting it scroll away. It stays put
+     under the floating header while the messages scroll UNDER it. */
+  position: sticky;
+  top: 0;
+  z-index: 1;
+
+  /* Glass — frosts the messages passing behind it (the same frosted surface the
+     chat input uses). The backdrop-filter only becomes visible now that content
+     scrolls behind the element. */
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(5px) saturate(0%);
+  -webkit-backdrop-filter: blur(5px) saturate(0%);
+  border-radius: var(--radius-lg); /* rounded-rectangle corners (12px) */
+  /* Shadow behind the bar, matching the chat input glass (.chat-input__glass). */
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
+}
+
+/* ── Browser notification prompt ────────────────────────────────────────────
+   Same glass shell as the indicator above (shared in the rule that opens this
+   block), because this column already has a language for "something needs you"
+   and inventing a second one would read as chrome from another page. What
+   differs is the dot and the dismiss control. */
+
+
+.chat-page__hitl-indicator__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.chat-page__hitl-indicator__dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background: #f59e0b; /* amber — "attention needed" */
+}
+
+/* The persisted "waiting on / decided by" rows live in ChatPage.css. They began
+   here, when team chat was the only surface that could stall on a decision;
+   Liftoff can now stall the same way, on the same status row, so the rules moved
+   to the stylesheet both pages already import rather than being copied. */
+
+/* Read-only notice for Slack threads */
+.agent-chat-page__readonly-notice {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  background: var(--color-gray-50);
+  border-top: 1px solid var(--border-light);
+}

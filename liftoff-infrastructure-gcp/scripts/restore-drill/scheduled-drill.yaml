@@ -1,0 +1,71 @@
+# Scheduled Restore Drill Configuration
+# Per Section 22 Phase 5: Restore drill automation
+# Per Section 19: Quarterly restore drill
+
+# This Cloud Scheduler job triggers quarterly restore drills
+# Deploy with: gcloud scheduler jobs create http restore-drill-quarterly ...
+
+apiVersion: cloudscheduler.googleapis.com/v1
+kind: Job
+metadata:
+  name: restore-drill-quarterly
+spec:
+  # Run quarterly: First day of Jan, Apr, Jul, Oct at 2 AM UTC
+  schedule: "0 2 1 1,4,7,10 *"
+  timeZone: "UTC"
+  description: "Quarterly restore drill automation per Section 19"
+
+  httpTarget:
+    uri: "${CLOUD_RUN_DRILL_SERVICE_URL}/api/drills/start"
+    httpMethod: POST
+    headers:
+      Content-Type: "application/json"
+    body: |
+      {
+        "environment": "staging",
+        "drillType": "pitr",
+        "dryRun": false,
+        "notifyChannels": ["#platform-oncall", "#sre-team"]
+      }
+    oidcToken:
+      serviceAccountEmail: "${DRILL_SERVICE_ACCOUNT}"
+      audience: "${CLOUD_RUN_DRILL_SERVICE_URL}"
+
+  retryConfig:
+    retryCount: 2
+    minBackoffDuration: "30s"
+    maxBackoffDuration: "600s"
+    maxDoublings: 3
+
+---
+# Monthly staging drill (for more frequent testing)
+apiVersion: cloudscheduler.googleapis.com/v1
+kind: Job
+metadata:
+  name: restore-drill-monthly-staging
+spec:
+  # Run monthly: First Sunday at 3 AM UTC
+  schedule: "0 3 * * 0#1"
+  timeZone: "UTC"
+  description: "Monthly staging restore drill"
+
+  httpTarget:
+    uri: "${CLOUD_RUN_DRILL_SERVICE_URL}/api/drills/start"
+    httpMethod: POST
+    headers:
+      Content-Type: "application/json"
+    body: |
+      {
+        "environment": "staging",
+        "drillType": "pitr",
+        "dryRun": false,
+        "notifyChannels": ["#platform-oncall"]
+      }
+    oidcToken:
+      serviceAccountEmail: "${DRILL_SERVICE_ACCOUNT}"
+      audience: "${CLOUD_RUN_DRILL_SERVICE_URL}"
+
+  retryConfig:
+    retryCount: 1
+    minBackoffDuration: "60s"
+    maxBackoffDuration: "300s"

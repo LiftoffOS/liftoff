@@ -1,0 +1,99 @@
+# Multi-service integration harness. Phase 0c.
+#
+# Spins up one Postgres per service (platform-control, connector, governance,
+# tenant-test) plus a Pub/Sub emulator so cross-service tests can exercise
+# the full wiring: shadow-mode comparisons, contract round-trips, preflight →
+# authorize → record flows, connector execute batches.
+#
+# Why four Postgres instances: the target architecture (Phase 3) puts each
+# service on its own Cloud SQL instance. Integration tests should match
+# production topology so RLS policies, row-level FKs, and schema migrations
+# are validated against the same boundaries they'll hit in prod.
+#
+# Start:
+#   docker-compose -f docker-compose.integration.yml up -d
+# Stop (and wipe):
+#   docker-compose -f docker-compose.integration.yml down -v
+
+services:
+  control-plane-pg:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: liftoff_control_test
+      POSTGRES_USER: liftoff_test
+      POSTGRES_PASSWORD: test_password
+    ports:
+      - '5433:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U liftoff_test -d liftoff_control_test']
+      interval: 2s
+      timeout: 5s
+      retries: 20
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  connector-pg:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: connector_test
+      POSTGRES_USER: connector_test
+      POSTGRES_PASSWORD: test_password
+    ports:
+      - '5434:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U connector_test -d connector_test']
+      interval: 2s
+      timeout: 5s
+      retries: 20
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  governance-pg:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: governance_test
+      POSTGRES_USER: governance_test
+      POSTGRES_PASSWORD: test_password
+    ports:
+      - '5435:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U governance_test -d governance_test']
+      interval: 2s
+      timeout: 5s
+      retries: 20
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  tenant-pg:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: tenant_runtime_test
+      POSTGRES_USER: tenant_test
+      POSTGRES_PASSWORD: test_password
+    ports:
+      - '5436:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U tenant_test -d tenant_runtime_test']
+      interval: 2s
+      timeout: 5s
+      retries: 20
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  # Pub/Sub emulator for cross-service event contract tests.
+  # Matches google-cloud-pubsub client's GOOGLE_CLOUD_PROJECT semantics.
+  pubsub-emulator:
+    image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
+    command:
+      - /bin/bash
+      - -c
+      - gcloud beta emulators pubsub start --host-port=0.0.0.0:8085 --project=test
+    environment:
+      CLOUDSDK_CORE_PROJECT: test
+    ports:
+      - '8085:8085'
+    healthcheck:
+      test: ['CMD-SHELL', 'nc -z 0.0.0.0 8085 || exit 1']
+      interval: 2s
+      timeout: 5s
+      retries: 20

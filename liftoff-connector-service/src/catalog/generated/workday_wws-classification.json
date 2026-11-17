@@ -1,0 +1,3293 @@
+[
+  {
+    "tool": "absence_management_adjust_time_off",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "absence_management_enter_time_off",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "absence_management_put_absence_input",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "absence_management_request_leave_of_absence",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "absence_management_request_return_from_leave_of_absence",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "absence_management_put_override_balance",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "absence_management_put_carryover_override",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "absence_management_import_time_off_request_event_batch",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "absence_management_import_request_leave_of_absence_events",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "absence_management_import_request_return_from_leave_of_absence_events",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_benefit_annual_rate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_employee_defined_contribution_elections",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_dependent",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_custom_validation_rule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_health_care_rate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_postal_code_set",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_benefit_plan",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_benefit_individual_rate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_change_benefits",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_enroll_in_retirement_savings_plans",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_benefit_plan_year_definition",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_benefit_provider",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_insurance_rate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_grant_cobra_eligibility",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_add_dependent",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_edit_dependent",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_change_benefit_jobs",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_benefit_annual_credit",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_worker_wellness_data",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_affordable_care_act_worker_hours_and_wages",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_evidence_of_insurability",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_change_beneficiary",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_manage_medicare_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_benefit_plan_expanded_details",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_benefits_decision_support_configuration",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_wellbeing_interests",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_put_benefits_billing_event",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_import_1095-c_form_recipients_data",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_import_medicare_part_d_egwp",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "benefits_administration_bulk_import_change_benefits",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "compensation_put_previous_system_compensation_history",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_request_bonus_payment",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_request_employee_merit_adjustment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "compensation_request_one-time_payment",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_request_compensation_change",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_compensation_matrix",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_compensation_grade",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_compensation_plans",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_future_payment_plan_assignment",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_compensation_scorecard",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_one-time_payment_plan",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_benchmark_job",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "compensation_update_stock_grant",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "compensation_add_stock_grant",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "compensation_put_compensation_eligibility_rule",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_compensation_scorecard_result",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_create_severance_worksheet",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "compensation_put_compensation_grade_hierarchy",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_period_activity_task",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "compensation_assign_eligible_period_activities_for_employee",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "compensation_put_period_activity_rate_matrix",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "compensation_manage_period_activity_pay_assignments",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_stock_participation_rate_table",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "compensation_put_one-time_payment_plan_configurable_category",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_request_requisition_compensation_change",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_enhanced_severance_matrix",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "compensation_request_default_compensation",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_compensation_survey_job_matches",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_compensation_survey_job_result",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_compensation_survey_job_detail",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_compensation_benchmark_data",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_configurable_compensation_basis",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_put_locality_pay_area",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_import_eligible_earnings_override",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "compensation_import_request_compensation_change",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_import_compensation_survey_job_results",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_import_compensation_survey_job_details",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_import_request_one_time_payment",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_import_compensation_benchmark_data",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "compensation_import_compensation_benchmark_configuration",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "human_resources_put_location",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_add_update_organization",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_previous_system_job_history",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_dissolve_organization_structure",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_update_employee_personal_info",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_update_contingent_worker_personal_info",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_inactivate_organization",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_update_employee_image",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_update_workday_account",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_add_workday_account",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_company_insider_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_work_shift",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_job_category",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_dependent",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_workers_compensation_code",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "human_resources_put_holiday_calendar",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_work_schedule_calendar",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_external_url",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_supervisory_organization_assignment_restrictions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_frequency",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_disability",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_ethnicity",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_training_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_job_classification_group",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_job_family",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_job_family_group",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_user-based_security_group_assignments",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_related_person_relationship",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_difficulty_to_fill",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_worker_photo",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_manage_union_membership",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_academic_rank",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_end_academic_appointment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_add_academic_appointment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_update_academic_appointment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_provisioning_group",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_provisioning_group_assignment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_search_settings",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_addresses_for_country_format_extension",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_maintain_contact_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_service_center_representative",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_service_center_representative_workday_account",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_background_check_status",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_academic_unit",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_academic_unit_hierarchy",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_political_affiliation",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_personal_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_government_ids",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_legal_name",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_preferred_name",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_additional_names",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_passports_and_visas",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_licenses",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_other_ids",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_former_worker",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_social_benefits_locality",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_former_worker_document",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_create_named_professorship",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_edit_named_professorship",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_assign_user-based_security_group",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_assign_employee_collective_agreement_event",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_emergency_contacts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_reassign_superior_to_inactive_organization",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_location_hierarchy_organization_assignments",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_organization_reference_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_committee_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_committee_classification_group",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_committee_classification",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_committee_membership_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_manage_committee_membership",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_manage_employee_probation_periods_event",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_maintain_committee_definition",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_lgbt_identification",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_appointment_specialty",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_end_collective_agreement_assignment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_committee_meeting",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_establishment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_assign_establishment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_reactivate_organization",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_veteran_status_identification",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_assign_members_to_custom_organization",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_work_status_rule_set",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_period_reporting_calendar",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_location_attribute",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_gender",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_safety_incident_location",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_external_disability_self_identification_record",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_gender_identity",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_sexual_orientation",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_pronoun",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_organization_name",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_create_reference_letter_for_worker",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_universal_identifier",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_business_title",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_edit_academic_appointment_track_additional_data",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_work_space",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_sort_order_enabled",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_preferred_communication_language",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_eeo_data_record",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_workteam",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_work_contact_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_home_contact_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_external_form_i-9",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_external_form_i-9_source",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_report_safety_incident",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_update_safety_incident",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_person_photo",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_external_form_i-9_section_3",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_workteam_membership",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_work_schedule_calendar_group",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_form_i-9_business_address",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_workday_benchmarking_job_profile_mapping",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_worker_start_date_correction_defaulting_rule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_match_rule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_correct_record_of_external_form_i-9_section_3",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_correct_record_of_external_form_i-9",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_disability_configuration",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_personal_information_help_text",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_race_ethnicity_details",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_end_flexible_work_arrangement",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_add_flexible_work_arrangement",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_worker_preferred_time_zone",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_add_vaccination",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_add_workplace_test",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_person_name_pronunciation",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_aboriginal_indigenous_identification_details",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_vaccine",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_vaccination_status",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_vaccination_event_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_vaccine_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_vaccine_manufacturer",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_workplace_test_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_workplace_test_result",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_veterans_preference",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_national_id_type_cache_status",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_military_discharge_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_uniform_service_reserve_status",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_email_match_exclusion",
+    "categories": [
+      "dataChanges",
+      "customerCommunication"
+    ]
+  },
+  {
+    "tool": "human_resources_put_name_match_exclusion",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_address_for_data_validation",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_external_us_federal_disability_self-identification_record",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_external_us_federal_ethnicity_and_race_self-identification_record",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_creditable_service_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_maintain_non-country_nationalities",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_change_public_profile_preferences",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_active_consent_processing_purpose",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_user-based_security_group_event_for_user",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_active_consent_preferences_by_country_for_role",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_active_consent_by_country",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_submit_job_profile",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_country_specific_configurable_personal_information_section",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_put_non_country_specific_configurable_personal_information_section",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_user-based_security_group_event_for_group",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_import_universal_identifiers",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_import_change_work_contact_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_import_person_photos",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "human_resources_import_change_home_contact_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_off-cycle_payment",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_history_payment",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_submit_payroll_input",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_period_schedule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_assign_costing_allocation",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_payee_fica",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_payee_pt1",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_payee_td1",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_federal_w-4_tax_election",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_worker_tax_treaty",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_involuntary_withholding_order",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_change_no_retro_processing_prior_to",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_limit_override",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_usa_state_and_local_tax_election",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_payee_ongoing_work_jurisdiction_tax_election",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_successor_employer",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_payee_futa",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_deduction_recipient",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_advanced_lookup_table",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_put_paycheck_delivery__public_",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_single_legal_entity",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_put_w-2_w-2c_printing_election",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_put_tax_levy_deduction_restriction",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_tax_document_delivery",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_withholding_order_local_minimum_wage_rate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_tax_mapping_on_location",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_run_pay_calculation",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_payee_tax_location_mapping",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_forward_accrual_options",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_assign_pay_group",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_employer_paid_expense_costing_defaults_criteria",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_put_common_paymaster",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_w-2pr_control_numbers",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_put_payroll_retro_accounting_options",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_worker_payroll_tax_filing_override",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_company_us_tax_reporting",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_put_input_value_lookup_table",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_import_payroll_input",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_import_payroll_off-cycle_payment",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_import_roe_prior_period_history_results",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_import_maintain_payroll_reporting_codes_for_workers",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_import_payroll_history_payment",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_import_flexible_payment_and_deduction",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_import_tax_document_delivery",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_interface_put_external_payroll_input",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_interface_put_batch",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_interface_put_external_payroll_actuals",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_interface_put_period_schedule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_interface_put_external_pay_group",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_interface_put_external_payroll_earning",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_interface_put_external_payroll_deduction",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_interface_put_worker_effective_change_integration_systems",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_interface_put_payroll_forward_accrual_options",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_interface_put_integration_event_error_message_set",
+    "categories": [
+      "dataChanges",
+      "customerCommunication"
+    ]
+  },
+  {
+    "tool": "payroll_interface_put_employer_paid_expense_costing_defaults_criteria",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "payroll_interface_put_payroll_retro_accounting_options",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_interface_import_external_payroll_results",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_interface_import_external_payroll_input",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "payroll_interface_import_external_payroll_document",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "performance_management_start_performance_review",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_organization_goal",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_degree",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_school_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_field_of_study",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_manage_goals",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_competency_category",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_competency",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_update_employee_review_rating",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_certification",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_certification_issuer",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_goal_unit",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_feedback_badge",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_review_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_review_question_category",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_review_question",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_goal_payout_band",
+    "categories": [
+      "dataChanges",
+      "financialActions"
+    ]
+  },
+  {
+    "tool": "performance_management_put_check-in_topic",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_check-in",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_put_feedback_question",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_import_employee_reviews",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_load_employee_reviews",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "performance_management_bulk_import_update_employee_review_rating",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_applicant",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_create_position",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_edit_position_restrictions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_create_job_requisition",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_edit_job_requisition",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_candidate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_unpost_job",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_post_job",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_update_job_posting",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_close_job_requisition",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_candidate_attachment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_job_posting_site",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_candidate_photo",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_background_check_package",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_manage_job_requisition_freeze",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_background_check",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_assess_candidate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_create_evergreen_requisition",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_edit_evergreen_requisition",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_close_evergreen_requisition",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_move_job_requisition",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_edit_position_restrictions_additional_data",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_edit_job_requisition_additional_data",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_recruiting_agency_user",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_move_candidate_to_linked_job_requisition",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_primary_posting",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_move_candidate_to_linked_evergreen_requisition",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_job_application_additional_data",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_recruiting_agency",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_submit_recruiting_agency_candidate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_move_candidate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_recruiting_agency_additional_data",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_job_requisition_interview_settings",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_interview",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_refer_a_candidate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_interview_feedback",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_veteran_status",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_undo_move_from_hire",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_recruiting_self-schedule_calendar_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_assign_recruiting_self-schedule_calendar",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_recruiting_self-schedule_calendar",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_recruiting_assessment_category",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_recruiting_assessment_category_security_segment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_offer",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_maintain_candidate_list_assignment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_site_brand",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_employment_agreement",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_job_application_template_translation",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_masked_recruiting_configuration",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_masked_job_requisition_default",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_referee",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_external_reference",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_web_conference_interview_data",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_candidate_rating_template",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_put_rating_data_mapping",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "recruiting_import_applicant",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_addonly_employee",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_terminate_employee",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_edit_position",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_hire_employee",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_assign_organization",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_applicant",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_end_contingent_worker_contract",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_contract_contingent_worker",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_dependent",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_create_position",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_edit_service_dates",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_end_additional_job",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_add_additional_job",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_add_retiree_status",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_remove_retiree_status",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_maintain_employee_contracts",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_citizenship_status",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_edit_position_restrictions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_job_classification_group",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_job_family",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_job_family_group",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_start_international_assignment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_end_international_assignment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_assign_organization_roles",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_worker_document",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_change_job",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_switch_primary_job",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_close_position",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_collective_agreement",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_change_personal_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_set_hiring_restrictions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_edit_hiring_restrictions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_hire_event_proposed_worker_id",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_edit_worker_additional_data",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_edit_position_restrictions_additional_data",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_move_workers_by_organization",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_change_organization_assignments",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_assign_roles",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_student_employment_eligibility_status",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_notice_period_eligibility_rule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_maintain_notice_periods_for_country",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_edit_notice_periods_event",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_maintain_probation_periods_for_country",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_student_employment_eligibility_rule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_probation_period_eligibility_rule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_student_employment_eligibility_rule_set",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_change_work_space",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_freeze_position",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_no_show",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_probation_period_outcomes",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_assign_matrix_organization",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_edit_employee_contract_additional_data",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_remove_matrix_organization",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_delete_worker_document",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_global_staffing_eligibility_rule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_maintain_employee_contract_rules_for_country",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_staffing_field_defaults_condition_rules",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_staffing_field_defaults",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_probation_period_outcome",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_fse_worker_category_criteria",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_working_time_eligibility_rules",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_maintain_working_time_for_country",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_correct_contract_contingent_worker",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_job_overlap_routing_exclusion_rule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_functionality_for_staffing_transactions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_maintain_job_overlap_routing_exclusion_rule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_correct_hire_employee",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_edit_creditable_service",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_nature_of_action",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_legal_authority",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_remark",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_put_personnel_action_request_status_on_mass_action",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_external_student_information",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_hire_employee",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_contract_contingent_worker",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_applicant",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_swap_positions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_terminate_employee",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_end_contingent_worker_contract",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_change_job",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_assign_matrix_organization",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_remove_matrix_organization",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_change_organization_assignment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_move_workers_by_organization",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_edit_hiring_restrictions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_create_position",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_edit_position",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_import_add_additional_job",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_bulk_import_end_additional_job",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_assess_talent",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_manage_succession_plan",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_position_for_succession",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_degree",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_school_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_manage_certifications",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_manage_competencies",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_field_of_study",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_manage_training",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_manage_awards_and_activities",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_manage_education",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_competency",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_manage_internal_projects",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_manage_work_experience",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_manage_professional_affiliations",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_manage_languages",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_manage_job_history",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_talent_pool",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_give_feedback",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_work_experience",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_school",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_certification",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_edit_relocation_preferences",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_edit_travel_preferences",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_edit_career_interests",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_edit_job_interests",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_development_item",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_skill",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_calibration_program",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_skill_item_category",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_job_history_company",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_certification_issuer",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_manage_succession_pool",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_competency_class",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_proficiency_rating_scale",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_subspecialty",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_specialty",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_professional_affiliation_relationship_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_professional_affiliation_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_professional_affiliation",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_skill_profile_category",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_skill_profile",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_talent_statement_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_succession_strategy",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_connection_type",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_talent_statement",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_manage_skills",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_manage_publications",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_close_mentorship_reason",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_mentorship",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_contact_connection",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_talent_review_onboarding_setup",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_development_item_status",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_development_item_category",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_mentor_options",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_qualification_equivalence_rule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_skill_criticality",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_talent_tag",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_talent_survey",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_put_skill_vendor",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_import_calibration_values",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_import_external_skill",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_import_external_skill_mapping",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "talent_import_external_skill_sources",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "time_tracking_put_time_clock_events",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "time_tracking_assign_work_schedule",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "time_tracking_import_reported_time_blocks",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "time_tracking_import_time_clock_events",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "time_tracking_import_ad_hoc_schedules",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "workforce_planning_put_headcount_plan_structure__do_not_use_",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "workforce_planning_maintain_headcount_plan",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "workforce_planning_put_headcount_plan_template__do_not_use_",
+    "categories": [
+      "dataChanges"
+    ]
+  }
+]

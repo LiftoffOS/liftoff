@@ -1,0 +1,42 @@
+/* Match the collapsed sidebar's bottom-left avatar exactly.
+   Sidebar is 48px wide; footer padding is 8px; user button is 36x36 centered.
+   So the visual position is left:6px, bottom:8px of the viewport. */
+.onboarding-user-menu {
+  position: fixed;
+  bottom: 8px;
+  left: 6px;
+  z-index: 50;
+  width: 36px;
+  height: 36px;
+}
+
+/* Inherit collapsed-sidebar button look. .sidebar__user already provides the
+   transparent → gray-100 hover; we mirror the collapsed-sidebar overrides
+   (square footprint, no padding, no border-top divider). */
+.onboarding-user-menu .sidebar__user {
+  justify-content: center;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  border-top: none;
+}
+
+.onboarding-user-menu .sidebar__avatar {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+}
+
+/* Name + email are hidden in the collapsed sidebar — same here. */
+.onboarding-user-menu .sidebar__user-info {
+  display: none;
+}
+
+/* Popover opens up + right, matching the collapsed sidebar variant. */
+.onboarding-user-menu .sidebar__user-menu {
+  left: 0;
+  bottom: 100%;
+  top: auto;
+  margin-bottom: 4px;
+}

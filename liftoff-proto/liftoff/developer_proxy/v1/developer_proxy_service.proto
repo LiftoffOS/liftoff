@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+// liftoff-developer-proxy management surface. Transparent vendor proxy traffic
+// does NOT flow here: it goes through the hot-path HTTP proxy.
+package liftoff.developer_proxy.v1;
+
+import "google/protobuf/timestamp.proto";
+import "liftoff/developer_proxy/v1/types.proto";
+import "liftoff/event/v1/common.proto";
+
+service DeveloperProxyService {
+  rpc CreateCredential(CreateCredentialRequest) returns (CreateCredentialResponse);
+  rpc ListCredentials(ListCredentialsRequest) returns (ListCredentialsResponse);
+  rpc RevokeCredential(RevokeCredentialRequest) returns (RevokeCredentialResponse);
+
+  rpc GetUsage(GetUsageRequest) returns (GetUsageResponse);
+
+  // PKCE flow exchanges a user-provided vendor key for a Liftoff proxy
+  // credential. Initiate returns the code_challenge; Complete validates
+  // the verifier + vendor key and mints the credential.
+  rpc InitiatePkceSetup(InitiatePkceSetupRequest) returns (InitiatePkceSetupResponse);
+  rpc CompletePkceSetup(CompletePkceSetupRequest) returns (CompletePkceSetupResponse);
+
+  rpc ExportTenantData(ExportTenantDataRequest) returns (stream ExportTenantDataResponse);
+  rpc DeleteTenantUserData(DeleteTenantUserDataRequest) returns (DeleteTenantUserDataResponse);
+}
+
+// ── CreateCredential ──────────────────────────────────────────────────
+
+message CreateCredentialRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  DeveloperProxyVendor vendor = 2;
+  // Vendor-issued API key. Encrypted in flight, stored in Secret Manager
+  // under byok/{tenant_id}/{user_id}/{vendor}/{version}; never persisted
+  // in the service DB.
+  string raw_api_key = 3;
+  string label = 4;
+}
+
+message CreateCredentialResponse {
+  Credential credential = 1;
+}
+
+// ── ListCredentials ───────────────────────────────────────────────────
+
+message ListCredentialsRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  liftoff.event.v1.Pagination pagination = 2;
+  DeveloperProxyVendor vendor_filter = 3;
+  CredentialStatus status_filter = 4;
+}
+
+message ListCredentialsResponse {
+  repeated Credential credentials = 1;
+  string next_page_token = 2;
+}
+
+// ── RevokeCredential ──────────────────────────────────────────────────
+
+message RevokeCredentialRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  string credential_id = 2;
+  // Optional — surfaced in audit log.
+  string reason = 3;
+}
+
+message RevokeCredentialResponse {
+  Credential credential = 1;
+  // Count of in-flight SSE sessions terminated by this revocation.
+  int32 sessions_terminated = 2;
+}
+
+// ── GetUsage ──────────────────────────────────────────────────────────
+
+message GetUsageRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  google.protobuf.Timestamp period_start = 2;
+  google.protobuf.Timestamp period_end = 3;
+  DeveloperProxyVendor vendor_filter = 4;
+  // Optional — scope down to a single user. Otherwise aggregates across
+  // every user the caller's roles permit.
+  string user_id = 5;
+}
+
+message GetUsageResponse {
+  repeated UsageSummary summaries = 1;
+}
+
+// ── Pkce flow ─────────────────────────────────────────────────────────
+
+message InitiatePkceSetupRequest {
+  liftoff.event.v1.TenantContext tenant_context = 1;
+  DeveloperProxyVendor vendor = 2;
+  string code_challenge = 3;
+  string code_challenge_method = 4;
+}
+
+message InitiatePkceSetupResponse {
+  PkceSession session = 1;
+}
+
+message CompletePkceSetupRequest {
+  string session_id = 1;
+  string code_verifier = 2;
+  string raw_api_key = 3;
+}
+
+message CompletePkceSetupResponse {
+  Credential credential = 1;
+}

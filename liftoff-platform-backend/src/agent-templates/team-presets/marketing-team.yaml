@@ -1,0 +1,56 @@
+id: marketing-team
+version: "1.1.0"
+schemaVersion: 1
+displayName: Marketing Team
+description: A ten-role marketing team, each role owning one cadence and one artifact, provisioned together and rolled out in the order the connected systems allow. The weekly marketing review is the roll-up every other role feeds, tracking and billing keep the numbers honest, retention, lifecycle and advocacy work the customer base, activation and experiments work the product funnel, intent works the top of the funnel, and paid media stages what a person approves.
+roles:
+  - key: operations
+    templateId: marketing-operations-manager
+    roleProse: |
+      Every Monday at 8am, writes the weekly marketing review from whichever analytics, ads, product analytics and CRM accounts are connected: last week's numbers by channel side by side with each platform's attribution window named and never summed, the blended cost per acquisition as the neutral view, the comparison with the prior week, the three moves that matter, the one anomaly to check, and the channels not measured. Cites the web analytics analyst's anomaly notes and the conversion tracking analyst's report where they exist rather than recomputing them.
+  - key: tracking
+    templateId: conversion-tracking-analyst
+    roleProse: |
+      On the first of every month, lists every tracked goal and conversion action in the connected analytics tool and ads account, reads whether each fired in the last 30 days, and reports the silent ones with the last date each fired, carrying a goal that has never fired until a person marks it retired.
+  - key: retention
+    templateId: customer-success-manager
+    roleProse: |
+      Every week, scores every account Red, Yellow or Green against the account's own intervention thresholds, sends the tier's outreach, delegates a critical escalation, and tells the lifecycle email specialist which accounts churned this week and the reason recorded, so the win-back draft starts from it.
+  - key: billing
+    templateId: accounts-receivable-specialist
+    roleProse: |
+      Every weekday at 8am, runs the AR review: reminders by aging tier, failed payments by decline type on the day 0, 3, 7 and 10 sequence that stops the moment a payment recovers, and the daily aging summary; never duns a customer who chose to cancel.
+  - key: lifecycle
+    templateId: lifecycle-email-specialist
+    roleProse: |
+      On the first of every month, re-reads every lifecycle email in the connected email system against the current website, flags the ones that name a feature, price or step that no longer exists, and drafts the rewrite beside the original; on request, designs the sequence for a named stage. Drafts only; a person schedules and sends.
+  - key: activation
+    templateId: product-activation-analyst
+    roleProse: |
+      Every Monday at 9am, reads the signup-to-activation funnel as the connected product analytics tool defines it, records the baseline on the first run, and thereafter reports a step whose conversion fell past its normal week-to-week variance with the size of the drop and the likeliest cause, handing an unexplained drop to the experimentation analyst as a backlog idea.
+  - key: intent
+    templateId: social-intent-lead-finder
+    roleProse: |
+      Every two hours, searches the watched communities across the five signal buckets for buying-intent posts, shortlists a prospect only when the pain, the fit, a current trigger and a public professional contact path all show with a source, drafts the reply at the tier the post deserves, and hands every draft to a rep; posts nothing itself.
+  - key: experiments
+    templateId: experimentation-analyst
+    roleProse: |
+      Every Monday at 9am, reads the experiment backlog, marks each running test preliminary until it reaches its pre-committed sample size, re-ranks the open ideas by impact, confidence and ease, writes a playbook entry for each concluded test, and posts the top five; runs no test itself.
+  - key: paid
+    templateId: paid-media-manager
+    roleProse: |
+      Every third morning at 9am, reads frequency, click-through and conversion for each live ad, and for an ad fatigued past a real significance bar stages two replacement iterations as paused entities and posts the proposal with its rollback, applying only what a person approves and staging what the paid media auditor recommended once approved. Never deletes.
+  - key: advocacy
+    templateId: customer-advocacy-specialist
+    roleProse: |
+      On the first of every month, lists the customers who reached a success milestone, names the one ask each is best placed for (a review, a case study or a referral), skips anyone asked in the last 90 days or flagged at risk by the customer success manager, drafts each ask beside the name and hands the list to a person; contacts nobody.
+provisioningNotes: |
+  Roll the team out in this order: operations, tracking, retention and billing first, since the review,
+  the tracking report, the health scoring and the AR review run on the documents tool, the analytics
+  account, the CRM and the accounting system a workspace usually already has; lifecycle and activation
+  once email marketing and product analytics are bound; intent once social media is bound; paid once an
+  ads account is bound; advocacy once the CRM carries a satisfaction signal; experiments last, once there
+  is a backlog table and ideas to rank. Each role binds its own required connector; where the
+  provisioning call needs every role bound at once, provision the roles whose connectors are bound and
+  add the rest as their connectors arrive. Subscriptions and schedules are distilled from each role's
+  cadence prose at provisioning time; they are not authored here.

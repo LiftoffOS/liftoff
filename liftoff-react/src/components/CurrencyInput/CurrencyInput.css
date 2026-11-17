@@ -1,0 +1,22 @@
+.currency-input__wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.currency-input__prefix {
+  position: absolute;
+  left: 20px;
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  pointer-events: none;
+}
+
+.currency-input__field {
+  padding-left: 32px;
+  text-align: right;
+}
+
+.currency-input__field::placeholder {
+  text-align: right;
+}

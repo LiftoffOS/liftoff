@@ -1,0 +1,230 @@
+[
+  {
+    "tool": "staffing_workers_initiateorganizationassignmentchange",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_workers_createskillitem",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_jobchanges_updatestartdetails",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_workers_createworkcontactinformationchanges",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_jobchanges_updatejobprofileoptions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_jobchanges_partialupdatelocationoptions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_workers_createcheckintopic",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_organizationassignmentchanges_updatecustomorganizations",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_organizationassignmentchanges_updatebusinessunit",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_workers_updatecheckintopicstate",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_workers_updateexternalskilllevel",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_organizationassignmentchanges_partiallyupdatestartdetails",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_jobchanges_updatemoveteamoptions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_workers_createhomecontactchangeprocess",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_jobchanges_updatepositionoptions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_jobchanges_updatebusinesstitleoptions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_workers_updatecheckin",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_workers_deletecheckin",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_jobchanges_updateadministrativeoptions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_workers_saveuserskills",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_organizationassignmentchanges_partiallyupdatecompany",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_organizationassignmentchanges_partiallyupdatecostingoptions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_workers_partiallyupdatecheckintopic",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_workers_deletecheckintopic",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_organizationassignmentchanges_updateregion",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_workers_createcheckin",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_jobchanges_submitchangejob",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_jobchanges_updatejobclassificationoptions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_workers_initiatejobchange",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_jobchanges_updateopeningoptions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_organizationassignmentchanges_submitchangerequest",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_organizationassignmentchanges_updatecostcenter",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_organizationassignmentchanges_updatecomment",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_jobchanges_partiallyupdatecontractoptions",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_workers_partiallyupdatecheckin",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_workers_createexternalskilllevels",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_organizationassignmentchanges_createchangeevent",
+    "categories": [
+      "dataChanges"
+    ]
+  },
+  {
+    "tool": "staffing_jobchanges_updatecomment",
+    "categories": [
+      "dataChanges"
+    ]
+  }
+]

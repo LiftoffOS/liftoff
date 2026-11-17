@@ -1,0 +1,20 @@
+{
+  "GOOGLE_ANALYTICS_LIST_ACCOUNT_SUMMARIES": { "stableName": "list_account_summaries", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_LIST_ACCOUNTS_V1_BETA": { "stableName": "list_accounts", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_LIST_PROPERTIES_FILTERED": { "stableName": "list_properties", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_GET_PROPERTY": { "stableName": "get_property", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_LIST_DATA_STREAMS": { "stableName": "list_data_streams", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_GET_METADATA": { "stableName": "get_metadata", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_CHECK_COMPATIBILITY": { "stableName": "check_compatibility", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_RUN_REPORT": { "stableName": "run_report", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_BATCH_RUN_REPORTS": { "stableName": "batch_run_reports", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_RUN_PIVOT_REPORT": { "stableName": "run_pivot_report", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_RUN_REALTIME_REPORT": { "stableName": "run_realtime_report", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_RUN_FUNNEL_REPORT": { "stableName": "run_funnel_report", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_LIST_KEY_EVENTS": { "stableName": "list_key_events", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_LIST_CUSTOM_DIMENSIONS": { "stableName": "list_custom_dimensions", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_LIST_CUSTOM_METRICS": { "stableName": "list_custom_metrics", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_LIST_AUDIENCES": { "stableName": "list_audiences", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_LIST_CHANNEL_GROUPS": { "stableName": "list_channel_groups", "categories": ["read"] },
+  "GOOGLE_ANALYTICS_GET_ATTRIBUTION_SETTINGS": { "stableName": "get_attribution_settings", "categories": ["read"] }
+}

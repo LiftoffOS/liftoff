@@ -1,0 +1,28 @@
+{
+  "set": {
+    "id": "browser_goal_check",
+    "version": 1,
+    "model": "jev-1.13.0"
+  },
+  "state": {
+    "goal": "Search flights from ZRH to LHR on 2026-10-03 and show the results",
+    "final": {
+      "url": "https://fixture.test/results",
+      "title": "Flight results",
+      "text": "Results\nFlights from ZRH to LHR on 2026-10-03: 6 flights found.\nCheapest: 09:10 departure, CHF 89.\n11:40 departure, CHF 104.\n14:05 departure, CHF 121."
+    },
+    "recent_actions": [
+      {
+        "action": "Search flights",
+        "kind": "click",
+        "page_changed": true
+      }
+    ]
+  },
+  "expect": {
+    "goal_met": {
+      "min": 0.7
+    }
+  },
+  "note": "A results page showing the requested route and date. Pins GOAL_T."
+}
